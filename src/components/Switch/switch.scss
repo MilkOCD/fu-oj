@@ -1,0 +1,46 @@
+.switch {
+    width: 40px;
+    height: 22px;
+    border-radius: 25px;
+    position: relative;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    display: flex;
+    align-items: center;
+
+    &:hover {
+        .switch-handle {
+            background: var(--color-border);
+        }
+    }
+}
+
+.switch.on {
+    background-color: var(--color-drawer-bg);
+}
+
+.switch.off {
+    background-color: var(--color-drawer-bg);
+}
+
+.switch-handle {
+    width: 20px;
+    height: 20px;
+    background: var(--color-button-bg);
+    border-radius: 50%;
+    position: absolute;
+    top: 1px;
+    left: 0px;
+    transition: left 0.5s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    .anticon {
+        color: var(--color-button-text);
+    }
+}
+
+.switch.on .switch-handle {
+    left: 20px;
+}

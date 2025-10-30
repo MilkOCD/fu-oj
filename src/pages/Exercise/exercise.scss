@@ -1,0 +1,125 @@
+.exercise-description {
+    padding: 0 !important;
+    background: var(--color-navbar);
+
+    .header {
+        background: var(--color-text-primary);
+        padding: var(--base-size-4);
+        border-top-left-radius: var(--borderRadius-medium);
+        border-top-right-radius: var(--borderRadius-medium);
+        color: var(--color-navbar);
+
+        .item {
+            padding: var(--base-size-4) var(--base-size-8);
+            display: flex;
+            font-size: var(--base-size-14);
+            gap: var(--base-size-4);
+            font-weight: var(--base-text-weight-medium);
+        }
+    }
+
+    .content {
+        padding: var(--base-size-20) var(--base-size-16);
+
+        .content-header {
+            font-size: var(--base-size-24);
+            font-weight: var(--base-text-weight-medium);
+            margin-bottom: var(--base-size-8);
+        }
+
+        p {
+            font-size: var(--base-size-14);
+        }
+    }
+}
+
+.exercise {
+    // overflow: hidden;
+    padding: 0 !important;
+    display: flex;
+    flex-direction: column;
+    gap: var(--base-size-8);
+    background: var(--color-navbar);
+
+    .header {
+        background: var(--color-text-primary);
+        padding: var(--base-size-4);
+        border-top-left-radius: var(--borderRadius-medium);
+        border-top-right-radius: var(--borderRadius-medium);
+        color: var(--color-navbar);
+
+        .item {
+            padding: var(--base-size-4) var(--base-size-8);
+            display: flex;
+            font-size: var(--base-size-14);
+            gap: var(--base-size-4);
+            font-weight: var(--base-text-weight-medium);
+        }
+    }
+
+    .actions {
+        display: flex;
+        gap: var(--base-size-8);
+        margin-left: var(--base-size-16);
+    }
+
+    .content {
+        flex: 1;
+        min-height: 0;
+    }
+}
+
+.drag-handle {
+    &:hover {
+        cursor: grab;
+    }
+}
+
+.drag-handle:active {
+    cursor: grabbing; /* khi đang kéo */
+}
+
+.lines-content.monaco-editor-background,
+.margin-view-overlays {
+    background: var(--color-navbar);
+}
+
+.view-lines.monaco-mouse-cursor-text {
+    border-bottom-right-radius: var(--borderRadius-medium);
+}
+
+.margin-view-overlays {
+    border-bottom-left-radius: var(--borderRadius-medium);
+}
+
+/* 1. Scrollbar cho Monaco Editor */
+.monaco-scrollable-element {
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: rgba(0, 0, 0, 0.3) transparent; /* thumb và track */
+}
+
+/* Chrome / Edge / Safari */
+.monaco-scrollable-element::-webkit-scrollbar {
+    width: 0px;
+}
+
+.monaco-scrollable-element::-webkit-scrollbar-track {
+    background: transparent; /* track trong suốt */
+}
+
+.monaco-scrollable-element::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 3px;
+    transition: background 0.2s;
+}
+
+.monaco-scrollable-element::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* 2. Overview ruler kiểu Mac */
+.decorationsOverviewRuler {
+    width: 0px !important;
+    background-color: rgba(0, 0, 0, 0.05);
+    border-radius: 3px;
+}

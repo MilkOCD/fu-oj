@@ -1,0 +1,31 @@
+.ant-drawer {
+    .ant-drawer-content-wrapper {
+        max-width: 350px;
+
+        .ant-drawer-content {
+            background: var(--color-bg);
+
+            .ant-drawer-header {
+                color: var(--color-text-secondary);
+                text-transform: uppercase;
+
+                .ant-drawer-header-title {
+                    text-align: center;
+
+                    button {
+                        position: absolute;
+                        right: 0;
+                    }
+                }
+            }
+
+            .ant-drawer-body {
+                padding: 0;
+            }
+        }
+    }
+}
+
+.ant-pagination-item-link {
+    color: var(--color-text-secondary) !important;
+}

@@ -1,0 +1,28 @@
+.line {
+    width: 100%;
+    display: flex;
+    margin-top: var(--base-size-16);
+    margin-bottom: var(--base-size-16);
+    justify-content: center;
+    align-items: center;
+
+    .left-line {
+        flex: 1;
+        border-bottom: 1px solid var(--color-border);
+        margin-right: var(--base-size-16);
+    }
+
+    & > img {
+        // flex: 1;
+    }
+
+    .right-line {
+        flex: 1;
+        border-bottom: 1px solid var(--color-border);
+        margin-left: var(--base-size-16);
+    }
+
+    .line-only {
+        margin: 0;
+    }
+}

@@ -1,0 +1,119 @@
+// Dark theme colors
+$d-color-bg: #181a25;
+$d-color-background: #02040a;
+$d-color-navbar: #02040a;
+$d-color-drawer-bg: #161b22;
+$d-color-text-secondary: #e6edf3;
+$d-color-button-text: #c8d1d9;
+$d-color-button-bg: #202830;
+$d-color-button-hover: #262c36;
+$d-color-list-item-hover: #252c33;
+// $d-color-list-item-selected: #161a21;
+$d-color-background-card: #0d1116;
+$d-color-border: #3d444d;
+$d-color-border-lighter: #2f353d;
+$d-color-border-focused: #1f72f1;
+$d-color-text-primary: oklch(70.5% 0.213 47.604);
+$d-color-text-muted: #9198a1;
+$d-color-link: #4493f8;
+$d-color-underline: #f78166;
+$d-color-tooltip-bg: rgba(255, 255, 255, 0.75);
+$d-box-shadow-color: rgba(255, 255, 255, 0.1);
+
+// Light theme colors
+$l-color-bg: #f4f5f8;
+$l-color-background: #ffffff;
+$l-color-navbar: #f6f8fa;
+$l-color-drawer-bg: #ffffff;
+$l-color-text-secondary: #1f2329;
+$l-color-button-text: #24292f;
+$l-color-button-bg: #f6f8fa;
+$l-color-button-hover: #f0f2f5;
+$l-color-list-item-hover: #f2f3f4;
+// $l-color-list-item-selected: #eceeef;
+$l-color-background-card: #ffffff;
+$l-color-border: #d0d9e0;
+$l-color-border-lighter: #dfe4ea;
+$l-color-border-focused: #1f72f1;
+$l-color-text-primary: oklch(70.5% 0.213 47.604);
+$l-color-text-muted: #59636e;
+$l-color-link: #0a69da;
+$l-color-underline: #fd8c73;
+$l-color-tooltip-bg: rgba(0, 0, 0, 0.75);
+$l-box-shadow-color: rgba(0, 0, 0, 0.1);
+
+// Function to return the appropriate theme color
+@mixin theme-colors($theme) {
+    @if $theme == 'dark' {
+        --color-bg: #{$d-color-bg};
+        --color-background: #{$d-color-background};
+        --color-navbar: #{$d-color-navbar};
+        --color-drawer-bg: #{$d-color-drawer-bg};
+        --color-text-secondary: #{$d-color-text-secondary};
+        --color-button-text: #{$d-color-button-text};
+        --color-button-bg: #{$d-color-button-bg};
+        --color-button-hover: #{$d-color-button-hover};
+        --color-list-item-hover: #{$d-color-list-item-hover};
+        // --color-list-item-selected: #{$d-color-list-item-selected};
+        --color-background-card: #{$d-color-background-card};
+        --color-border: #{$d-color-border};
+        --color-border-lighter: #{$d-color-border-lighter};
+        --color-border-focused: #{$d-color-border-focused};
+        --color-text-primary: #{$d-color-text-primary};
+        --color-text-muted: #{$d-color-text-muted};
+        --color-link: #{$d-color-link};
+        --color-underline: #{$d-color-underline};
+        --color-tooltip-bg: #{$d-color-tooltip-bg};
+        --box-shadow-color: #{$d-box-shadow-color};
+    } @else if $theme == 'light' {
+        --color-bg: #{$l-color-bg};
+        --color-background: #{$l-color-background};
+        --color-navbar: #{$l-color-navbar};
+        --color-drawer-bg: #{$l-color-drawer-bg};
+        --color-text-secondary: #{$l-color-text-secondary};
+        --color-button-text: #{$l-color-button-text};
+        --color-button-bg: #{$l-color-button-bg};
+        --color-button-hover: #{$l-color-button-hover};
+        --color-list-item-hover: #{$l-color-list-item-hover};
+        // --color-list-item-selected: #{$l-color-list-item-selected};
+        --color-background-card: #{$l-color-background-card};
+        --color-border: #{$l-color-border};
+        --color-border-lighter: #{$l-color-border-lighter};
+        --color-border-focused: #{$l-color-border-focused};
+        --color-text-primary: #{$l-color-text-primary};
+        --color-text-muted: #{$l-color-text-muted};
+        --color-link: #{$l-color-link};
+        --color-underline: #{$l-color-underline};
+        --color-tooltip-bg: #{$l-color-tooltip-bg};
+        --box-shadow-color: #{$l-box-shadow-color};
+    }
+}
+
+// Usage in your CSS
+.theme-dark {
+    @include theme-colors('dark');
+}
+
+.theme-light {
+    @include theme-colors('light');
+}
+
+.max-width {
+    width: 100%;
+}
+
+.mt-px {
+    margin-top: var(--base-size-8);
+}
+
+.mr-px {
+    margin-right: var(--base-size-8);
+}
+
+.mb-px {
+    margin-bottom: var(--base-size-8);
+}
+
+.ml-px {
+    margin-left: var(--base-size-8);
+}
