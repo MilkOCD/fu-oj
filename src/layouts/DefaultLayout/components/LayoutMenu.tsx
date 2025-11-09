@@ -1,4 +1,4 @@
-import { ContainerFilled, FundFilled, HomeFilled, ReadFilled, UsergroupAddOutlined } from '@ant-design/icons';
+import { ContainerFilled, FundFilled, HomeFilled, ReadFilled, UsergroupAddOutlined, TrophyOutlined, BarChartOutlined } from '@ant-design/icons';
 import classnames from 'classnames';
 import { observer } from 'mobx-react-lite';
 import { useEffect, useState, useMemo } from 'react';
@@ -36,6 +36,20 @@ const menuItems = [
         allowedRoles: ['STUDENT', 'INSTRUCTOR']
     },
     {
+        id: 'ranking',
+        name: 'Xếp hạng',
+        icon: <TrophyOutlined />,
+        to: '/ranking',
+        allowedRoles: ['STUDENT', 'INSTRUCTOR']
+    },
+    {
+        id: 'dashboard',
+        name: 'Thống kê',
+        icon: <BarChartOutlined />,
+        to: '/dashboard',
+        allowedRoles: ['INSTRUCTOR']
+    },
+    {
         id: 'topics',
         name: 'Topics',
         icon: <FundFilled />,
@@ -51,10 +65,13 @@ const LayoutMenu = observer(() => {
     const [selected, setSelected] = useState('home');
 
     useEffect(() => {
-        if (location.pathname.replace('/', '') != '') {
-            setSelected(location.pathname.replace('/', ''));
+        const path = location.pathname.replace('/', '');
+        if (path != '') {
+            // Extract the base path (e.g., 'ranking' from '/ranking', 'exams' from '/exams/123')
+            const basePath = path.split('/')[0];
+            setSelected(basePath);
         }
-    }, []);
+    }, [location.pathname]);
 
     // Filter menu items based on user role
     const filteredMenuItems = useMemo(() => {

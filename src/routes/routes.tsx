@@ -9,6 +9,8 @@ import Exams from '../pages/Exams/Exams';
 import ExamDetail from '../pages/ExamDetail/ExamDetail';
 import ExamExercise from '../pages/ExamExercise/ExamExercise';
 import Topics from '../pages/Topics/Topics';
+import Ranking from '../pages/Ranking/Ranking';
+import Dashboard from '../pages/Dashboard/Dashboard';
 import ProtectedElementRoute from '../components/ProtectedElementRoute/ProtectedElementRoute';
 
 const router: {
@@ -100,6 +102,22 @@ const router: {
         element: (
             <ProtectedElementRoute allowedRoles={['ADMIN']} allowedPermissions={[]}>
                 <Topics />
+            </ProtectedElementRoute>
+        )
+    },
+    {
+        path: routesConfig.ranking,
+        element: (
+            <ProtectedElementRoute allowedRoles={['STUDENT', 'INSTRUCTOR']} allowedPermissions={[]}>
+                <Ranking />
+            </ProtectedElementRoute>
+        )
+    },
+    {
+        path: routesConfig.dashboard,
+        element: (
+            <ProtectedElementRoute allowedRoles={['INSTRUCTOR']} allowedPermissions={[]}>
+                <Dashboard />
             </ProtectedElementRoute>
         )
     }
