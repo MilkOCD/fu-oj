@@ -1,65 +1,123 @@
 import { observer } from 'mobx-react-lite';
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import * as http from '../../lib/httpRequest';
 import ProtectedElement from '../../components/ProtectedElement/ProtectedElement';
-import { Button, Input, Select, Table, Tag, Popconfirm, Form } from 'antd';
+import { Button, Input, Form, Tabs, Tag } from 'antd';
+import type { FormProps } from 'antd';
 import Line from '../../components/Line/Line';
 import globalStore from '../../components/GlobalComponent/globalStore';
 import classnames from 'classnames';
-import { DeleteOutlined, HeartOutlined, SearchOutlined, SettingOutlined } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
-import authentication from '../../shared/auth/authentication';
-import routesConfig from '../../routes/routesConfig';
-import TooltipWrapper from '../../components/TooltipWrapper/TooltipWrapperComponent';
+import { SearchOutlined } from '@ant-design/icons';
 import Highlighter from 'react-highlight-words';
-import LoadingOverlay from '../../components/LoadingOverlay/LoadingOverlay';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+import routesConfig from '../../routes/routesConfig';
+import authentication from '../../shared/auth/authentication';
+import type { ExamData, SelectOption } from './types';
+import { getExamStatus, filterDataByTab } from './utils';
+import ExamTable from './components/ExamTable';
+import ExamFormModal from './components/ExamFormModal';
+import ConfirmStartExamModal from './components/ConfirmStartExamModal';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const Exams = observer(() => {
     const navigate = useNavigate();
-    const [search, setSearch]: any = useState();
-    const [updateId, setUpdateId] = useState(null);
-    updateId;
+    const [search, setSearch] = useState<string>('');
     const [loading, setLoading] = useState(false);
-    const [datas, setDatas] = useState([]);
-    datas;
-    const [topics, setTopics] = useState([]);
-    const [displayDatas, setDisplayDatas] = useState([]);
+    const [datas, setDatas] = useState<ExamData[]>([]);
+    const [displayDatas, setDisplayDatas] = useState<ExamData[]>([]);
+    const [groups, setGroups] = useState<SelectOption[]>([]);
+    const [exercises, setExercises] = useState<SelectOption[]>([]);
+    const [updateId, setUpdateId] = useState<string | null>(null);
+    const [editingRecord, setEditingRecord] = useState<ExamData | null>(null);
+    const [activeTab, setActiveTab] = useState<string>('all');
+    const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+    const [selectedExamId, setSelectedExamId] = useState<string | null>(null);
 
     const [form] = Form.useForm();
 
-    const handleChange = (value: string[]) => {
-        console.log(`selected ${value}`);
+    const handleConfirmStartExam = async () => {
+        if (!selectedExamId) return;
+        
+        try {
+            const userId = authentication.account?.data?.id;
+            if (!userId) {
+                globalStore.triggerNotification('error', 'Không tìm thấy thông tin người dùng!', '');
+                setConfirmModalOpen(false);
+                setSelectedExamId(null);
+                return;
+            }
+            
+            await http.post('/exam-rankings', {
+                examId: selectedExamId,
+                userId: userId
+            });
+            
+            setConfirmModalOpen(false);
+            setSelectedExamId(null);
+            navigate(`/${routesConfig.exam}`.replace(':id', selectedExamId));
+        } catch (error) {
+            const errorMessage = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Có lỗi xảy ra khi bắt đầu làm bài!';
+            globalStore.triggerNotification('error', errorMessage, '');
+            setConfirmModalOpen(false);
+            setSelectedExamId(null);
+        }
+    };
+
+    const onFinish: FormProps['onFinish'] = (values) => {
+        const payload = {
+            title: values.title,
+            description: values.description,
+            startTime: values.startTime ? dayjs(values.startTime).utc().format('YYYY-MM-DDTHH:mm:ss[Z]') : null,
+            endTime: values.endTime ? dayjs(values.endTime).utc().format('YYYY-MM-DDTHH:mm:ss[Z]') : null,
+            status: values.status || 'DRAFT',
+            groupIds: values.groupIds || [],
+            exerciseIds: values.exerciseIds || []
+        };
+
+        if (updateId) {
+            http.putaaa(updateId, '/exams', payload)
+                .then((res) => {
+                    globalStore.triggerNotification('success', res.message || 'Cập nhật bài thi thành công!', '');
+                    getExams();
+                    globalStore.setOpenDetailPopup(false);
+                    form.resetFields();
+                    setUpdateId(null);
+                })
+                .catch((error) => {
+                    globalStore.triggerNotification('error', error.response?.data?.message || 'Có lỗi xảy ra!', '');
+                });
+        } else {
+            http.post('/exams', payload)
+                .then((res) => {
+                    globalStore.triggerNotification('success', res.message || 'Tạo bài thi thành công!', '');
+                    getExams();
+                    globalStore.setOpenDetailPopup(false);
+                    form.resetFields();
+                })
+                .catch((error) => {
+                    globalStore.triggerNotification('error', error.response?.data?.message || 'Có lỗi xảy ra!', '');
+                });
+        }
     };
 
     const columns = [
         {
-            title: 'Mã bài tập',
-            dataIndex: 'code',
-            key: 'code',
-            sorter: (a: any, b: any) => (a.code || '').localeCompare(b.code || ''),
-            render: (code: string) => {
-                return (
-                    <Highlighter
-                        highlightClassName="highlight"
-                        searchWords={[search]}
-                        autoEscape={true}
-                        textToHighlight={code}
-                    />
-                );
-            }
-        },
-        {
             title: 'Tiêu đề',
             dataIndex: 'title',
             key: 'title',
-            sorter: (a: any, b: any) => (a.title || '').localeCompare(b.title || ''),
+            sorter: (a: ExamData, b: ExamData) => (a.title || '').localeCompare(b.title || ''),
             render: (title: string) => {
                 return (
                     <Highlighter
                         highlightClassName="highlight"
                         searchWords={[search]}
                         autoEscape={true}
-                        textToHighlight={title}
+                        textToHighlight={title || ''}
                     />
                 );
             }
@@ -67,111 +125,146 @@ const Exams = observer(() => {
         {
             title: 'Mô tả',
             dataIndex: 'description',
-            key: 'description'
-        },
-        {
-            title: 'Chủ đề',
-            dataIndex: 'topics',
-            key: 'topics',
-            render: (topics: any[]) => {
-                if (!topics) return null;
-
-                return topics.map((topic, index) => {
-                    const text = topic.name.trim().toUpperCase();
-                    const colors = [
-                        'magenta',
-                        'red',
-                        'volcano',
-                        'orange',
-                        'gold',
-                        'lime',
-                        'green',
-                        'cyan',
-                        'blue',
-                        'geekblue',
-                        'purple'
-                    ];
-                    const color = colors[index];
-
-                    return (
-                        <Tag color={color} key={text} style={{ marginBottom: 8 }}>
-                            {text}
-                        </Tag>
-                    );
-                });
+            key: 'description',
+            render: (description: string) => {
+                return (
+                    <Highlighter
+                        highlightClassName="highlight"
+                        searchWords={[search]}
+                        autoEscape={true}
+                        textToHighlight={description || ''}
+                    />
+                );
             }
         },
         {
-            title: '',
-            dataIndex: 'actions',
-            key: 'actions',
-            render: (actions: any, record: any) => {
-                actions;
-                return (
-                    <div className="actions-row" onClick={(e) => e.stopPropagation()}>
-                        <TooltipWrapper tooltipText="Thêm vào yêu thích" position="left">
-                            <HeartOutlined className="action-row-btn" />
-                        </TooltipWrapper>
-
-                        <ProtectedElement acceptRoles={['INSTRUCTOR']}>
-                            <TooltipWrapper tooltipText="Chỉnh sửa" position="left">
-                                <SettingOutlined
-                                    className="action-row-btn"
-                                    onClick={() => {
-                                        setUpdateId(record.id);
-                                        globalStore.setOpenDetailPopup(true);
-                                        form.setFieldsValue({
-                                            ...record,
-                                            topicIds: record.topics.map((topic: any) => topic.id)
-                                        });
-                                    }}
-                                />
-                            </TooltipWrapper>
-                            <TooltipWrapper tooltipText="Xóa" position="left">
-                                <Popconfirm
-                                    // title="Are you sure you want to delete this exercise?"
-                                    title="Bạn có chắc chắn muốn xóa bài tập này?"
-                                    okText="Có"
-                                    cancelText="Không"
-                                    onConfirm={() => {
-                                        http.deleteById('/exercises', record.id).then((res) => {
-                                            globalStore.triggerNotification(
-                                                'success',
-                                                res.message || 'Delete successfully!',
-                                                ''
-                                            );
-                                            getExams();
-                                        });
-                                    }}
-                                >
-                                    <DeleteOutlined className="action-row-btn" />
-                                </Popconfirm>
-                            </TooltipWrapper>
-                        </ProtectedElement>
-                    </div>
-                );
+            title: 'Thời gian bắt đầu',
+            dataIndex: 'startTime',
+            key: 'startTime',
+            render: (startTime: string) => {
+                return startTime ? dayjs(startTime).format('DD/MM/YYYY HH:mm') : '-';
+            }
+        },
+        {
+            title: 'Thời gian kết thúc',
+            dataIndex: 'endTime',
+            key: 'endTime',
+            render: (endTime: string) => {
+                return endTime ? dayjs(endTime).format('DD/MM/YYYY HH:mm') : '-';
+            }
+        },
+        {
+            title: 'Trạng thái',
+            dataIndex: 'status',
+            key: 'status',
+            render: (_: unknown, record: ExamData) => {
+                const statusInfo = getExamStatus(record.startTime, record.endTime);
+                return <Tag color={statusInfo.color}>{statusInfo.label}</Tag>;
+            }
+        },
+        {
+            title: 'Số nhóm',
+            dataIndex: 'groups',
+            key: 'groups',
+            render: (groups: Array<{ id: string; name: string }> | undefined) => {
+                return groups ? groups.length : 0;
+            }
+        },
+        {
+            title: 'Số bài tập',
+            dataIndex: 'exercises',
+            key: 'exercises',
+            render: (exercises: Array<{ id: string; title: string }> | undefined) => {
+                return exercises ? exercises.length : 0;
             }
         }
     ];
 
     const getExams = () => {
         setLoading(true);
-        http.get('/exercises').then((res) => {
-            setDatas(res.data);
-            setDisplayDatas(res.data);
-            setTimeout(() => {
-                setLoading(false);
-            }, 1000);
-        });
+        http.get('/exams')
+            .then((res) => {
+                setDatas(res.data || []);
+                setDisplayDatas(res.data || []);
+            })
+            .catch((error) => {
+                console.error('Error fetching exams:', error);
+                setDatas([]);
+                setDisplayDatas([]);
+            })
+            .finally(() => {
+                setTimeout(() => {
+                    setLoading(false);
+                }, 1000);
+            });
     };
 
     useEffect(() => {
         getExams();
 
-        http.get('/topics').then((res) => {
-            setTopics(res.data.map((topic: any) => ({ ...topic, value: topic.id, label: topic.name })));
-        });
+        // Lấy danh sách groups
+        http.get('/groups')
+            .then((res) => {
+                setGroups(
+                    res.data.map((group: { id: string; name: string }) => ({
+                        value: group.id,
+                        label: group.name
+                    }))
+                );
+            })
+            .catch((error) => {
+                console.error('Error fetching groups:', error);
+            });
+
+        // Lấy danh sách exercises
+        http.get('/exercises')
+            .then((res) => {
+                setExercises(
+                    res.data.map((exercise: { id: string; title?: string; code?: string }) => ({
+                        value: exercise.id,
+                        label: exercise.title || exercise.code || ''
+                    }))
+                );
+            })
+            .catch((error) => {
+                console.error('Error fetching exercises:', error);
+            });
     }, []);
+
+    useEffect(() => {
+        const filtered = filterDataByTab(datas, activeTab, search);
+        setDisplayDatas(filtered);
+    }, [search, datas, activeTab]);
+
+    const handleRowClick = (record: ExamData) => {
+        // Instructor: navigate trực tiếp
+        if (authentication.isInstructor) {
+            navigate(`/${routesConfig.exam}`.replace(':id', record.id));
+            return;
+        }
+        
+        // Student hoặc user khác: hiện cảnh báo trước khi làm bài
+        setSelectedExamId(record.id);
+        setConfirmModalOpen(true);
+    };
+
+    const handleEdit = (record: ExamData) => {
+        setUpdateId(record.id);
+        setEditingRecord(record);
+        globalStore.setOpenDetailPopup(true);
+    };
+
+    const handleCopy = (record: ExamData) => {
+        form.setFieldsValue({
+            title: `${record.title} (Copy)`,
+            description: record.description,
+            startTime: null,
+            endTime: null,
+            groupIds: record.groups?.map((g) => g.id) || [],
+            exerciseIds: record.exercises?.map((e) => e.id) || []
+        });
+        globalStore.setOpenDetailPopup(true);
+    };
 
     return (
         <div className={classnames('exams', { 'p-24': globalStore.isBelow1300 })}>
@@ -201,17 +294,8 @@ const Exams = observer(() => {
                     </div>
                     <Input
                         value={search}
-                        placeholder="Tìm kiếm theo Mã, Tên, Mô tả, Chủ đề"
+                        placeholder="Tìm kiếm theo Tiêu đề, Mô tả"
                         onChange={(e) => setSearch(e.target.value)}
-                    />
-                    <Line width={0} height={0} text="Chủ đề" center />
-                    <Select
-                        mode="multiple"
-                        style={{ width: '100%' }}
-                        placeholder="Select topics"
-                        defaultValue={[]}
-                        onChange={handleChange}
-                        options={topics}
                     />
                     <ProtectedElement acceptRoles={['INSTRUCTOR']}>
                         <Line width={0} height={0} text="Quản lý" center />
@@ -219,25 +303,59 @@ const Exams = observer(() => {
                     </ProtectedElement>
                 </div>
                 <div className="body">
-                    <LoadingOverlay loading={loading}>
-                        <Table
-                            rowKey="id"
-                            scroll={{ x: 800 }}
-                            pagination={{ pageSize: 10, showSizeChanger: false }}
-                            dataSource={displayDatas}
-                            columns={columns}
-                            onRow={(record) => {
-                                return {
-                                    onClick: () => {
-                                        if (!authentication.isStudent) return;
-                                        navigate(`/${routesConfig.exercise}`.replace(':id?', record.id));
-                                    }
-                                };
-                            }}
-                        />
-                    </LoadingOverlay>
+                    <Tabs
+                        activeKey={activeTab}
+                        onChange={setActiveTab}
+                        items={[
+                            {
+                                key: 'all',
+                                label: 'Tất cả'
+                            },
+                            {
+                                key: 'upcoming',
+                                label: 'Sắp tới'
+                            },
+                            {
+                                key: 'ongoing',
+                                label: 'Đang diễn ra'
+                            },
+                            {
+                                key: 'completed',
+                                label: 'Đã kết thúc'
+                            }
+                        ]}
+                        style={{ marginBottom: 16 }}
+                    />
+                    <ExamTable
+                        columns={columns}
+                        displayDatas={displayDatas}
+                        loading={loading}
+                        onRowClick={handleRowClick}
+                        onEdit={handleEdit}
+                        onCopy={handleCopy}
+                        onRefresh={getExams}
+                    />
                 </div>
             </div>
+            <ConfirmStartExamModal
+                open={confirmModalOpen}
+                onCancel={() => {
+                    setConfirmModalOpen(false);
+                    setSelectedExamId(null);
+                }}
+                onConfirm={handleConfirmStartExam}
+            />
+            <ExamFormModal
+                open={globalStore.isDetailPopupOpen}
+                updateId={updateId}
+                editingRecord={editingRecord}
+                groups={groups}
+                exercises={exercises}
+                onFinish={onFinish}
+                form={form}
+                setUpdateId={setUpdateId}
+                setEditingRecord={setEditingRecord}
+            />
         </div>
     );
 });
