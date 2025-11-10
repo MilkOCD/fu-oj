@@ -38,8 +38,9 @@ const ExamTable = observer(({
             render: (_: unknown, record: ExamData) => {
                 const now = dayjs();
                 const startTime = record.startTime ? dayjs(record.startTime) : null;
-                const isDisabled = startTime && (startTime.isAfter(now) || startTime.isSame(now));
-                const disabledStyle = isDisabled ? { opacity: 0.7, cursor: 'not-allowed' } : {};
+                // Disable khi startTime <= now (đã bắt đầu hoặc đang diễn ra)
+                const isDisabled = startTime && (startTime.isBefore(now) || startTime.isSame(now));
+                const disabledStyle = isDisabled ? { opacity: 0.5, cursor: 'not-allowed', color: '#bfbfbf' } : {};
 
                 const handleEdit = () => {
                     if (isDisabled) return;

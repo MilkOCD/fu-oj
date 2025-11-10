@@ -17,9 +17,10 @@ interface ExamRankingData {
 
 interface ExamCountdownTimerProps {
     examId: string;
+    compact?: boolean;
 }
 
-const ExamCountdownTimer = observer(({ examId }: ExamCountdownTimerProps) => {
+const ExamCountdownTimer = observer(({ examId, compact = false }: ExamCountdownTimerProps) => {
     const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -97,6 +98,48 @@ const ExamCountdownTimer = observer(({ examId }: ExamCountdownTimerProps) => {
         return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
     };
 
+    const isWarning = timeRemaining !== null && timeRemaining > 0 && timeRemaining < 5 * 60 * 1000; // Cảnh báo khi còn dưới 5 phút
+
+    // Compact version cho header (không dùng Card, style phù hợp nền đen)
+    if (compact) {
+        if (loading) {
+            return <div style={{ color: '#fff', fontSize: '14px' }}>Đang tải...</div>;
+        }
+
+        if (error) {
+            return <div style={{ color: '#ff4d4f', fontSize: '14px' }}>Lỗi</div>;
+        }
+
+        if (timeRemaining === null || timeRemaining <= 0) {
+            return (
+                <div style={{ 
+                    color: '#ff4d4f', 
+                    fontSize: '14px',
+                    fontWeight: 'bold',
+                    fontFamily: 'monospace'
+                }}>
+                    00:00:00
+                </div>
+            );
+        }
+
+        return (
+            <div style={{
+                padding: '4px 12px',
+                backgroundColor: isWarning ? '#ff4d4f' : '#52c41a',
+                borderRadius: '4px',
+                color: '#fff',
+                fontSize: '14px',
+                fontWeight: 'bold',
+                fontFamily: 'monospace',
+                whiteSpace: 'nowrap'
+            }}>
+                {formatTime(timeRemaining)}
+            </div>
+        );
+    }
+
+    // Full version với Card (cho ExamDetail)
     if (loading) {
         return (
             <Card style={{ marginBottom: 16 }}>
@@ -122,8 +165,6 @@ const ExamCountdownTimer = observer(({ examId }: ExamCountdownTimerProps) => {
             </Card>
         );
     }
-
-    const isWarning = timeRemaining < 5 * 60 * 1000; // Cảnh báo khi còn dưới 5 phút
 
     return (
         <Card
