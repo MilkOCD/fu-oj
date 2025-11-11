@@ -10,19 +10,19 @@ import './lr-component.scss';
 const flexSliderItems = [
     {
         id: 0,
-        imgUrl: '/sources/login/image.jpeg'
+        imgUrl: 'https://international.fpt.edu.vn/web/image/image.gallery/1356/image'
     },
     {
         id: 1,
-        imgUrl: '/sources/login/image.jpeg'
+        imgUrl: 'https://daihoc.fpt.edu.vn/en/wp-content/themes/fpt-university/images/header.jpg'
     },
     {
         id: 2,
-        imgUrl: '/sources/login/image.jpeg'
+        imgUrl: 'https://cdn2.fptshop.com.vn/unsafe/1920x0/filters:format(webp):quality(75)/hoc_phi_dai_hoc_fpt_2025_0_dbb0222f41.jpg'
     },
     {
         id: 3,
-        imgUrl: '/sources/login/image.jpeg'
+        imgUrl: 'https://cdn2.fptshop.com.vn/unsafe/1920x0/filters:format(webp):quality(75)/2023_12_9_638376784136834685_hoc-phi-he-dai-hoc-fpt-cover.jpeg'
     }
 ];
 
@@ -163,10 +163,10 @@ const LoginComponent = () => {
 const MoveFromRightComponent = () => {
     return (
         <>
-            <div className="move-from-right mfr-1">--------------------------------------------------------------</div>
-            <div className="move-from-right mfr-2">--------------------------------------------------------------</div>
-            <div className="move-from-right mfr-3">--------------------------------------------------------------</div>
-            <div className="move-from-right mfr-4">--------------------------------------------------------------</div>
+            <div className="move-from-right mfr-1">Hoàng Gia Trọng aka Trọng Đẹp trai</div>
+            <div className="move-from-right mfr-2">Lê Đức Đạt aka Thầy Đạt</div>
+            <div className="move-from-right mfr-3">Phạm Ngọc Tùng Lâm</div>
+            <div className="move-from-right mfr-4">Hồ Anh Dũng</div>
         </>
     );
 };

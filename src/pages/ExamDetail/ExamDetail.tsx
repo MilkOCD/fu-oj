@@ -59,12 +59,41 @@ interface ExamData {
     exercises: Exercise[];
 }
 
+interface SubmissionData {
+    exerciseId: string;
+    exerciseTitle: string;
+    exerciseCode: string;
+    submissionId: string;
+    score: number | null;
+    isAccepted: boolean;
+    passedTestCases: number;
+    totalTestCases: number;
+    submittedAt: number;
+}
+
+interface ExamResultData {
+    examId: string;
+    examCode: string;
+    examTitle: string;
+    startTime: number;
+    endTime: number;
+    userId: string;
+    userName: string;
+    submissions: SubmissionData[];
+    totalScore: number;
+    totalExercises: number;
+    completedExercises: number;
+    timeLimit: number | null;
+}
+
 const ExamDetail = observer(() => {
     const { id } = useParams();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [examData, setExamData] = useState<ExamData | null>(null);
     const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
+    const [isTimeExpired, setIsTimeExpired] = useState(false);
+    const [submissionsMap, setSubmissionsMap] = useState<Map<string, SubmissionData>>(new Map());
 
     const getExamDetail = () => {
         if (!id) return;
@@ -89,6 +118,34 @@ const ExamDetail = observer(() => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [id]);
 
+    // Lấy danh sách bài tập đã làm
+    useEffect(() => {
+        if (!id || authentication.isInstructor) return;
+
+        const getExamResults = async () => {
+            try {
+                const userId = authentication.account?.data?.id;
+                if (!userId) return;
+
+                const response = await http.get(`/exams/submissions/results?userId=${userId}&examId=${id}`);
+                const data: ExamResultData = response.data;
+
+                if (data && data.submissions) {
+                    // Tạo map để dễ dàng lookup
+                    const map = new Map<string, SubmissionData>();
+                    data.submissions.forEach((submission) => {
+                        map.set(submission.exerciseId, submission);
+                    });
+                    setSubmissionsMap(map);
+                }
+            } catch (error) {
+                console.error('Error fetching exam results:', error);
+            }
+        };
+
+        getExamResults();
+    }, [id]);
+
     useEffect(() => {
         if (examData && examData.exercises.length > 0 && !selectedExercise) {
             setSelectedExercise(examData.exercises[0]);
@@ -96,11 +153,56 @@ const ExamDetail = observer(() => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [examData]);
 
+    // Check thời gian làm bài
+    useEffect(() => {
+        if (!id || authentication.isInstructor) return;
+
+        const checkTimeRemaining = async () => {
+            try {
+                const userId = authentication.account?.data?.id;
+                if (!userId) return;
+
+                const response = await http.get(`/exam-rankings?userId=${userId}&examId=${id}`);
+                const data = response.data || [];
+
+                if (data.length === 0) {
+                    // Chưa bắt đầu làm bài, không disable
+                    setIsTimeExpired(false);
+                    return;
+                }
+
+                const examRanking = data[0];
+                const timeLimit = examRanking.exam?.timeLimit || 90; // Mặc định 90 phút
+                const startTimeDate = new Date(examRanking.createdTimestamp);
+                const startTimeMs = startTimeDate.getTime();
+                const timeLimitMs = timeLimit * 60 * 1000;
+                const endTimeMs = startTimeMs + timeLimitMs;
+                const now = Date.now();
+
+                // Nếu hết thời gian thì disable nút
+                setIsTimeExpired(now >= endTimeMs);
+            } catch (error) {
+                console.error('Error checking exam time:', error);
+            }
+        };
+
+        checkTimeRemaining();
+
+        // Check lại mỗi giây
+        const interval = setInterval(checkTimeRemaining, 1000);
+
+        return () => clearInterval(interval);
+    }, [id]);
+
     const handleExerciseClick = (exercise: Exercise) => {
         setSelectedExercise(exercise);
     };
 
     const handleStartExercise = () => {
+        if (isTimeExpired) {
+            globalStore.triggerNotification('warning', 'Đã hết thời gian làm bài, không thể làm bài nữa!', '');
+            return;
+        }
         if (selectedExercise && id) {
             navigate(`/${routesConfig.examExercise}`.replace(':examId', id).replace(':exerciseId', selectedExercise.id));
         }
@@ -136,20 +238,31 @@ const ExamDetail = observer(() => {
                                 Danh sách bài tập
                             </div>
                             <div className="exercise-list">
-                                {examData.exercises.map((exercise) => (
-                                    <div
-                                        key={exercise.id}
-                                        className={classnames('exercise-item', {
-                                            active: selectedExercise?.id === exercise.id
-                                        })}
-                                        onClick={() => handleExerciseClick(exercise)}
-                                    >
-                                        <FileTextOutlined style={{ marginRight: 8 }} />
-                                        <span>
-                                            {exercise.code} - {exercise.title}
-                                        </span>
-                                    </div>
-                                ))}
+                                {examData.exercises.map((exercise) => {
+                                    const submission = submissionsMap.get(exercise.id);
+                                    const isCompleted = !!submission;
+                                    
+                                    return (
+                                        <div
+                                            key={exercise.id}
+                                            className={classnames('exercise-item', {
+                                                active: selectedExercise?.id === exercise.id,
+                                                completed: isCompleted
+                                            })}
+                                            onClick={() => handleExerciseClick(exercise)}
+                                            style={isCompleted ? { 
+                                                color: '#999', 
+                                                opacity: 0.7,
+                                                cursor: 'default'
+                                            } : {}}
+                                        >
+                                            <FileTextOutlined style={{ marginRight: 8 }} />
+                                            <span>
+                                                {exercise.code} - {exercise.title}
+                                            </span>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </div>
                         <div className="main-content">
@@ -209,9 +322,29 @@ const ExamDetail = observer(() => {
                                         </div>
                                         {!authentication.isInstructor && (
                                             <div className="exercise-action">
-                                                <Button type="primary" size="large" onClick={handleStartExercise}>
-                                                    Làm bài
-                                                </Button>
+                                                {(() => {
+                                                    const submission = submissionsMap.get(selectedExercise.id);
+                                                    const isCompleted = !!submission;
+                                                    
+                                                    if (isCompleted) {
+                                                        return (
+                                                            <Tag color="blue">
+                                                                Đã làm
+                                                            </Tag>
+                                                        );
+                                                    }
+                                                    
+                                                    return (
+                                                        <Button 
+                                                            type="primary" 
+                                                            size="large" 
+                                                            onClick={handleStartExercise}
+                                                            disabled={isTimeExpired}
+                                                        >
+                                                            {isTimeExpired ? 'Đã hết thời gian' : 'Làm bài'}
+                                                        </Button>
+                                                    );
+                                                })()}
                                             </div>
                                         )}
                                     </Card>

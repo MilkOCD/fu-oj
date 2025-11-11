@@ -6,12 +6,12 @@
         & > .ant-modal-content {
             border-radius: 5px;
             padding: 6px;
-            background: #e6e7eb;
+            background: var(--color-navbar);
             overflow: hidden;
 
             & > .ant-modal-body {
                 display: flex;
-                background: white;
+                background: var(--color-bg);
                 border-radius: 5px;
 
                 & > .left {
@@ -53,7 +53,8 @@
                 }
 
                 & > .right {
-                    background-image: url('/sources/login/image.jpeg');
+                    background-image: url('/sources/login/DHFPT6-1.webp');
+                    background-image: url('https://i.ex-cdn.com/mientay.giadinhonline.vn/files/content/2025/05/12/z6594050220643_b9164f734c54e153355c37e32d3de83f-1635.jpg');
                     background-size: cover;
                     background-repeat: no-repeat;
                     flex: 1;
@@ -126,10 +127,12 @@
                             font-weight: 500;
                             padding-left: 16px;
                             height: 50px;
-                            background: rgba(239, 130, 6, 0.3);
+                            // background: rgba(239, 130, 6, 0.3);
+                            background: rgba(40, 40, 40, 0.5);
                             border-top-right-radius: 3px;
                             border-bottom-right-radius: 3px;
-                            border-left: 5px solid #ff6900;
+                            // border-left: 5px solid #ff6900;
+                            border-left: 5px solid rgba(255, 105, 0, 0.7);
                             color: white;
                             transform: translateX(100%);
                             animation: slideIn 1s forwards;
@@ -277,6 +280,7 @@
                 & > .ant-form-item-control-input-content {
                     & > span {
                         border-radius: 3px !important;
+                        background: var(--color-bg);
                     }
                 }
 

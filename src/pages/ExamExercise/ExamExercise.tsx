@@ -11,18 +11,21 @@ import {
     WechatOutlined
 } from '@ant-design/icons';
 import Editor from '@monaco-editor/react';
-import { Select, Skeleton } from 'antd';
+import { Select, Skeleton, Modal, Button } from 'antd';
+import { ExclamationCircleOutlined } from '@ant-design/icons';
 import classnames from 'classnames';
 import * as FlexLayout from 'flexlayout-react';
 import 'flexlayout-react/style/light.css';
 import { observer } from 'mobx-react-lite';
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import globalStore from '../../components/GlobalComponent/globalStore';
 import { programmingLanguages } from '../../constants/languages';
 import * as http from '../../lib/httpRequest';
 import routesConfig from '../../routes/routesConfig';
 import utils from '../../utils/utils';
+import authentication from '../../shared/auth/authentication';
+import ExamCountdownTimer from '../ExamDetail/components/ExamCountdownTimer';
 
 const json = {
     global: { tabSetEnableClose: false },
@@ -85,6 +88,7 @@ const json = {
 const ExamExercise = observer(() => {
     const { examId, exerciseId } = useParams();
     const navigate = useNavigate();
+    const location = useLocation();
 
     if (!examId || !exerciseId) {
         globalStore.triggerNotification('error', 'Exam hoặc Exercise không tồn tại!', '');
@@ -103,6 +107,9 @@ const ExamExercise = observer(() => {
     const [error, setError] = useState<string>('');
     const [response, setResponse] = useState<any>(null);
     const [selectedCaseResult, setSelectedCaseResult] = useState<any>(1);
+    const [showExitConfirm, setShowExitConfirm] = useState(false);
+    const [pendingPath, setPendingPath] = useState<string | null>(null);
+    const isNavigatingRef = useRef(false);
 
     const getDefaultTemplate = (lang: string): string => {
         switch (lang) {
@@ -171,6 +178,13 @@ const ExamExercise = observer(() => {
                 console.log('log:', res);
                 setResponse(res);
                 globalStore.triggerNotification('success', 'Nộp bài thành công!', '');
+                
+                // Nếu nộp bài thành công (status 201), quay lại trang bài tập
+                if (res.status === 201 && examId) {
+                    setTimeout(() => {
+                        navigate(`/${routesConfig.exam}`.replace(':id', examId));
+                    }, 1000); // Đợi 1 giây để user thấy thông báo thành công
+                }
             })
             .catch((error) => {
                 setError(error.response?.data?.message || 'Có lỗi xảy ra!');
@@ -365,7 +379,7 @@ const ExamExercise = observer(() => {
         window.addEventListener('resize', handleResize);
 
         // Get exercise
-        http.get(`exercises/${exerciseId}`)
+        http.get(`/exercises/${exerciseId}`)
             .then((res) => {
                 setExercise(res.data);
             })
@@ -378,7 +392,6 @@ const ExamExercise = observer(() => {
             document.body.classList.remove('independence-page');
             window.removeEventListener('resize', handleResize);
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [exerciseId]);
 
     useEffect(() => {
@@ -386,6 +399,67 @@ const ExamExercise = observer(() => {
         setEditorValue(newEditorValue);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [language]);
+
+    // Cảnh báo khi đóng tab hoặc refresh
+    useEffect(() => {
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            e.preventDefault();
+            e.returnValue = 'Nếu bạn thoát, tất cả những code của bạn không được lưu';
+            return e.returnValue;
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+        };
+    }, []);
+
+    // Intercept browser back button
+    useEffect(() => {
+        // Push một state vào history để có thể intercept back button
+        window.history.pushState(null, '', location.pathname);
+        
+        const handlePopState = () => {
+            if (!isNavigatingRef.current) {
+                // Push lại state để giữ user ở trang hiện tại
+                window.history.pushState(null, '', location.pathname);
+                setShowExitConfirm(true);
+                // Lấy path từ history trước đó (nếu có)
+                setPendingPath(`/${routesConfig.exam}`.replace(':id', examId || ''));
+            }
+        };
+
+        window.addEventListener('popstate', handlePopState);
+
+        return () => {
+            window.removeEventListener('popstate', handlePopState);
+        };
+    }, [location.pathname, examId]);
+
+    const handleNavigate = (path: string) => {
+        setPendingPath(path);
+        setShowExitConfirm(true);
+    };
+
+    const handleConfirmExit = () => {
+        if (pendingPath) {
+            isNavigatingRef.current = true;
+            navigate(pendingPath);
+        }
+        setShowExitConfirm(false);
+        setPendingPath(null);
+    };
+
+    const handleCancelExit = () => {
+        setShowExitConfirm(false);
+        setPendingPath(null);
+    };
+
+    // Reset flag sau khi navigation hoàn tất
+    useEffect(() => {
+        isNavigatingRef.current = false;
+    }, [location.pathname]);
 
     return (
         <div className="exercise">
@@ -396,13 +470,13 @@ const ExamExercise = observer(() => {
                             <GithubOutlined className="icon" />
                             <LeftOutlined
                                 className="icon"
-                                onClick={() => navigate(`/${routesConfig.exam}`.replace(':id', examId || ''))}
+                                onClick={() => handleNavigate(`/${routesConfig.exam}`.replace(':id', examId || ''))}
                             />
                             <RightOutlined className="icon" />
                         </div>
                     </div>
                     <div className="center">
-                        <div className={classnames('group-btn', { disabled: loading })}>
+                        <div className={classnames('group-btn', { disabled: loading })} style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                             <BugOutlined className="icon" style={{ color: '#FFA118' }} />
                             {loading ? (
                                 <div className="icon">
@@ -421,6 +495,11 @@ const ExamExercise = observer(() => {
                                 )}
                                 Nộp bài
                             </div>
+                            {examId && !authentication.isInstructor && (
+                                <div style={{ marginLeft: '8px', display: 'flex', alignItems: 'center' }}>
+                                    <ExamCountdownTimer examId={examId} compact={true} />
+                                </div>
+                            )}
                         </div>
                     </div>
                     <div className="right">
@@ -436,6 +515,26 @@ const ExamExercise = observer(() => {
                     <FlexLayout.Layout ref={layoutRef} model={model} factory={factory} />
                 </div>
             </div>
+            <Modal
+                open={showExitConfirm}
+                title={
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <ExclamationCircleOutlined style={{ color: '#faad14', fontSize: 20 }} />
+                        <span>Xác nhận thoát</span>
+                    </div>
+                }
+                onCancel={handleCancelExit}
+                footer={null}
+            >
+                <p>Nếu bạn thoát, tất cả những code của bạn không được lưu.</p>
+                <p>Bạn có chắc chắn muốn thoát không?</p>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '24px' }}>
+                    <Button onClick={handleCancelExit}>Không</Button>
+                    <Button type="primary" danger onClick={handleConfirmExit}>
+                        Có
+                    </Button>
+                </div>
+            </Modal>
         </div>
     );
 });

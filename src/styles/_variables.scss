@@ -20,26 +20,49 @@ $d-color-underline: #f78166;
 $d-color-tooltip-bg: rgba(255, 255, 255, 0.75);
 $d-box-shadow-color: rgba(255, 255, 255, 0.1);
 
+// // Light theme colors
+// $l-color-bg: #f4f5f8;
+// $l-color-background: #ffffff;
+// $l-color-navbar: #f6f8fa;
+// $l-color-drawer-bg: #ffffff;
+// $l-color-text-secondary: #1f2329;
+// $l-color-button-text: #24292f;
+// $l-color-button-bg: #f6f8fa;
+// $l-color-button-hover: #f0f2f5;
+// $l-color-list-item-hover: #f2f3f4;
+// // $l-color-list-item-selected: #eceeef;
+// $l-color-background-card: #ffffff;
+// $l-color-border: #d0d9e0;
+// $l-color-border-lighter: #dfe4ea;
+// $l-color-border-focused: #1f72f1;
+// $l-color-text-primary: oklch(70.5% 0.213 47.604);
+// $l-color-text-muted: #59636e;
+// $l-color-link: #0a69da;
+// $l-color-underline: #fd8c73;
+// $l-color-tooltip-bg: rgba(0, 0, 0, 0.75);
+// $l-box-shadow-color: rgba(0, 0, 0, 0.1);
+
+// Leetcode theme colors
+$l-color-bg: #1a1a1a;
+$l-color-background: #1a1a1a;
+$l-color-navbar: #282828;
+$l-color-drawer-bg: #1a1a1a;
+$l-color-text-primary: #a9a9a9;
+$l-color-text-secondary: #ffffff;
+$l-color-border: #464646;
+$l-color-text-muted: #a9a9a9;
+$l-color-link: #0b84ff;
+$l-color-underline: #fd8c73;
+$l-color-tooltip-bg: #2c2c2c;
+
 // Light theme colors
-$l-color-bg: #f4f5f8;
-$l-color-background: #ffffff;
-$l-color-navbar: #f6f8fa;
-$l-color-drawer-bg: #ffffff;
-$l-color-text-secondary: #1f2329;
 $l-color-button-text: #24292f;
 $l-color-button-bg: #f6f8fa;
 $l-color-button-hover: #f0f2f5;
 $l-color-list-item-hover: #f2f3f4;
-// $l-color-list-item-selected: #eceeef;
 $l-color-background-card: #ffffff;
-$l-color-border: #d0d9e0;
 $l-color-border-lighter: #dfe4ea;
 $l-color-border-focused: #1f72f1;
-$l-color-text-primary: oklch(70.5% 0.213 47.604);
-$l-color-text-muted: #59636e;
-$l-color-link: #0a69da;
-$l-color-underline: #fd8c73;
-$l-color-tooltip-bg: rgba(0, 0, 0, 0.75);
 $l-box-shadow-color: rgba(0, 0, 0, 0.1);
 
 // Function to return the appropriate theme color
@@ -116,4 +139,28 @@ $l-box-shadow-color: rgba(0, 0, 0, 0.1);
 
 .ml-px {
     margin-left: var(--base-size-8);
+}
+
+.custom-circle-ico {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: var(--base-size-32);
+    height: var(--base-size-32);
+    border-radius: var(--borderRadius-full);
+    background: var(--color-tooltip-bg);
+
+    & > img {
+        width: var(--base-size-16);
+        height: var(--base-size-16);
+    }
+
+    & > .custom-ant-ico {
+        color: var(--color-text-muted);
+    }
+
+    &:hover {
+        cursor: pointer;
+        background: #323232;
+    }
 }

@@ -1,0 +1,146 @@
+.custom-calendar {
+    width: 270px;
+    background: #282828;
+    border-radius: var(--borderRadius-medium);
+
+    .title {
+        padding: var(--base-size-16);
+        display: flex;
+        gap: var(--base-size-4);
+        align-items: center;
+        position: relative;
+
+        .day {
+            color: #bebfc2;
+        }
+
+        .month {
+            color: #636366;
+            font-size: var(--base-size-10);
+        }
+
+        .year {
+            color: #636366;
+            font-size: var(--base-size-10);
+        }
+
+        .month-hex {
+            position: absolute;
+            right: var(--base-size-16);
+            top: -20px;
+            opacity: 0.5;
+            display: flex;
+            gap: var(--base-size-8);
+            align-items: flex-end;
+
+            .ico {
+                font-size: var(--base-size-8);
+                margin-bottom: var(--base-size-10);
+            }
+
+            .hex-child {
+                position: absolute;
+                top: 35px;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: 60%;
+            }
+
+            .hex-day {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                color: #bebfc2;
+                position: absolute;
+                top: 35px;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                font-weight: var(--base-text-weight-semibold);
+                font-family: 'Menlo';
+
+                .day {
+                    font-size: var(--base-size-16);
+                }
+
+                .month {
+                    font-size: var(--base-size-8);
+                    color: #bebfc2;
+                    text-transform: uppercase;
+                    font-weight: var(--base-text-weight-semibold);
+                }
+            }
+
+            &:hover {
+                cursor: pointer;
+                opacity: 1;
+            }
+        }
+    }
+
+    .react-calendar {
+        padding: var(--base-size-8);
+        background: #282828;
+        color: #636366;
+        border: none;
+        border-radius: var(--borderRadius-medium);
+
+        .react-calendar__navigation {
+            display: none;
+        }
+    }
+}
+
+abbr {
+    font-size: var(--base-size-12);
+    font-weight: normal;
+}
+
+.react-calendar__tile {
+    color: #a0a1a3;
+    aspect-ratio: 1 / 1;
+
+    &:hover {
+        background: #3e3e3e !important;
+        border-radius: var(--borderRadius-full);
+    }
+}
+
+.react-calendar__tile--active {
+    border-radius: var(--borderRadius-full);
+    padding: var(--base-size-4) !important;
+    color: white;
+    background: #2cbc5d !important;
+
+    &:hover {
+        pointer-events: none;
+        background: #2cbc5d !important;
+    }
+}
+
+.react-calendar__tile--now {
+    border-radius: var(--borderRadius-full);
+    padding: var(--base-size-4) !important;
+    color: white;
+    background: #2cbc5d !important;
+
+    &:hover {
+        pointer-events: none;
+        background: #2cbc5d !important;
+    }
+}
+
+.react-calendar__month-view__days__day--neighboringMonth {
+    visibility: hidden;
+}
+
+// Gỡ ... dưới formatShortWeekday
+
+.react-calendar__month-view__weekdays__weekday abbr {
+    text-decoration: none; /* bỏ gạch chân nếu có */
+    cursor: default;
+}
+
+.react-calendar__month-view__weekdays__weekday abbr[title] {
+    title: ''; /* gỡ tooltip mặc định */
+}

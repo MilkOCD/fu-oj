@@ -1,0 +1,242 @@
+.leetcode {
+    display: flex;
+    gap: var(--base-size-24);
+
+    .header {
+    }
+
+    .wrapper {
+        gap: var(--base-size-16);
+        display: flex;
+        flex-direction: column;
+
+        .filters {
+            position: relative;
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            gap: var(--base-size-8);
+            border-top: 1px solid var(--color-border);
+            padding-top: var(--base-size-16);
+
+            & > .random {
+                position: absolute;
+                right: 0;
+            }
+
+            & > input {
+                width: var(--base-size-220);
+                background: var(--color-tooltip-bg) !important;
+                border: none;
+                border-radius: var(--borderRadius-full);
+                height: var(--base-size-32);
+            }
+
+            & > input::placeholder {
+                color: var(--color-text-muted); /* màu placeholder */
+                opacity: 1; /* đảm bảo opacity đầy đủ */
+            }
+
+            & > input:focus,
+            & > input:focus-visible,
+            & > .ant-input:focus,
+            & > .ant-input-focused {
+                border: none !important;
+                box-shadow: none !important;
+                outline: none !important;
+            }
+        }
+
+        .body {
+            .loading-overlay {
+                table {
+                    background: var(--color-bg);
+
+                    thead {
+                        tr {
+                            th {
+                                padding: var(--base-size-8) var(--base-size-16) !important;
+
+                                .ant-table-column-sorter-up {
+                                    font-size: var(--base-size-10);
+                                }
+
+                                .ant-table-column-sorter-down {
+                                    font-size: var(--base-size-10);
+                                }
+
+                                &:hover {
+                                    background: inherit;
+                                    color: var(--c-cyan);
+                                }
+                            }
+
+                            .ant-table-column-sort {
+                                background: inherit;
+                                border-bottom: 1px solid var(--color-link);
+                            }
+                        }
+                    }
+
+                    tbody {
+                        // tắt hover trên row
+                        tr:hover {
+                            background-color: inherit !important;
+                        }
+
+                        .custom-row {
+                            background-color: var(--color-bg);
+
+                            // tắt hover trên từng cell
+                            td,
+                            td .cell {
+                                background-color: inherit !important;
+                            }
+
+                            td {
+                                border: none !important;
+                                padding: 0 !important;
+
+                                .cell {
+                                    display: flex;
+                                    align-items: center;
+                                    padding-left: var(--base-size-16);
+                                    height: var(--base-size-44);
+
+                                    .ant-tag {
+                                        margin: 0 !important;
+                                    }
+
+                                    .tooltip-wrapper {
+                                        height: var(--base-size-16);
+                                    }
+                                }
+                            }
+                        }
+
+                        .custom-row.row-odd {
+                            td {
+                                .cell {
+                                    background: var(--color-tooltip-bg) !important;
+                                }
+                            }
+
+                            // bo góc trái/cần cho row
+                            td:first-child .cell {
+                                border-top-left-radius: var(--borderRadius-medium);
+                                border-bottom-left-radius: var(--borderRadius-medium);
+                            }
+
+                            td:last-child .cell {
+                                border-top-right-radius: var(--borderRadius-medium);
+                                border-bottom-right-radius: var(--borderRadius-medium);
+                            }
+                        }
+
+                        .custom-row.expired-row {
+                            pointer-events: none;
+                            opacity: 0.3;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Global
+    .ant-pagination {
+        li {
+            margin: 0;
+            padding: 0;
+        }
+
+        .ant-pagination-total-text {
+            font-size: var(--base-size-14);
+            color: var(--color-text-primary);
+        }
+
+        .ant-pagination-item-link {
+            .anticon {
+                font-size: var(--base-size-10);
+            }
+        }
+
+        .ant-pagination-item {
+            border-radius: var(--borderRadius-full);
+            opacity: 0.5;
+
+            &:hover {
+                opacity: 1;
+            }
+        }
+
+        .ant-pagination-item-active {
+            border: 1px solid var(--c-cyan);
+
+            a {
+                color: var(--c-cyan) !important;
+            }
+        }
+    }
+
+    .actions-row {
+        width: 100%;
+        display: flex;
+        justify-content: flex-end;
+        padding-right: var(--base-size-16);
+    }
+}
+
+.leetcode.row {
+    flex-direction: row;
+
+    .left {
+        flex: 1;
+    }
+
+    .right {
+        width: 270px;
+        padding-top: var(--base-size-36);
+    }
+}
+
+.leetcode.col {
+    flex-direction: column;
+
+    .left {
+        flex: 1;
+    }
+
+    .right {
+        flex: 1;
+        padding-top: var(--base-size-36);
+    }
+}
+
+.custom-pop-content {
+    min-width: var(--base-size-200);
+
+    .filter-container {
+        margin-bottom: var(--base-size-8);
+
+        .filter-name {
+            font-size: var(--base-size-12);
+            color: var(--color-text-muted);
+            font-weight: var(--base-text-weight-medium);
+        }
+    }
+
+    .apply-filter {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: var(--base-size-80);
+        height: var(--base-size-24);
+        font-size: var(--base-size-12);
+        text-transform: uppercase;
+        border-radius: var(--borderRadius-small);
+        display: flex;
+        margin-left: auto;
+        margin-top: var(--base-size-24);
+    }
+}

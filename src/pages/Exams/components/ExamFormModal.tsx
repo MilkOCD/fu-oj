@@ -1,4 +1,4 @@
-import { Modal, Form, Input, DatePicker, Select, Button } from 'antd';
+import { Modal, Form, Input, DatePicker, Select, Button, InputNumber } from 'antd';
 import { observer } from 'mobx-react-lite';
 import { useEffect } from 'react';
 import dayjs from 'dayjs';
@@ -43,6 +43,7 @@ const ExamFormModal = observer(({
                     description: editingRecord.description,
                     startTime: editingRecord.startTime ? dayjs(editingRecord.startTime) : null,
                     endTime: editingRecord.endTime ? dayjs(editingRecord.endTime) : null,
+                    timeLimit: (editingRecord as ExamData & { timeLimit?: number | null }).timeLimit || null,
                     groupIds: editingRecord.groups?.map((g) => g.id) || [],
                     exerciseIds: editingRecord.exercises?.map((e) => e.id) || []
                 });
@@ -123,6 +124,18 @@ const ExamFormModal = observer(({
                             />
                         </Form.Item>
                     </div>
+
+                    <Form.Item
+                        label="Thời gian làm bài (phút)"
+                        name="timeLimit"
+                        rules={[{ required: true, message: 'Vui lòng nhập thời gian làm bài!' }]}
+                    >
+                        <InputNumber
+                            min={1}
+                            style={{ width: '100%' }}
+                            placeholder="Nhập thời gian làm bài (phút)"
+                        />
+                    </Form.Item>
 
                     <Form.Item
                         label="Nhóm"

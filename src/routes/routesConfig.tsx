@@ -16,6 +16,7 @@ const routesConfig: IPageRoutes = {
     topics: 'topics',
     ranking: 'ranking',
     dashboard: 'dashboard',
+    profile: 'profile',
     accounts: 'accounts'
 };
 

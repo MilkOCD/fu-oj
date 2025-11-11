@@ -63,6 +63,8 @@
                 gap: var(--base-size-8);
                 background: linear-gradient(to right bottom, #ff8f26, #ff5117);
                 color: var(--color-bg);
+                color: var(--color-text-secondary);
+                font-weight: var(--base-text-weight-medium);
 
                 &:hover {
                     cursor: pointer;
@@ -78,6 +80,8 @@
             padding: 0 var(--base-size-4);
 
             .wrapper {
+                position: sticky;
+                top: 0;
                 padding: var(--base-size-8);
                 margin-bottom: var(--base-size-16);
 

@@ -77,7 +77,7 @@ const UserDrawer = observer(() => {
     return (
         <div className="user-drawer">
             <div className="avatar">
-                <img src={authentication.account?.data?.avatar || '/sources/thaydat.jpg'} alt="" />
+                <img src={authentication.account?.data?.avatar?.url || '/sources/thaydat.jpg'} alt="" />
                 <div className="rank-user">
                     <img src="/sources/rank-user.png" alt="" />
                 </div>
@@ -102,7 +102,7 @@ const UserDrawer = observer(() => {
                 </div>
             </div>
             <div className="actions">
-                <div className="info action">
+                <div className="info action" onClick={() => (window.location.href = '/profile')}>
                     <UserOutlined />
                     Thông tin cá nhân
                 </div>
