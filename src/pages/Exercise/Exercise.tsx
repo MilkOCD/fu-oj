@@ -23,6 +23,8 @@ import { programmingLanguages } from '../../constants/languages';
 import * as http from '../../lib/httpRequest';
 import routesConfig from '../../routes/routesConfig';
 import utils from '../../utils/utils';
+import stompClientLib from '../../lib/stomp-client.lib';
+import authentication from '../../shared/auth/authentication';
 
 const json = {
     global: { tabSetEnableClose: false },
@@ -109,7 +111,6 @@ const Exercise = observer(() => {
 
     useEffect(() => {
         if (submittedData) {
-            console.log('log:', submittedData);
             setResponse(submittedData);
             setEditorValue(submittedData.data.sourceCode);
         }
@@ -170,7 +171,6 @@ const Exercise = observer(() => {
         http.post('/submissions/run', payload)
             .then((res) => {
                 // Do something
-                console.log('log:', res);
                 setResponse(res);
             })
             .catch((error) => {
@@ -190,7 +190,6 @@ const Exercise = observer(() => {
         http.post('/submissions', payload)
             .then((res) => {
                 // Do something
-                console.log('log:', res);
                 setResponse(res);
             })
             .catch((error) => {
@@ -226,7 +225,7 @@ const Exercise = observer(() => {
                     <div className="test-cases">
                         {exercise?.testCases.map((testCase: any, index: any) => {
                             return testCase.isPublic ? (
-                                <div key={testCase.id} className="test-case">
+                                <div key={`${testCase.id}-${index}`} className="test-case">
                                     <strong className="header">Example {index + 1}:</strong>
                                     <div className="io">
                                         <div className="input">
@@ -238,7 +237,7 @@ const Exercise = observer(() => {
                                     </div>
                                 </div>
                             ) : (
-                                <></>
+                                <div key={`${testCase.id}-${index}`}></div>
                             );
                         }) || 'Test Cases'}
                     </div>
@@ -399,6 +398,32 @@ const Exercise = observer(() => {
 
         setEditorValue(newEditorValue);
     }, [language]);
+
+    useEffect(() => {
+        const subscription = stompClientLib.subscribe({
+            destination: `/topic/submission-result-updates/${authentication.account?.data?.id}`,
+            onMessage: ({ body }) => {
+                console.log('socket:', JSON.parse(body));
+                // const testCaseResult = testCaseResultSchema.parse(JSON.parse(body));
+                // setSubmissionResult((prev) => {
+                //   const newTestCasesResults = {
+                //     ...prev.testCaseResults,
+                //     [testCaseResult.testCaseId]: testCaseResult,
+                //   };
+                //   const newPassedTestCases = Object.values(newTestCasesResults).filter(
+                //     (result) => result.passed
+                //   ).length;
+                //   return {
+                //     ...prev,
+                //     testCaseResults: newTestCasesResults,
+                //     passedTestCases: newPassedTestCases,
+                //   };
+                // });
+            }
+        });
+
+        return () => subscription.unsubscribe();
+    }, []);
 
     return (
         <div className="exercise">

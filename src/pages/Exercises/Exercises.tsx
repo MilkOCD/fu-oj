@@ -1,20 +1,27 @@
-import { DeleteOutlined, HeartOutlined, SearchOutlined, SettingOutlined } from '@ant-design/icons';
+import {
+    AppstoreAddOutlined,
+    DeleteOutlined,
+    FilterOutlined,
+    HeartOutlined,
+    SettingOutlined,
+    UnorderedListOutlined
+} from '@ant-design/icons';
 import type { FormProps } from 'antd';
-import { Button, Form, Input, Modal, Popconfirm, Select, Table, Tag } from 'antd';
+import { Button, Form, Input, InputNumber, Modal, Popconfirm, Popover, Select, Steps, Table, Tag } from 'antd';
 import classnames from 'classnames';
 import { observer } from 'mobx-react-lite';
 import { useEffect, useState } from 'react';
 import Highlighter from 'react-highlight-words';
 import { useNavigate } from 'react-router-dom';
+import CustomCalendar from '../../components/CustomCalendar/CustomCalendar';
 import globalStore from '../../components/GlobalComponent/globalStore';
-import Line from '../../components/Line/Line';
+import LoadingOverlay from '../../components/LoadingOverlay/LoadingOverlay';
 import ProtectedElement from '../../components/ProtectedElement/ProtectedElement';
 import TooltipWrapper from '../../components/TooltipWrapper/TooltipWrapperComponent';
 import * as http from '../../lib/httpRequest';
 import routesConfig from '../../routes/routesConfig';
-import { Steps } from 'antd';
 import authentication from '../../shared/auth/authentication';
-import LoadingOverlay from '../../components/LoadingOverlay/LoadingOverlay';
+import utils from '../../utils/utils';
 
 const Exercises = observer(() => {
     const navigate = useNavigate();
@@ -22,54 +29,78 @@ const Exercises = observer(() => {
     const [updateId, setUpdateId] = useState(null);
     const [loading, setLoading] = useState(false);
     const [datas, setDatas] = useState([]);
-    datas;
     const [topics, setTopics] = useState([]);
     const [displayDatas, setDisplayDatas] = useState([]);
     const [search, setSearch] = useState('');
     const [testCases, setTestCases]: any = useState([]);
+    const [isFilterOpen, setFilterOpen]: any = useState(false);
+    const [filters, setFilters] = useState({
+        difficulty: null,
+        topicIds: [],
+        visibility: null
+    });
 
     const [form] = Form.useForm();
 
     const columns = [
         {
             title: 'Mã bài tập',
+            width: 150,
             dataIndex: 'code',
             key: 'code',
             sorter: (a: any, b: any) => (a.code || '').localeCompare(b.code || ''),
             render: (code: string) => {
                 return (
-                    <Highlighter
-                        highlightClassName="highlight"
-                        searchWords={[search]}
-                        autoEscape={true}
-                        textToHighlight={code}
-                    />
+                    <div className="cell">
+                        <Highlighter
+                            highlightClassName="highlight"
+                            searchWords={[search]}
+                            autoEscape={true}
+                            textToHighlight={code}
+                        />
+                    </div>
                 );
             }
         },
         {
             title: 'Tiêu đề',
+            width: 200,
             dataIndex: 'title',
             key: 'title',
             sorter: (a: any, b: any) => (a.title || '').localeCompare(b.title || ''),
             render: (title: string) => {
                 return (
-                    <Highlighter
-                        highlightClassName="highlight"
-                        searchWords={[search]}
-                        autoEscape={true}
-                        textToHighlight={title}
-                    />
+                    <div className="cell">
+                        <Highlighter
+                            highlightClassName="highlight"
+                            searchWords={[search]}
+                            autoEscape={true}
+                            textToHighlight={title}
+                        />
+                    </div>
                 );
             }
         },
+        // {
+        //     title: 'Mô tả',
+        //     dataIndex: 'description',
+        //     key: 'description',
+        //     render: (description: string) => {
+        //         return <div className="cell">{description}</div>;
+        //     }
+        // },
         {
-            title: 'Mô tả',
-            dataIndex: 'description',
-            key: 'description'
+            title: 'Độ khó',
+            width: 100,
+            dataIndex: 'difficulty',
+            key: 'difficulty',
+            render: (difficulty: string) => {
+                return <div className="cell">{utils.getDifficultyClass(difficulty)}</div>;
+            }
         },
         {
             title: 'Chủ đề',
+            width: 100,
             dataIndex: 'topics',
             key: 'topics',
             render: (topics: any[]) => {
@@ -93,9 +124,11 @@ const Exercises = observer(() => {
                     const color = colors[index];
 
                     return (
-                        <Tag color={color} key={text} style={{ marginBottom: 8 }}>
-                            {text}
-                        </Tag>
+                        <div className="cell" key={`topic-${index}`}>
+                            <Tag color={color} key={text} style={{ marginBottom: 8 }}>
+                                {text}
+                            </Tag>
+                        </div>
                     );
                 });
             }
@@ -104,10 +137,11 @@ const Exercises = observer(() => {
             title: '',
             dataIndex: 'actions',
             key: 'actions',
+            width: 100,
             render: (actions: any, record: any) => {
                 actions;
                 return (
-                    <div className="actions-row" onClick={(e) => e.stopPropagation()}>
+                    <div className="actions-row cell" onClick={(e) => e.stopPropagation()}>
                         <TooltipWrapper tooltipText="Thêm vào yêu thích" position="left">
                             <HeartOutlined className="action-row-btn" />
                         </TooltipWrapper>
@@ -157,6 +191,53 @@ const Exercises = observer(() => {
         console.log(`selected ${value}`);
     };
 
+    const handleFilterChange = (key: string, value: any) => {
+        setFilters((prev) => ({
+            ...prev,
+            [key]: value
+        }));
+    };
+
+    const applyFilter = () => {
+        const filtered = datas.filter((item: any) => {
+            // 1. Lọc độ khó
+            if (filters.difficulty && item.difficulty !== filters.difficulty) {
+                return false;
+            }
+
+            // 2. Lọc khả năng hiển thị
+            if (filters.visibility && item.visibility !== filters.visibility) {
+                return false;
+            }
+
+            // 3. Lọc chủ đề (topicIds là mảng id)
+            if (filters.topicIds.length > 0) {
+                const itemTopicIds = item.topics?.map((t: any) => t.id) || [];
+                // Kiểm tra ít nhất một topic match
+                const hasMatch = filters.topicIds.some((id: any) => itemTopicIds.includes(id));
+                if (!hasMatch) return false;
+            }
+
+            return true;
+        });
+
+        console.log('log:', filtered);
+
+        setDisplayDatas(filtered);
+        setFilterOpen(false);
+    };
+
+    const selectRandom = () => {
+        // Đoạn này lấy từ kết quả lọc ra
+        if (displayDatas.length == 0) {
+            globalStore.triggerNotification('error', 'Không tìm thấy bài tập', '');
+        } else {
+            const randomInt = utils.getRandomInt(displayDatas.length);
+            const randomSelect: any = displayDatas[randomInt];
+            navigate(`/${routesConfig.exercise}`.replace(':id?', randomSelect?.id));
+        }
+    };
+
     const onFinish: FormProps['onFinish'] = (values) => {
         console.log('Success:', values);
 
@@ -191,7 +272,7 @@ const Exercises = observer(() => {
 
     const getExercises = () => {
         setLoading(true);
-        http.get('/exercises').then((res) => {
+        http.get('/exercises?pageSize=9999999').then((res) => {
             setDatas(res.data);
             setDisplayDatas(res.data);
             setTimeout(() => {
@@ -199,6 +280,16 @@ const Exercises = observer(() => {
             }, 1000);
         });
     };
+
+    useEffect(() => {
+        const searchLowerCase = search.toLowerCase();
+
+        const filtered = datas.filter(
+            (d: any) =>
+                d.code.toLowerCase().includes(searchLowerCase) || d.title.toLowerCase().includes(searchLowerCase)
+        );
+        setDisplayDatas(filtered);
+    }, [search]);
 
     useEffect(() => {
         getExercises();
@@ -217,71 +308,72 @@ const Exercises = observer(() => {
     }, [globalStore.isDetailPopupOpen]);
 
     return (
-        <div className={classnames('exercises', { 'p-24': globalStore.isBelow1300 })}>
-            <Modal
-                title={`${updateId ? 'Chỉnh sửa' : 'Tạo mới'} bài tập`}
-                className="detail-modal"
-                open={globalStore.isDetailPopupOpen}
-                onCancel={() => globalStore.setOpenDetailPopup(false)}
-                // width={420}
-                width={800}
-            >
-                <div className="exercise-form">
-                    <Steps
-                        className="ex-step mb-px"
-                        size="small"
-                        current={step}
-                        items={[
-                            {
-                                title: 'Thông tin bài tập'
-                            },
-                            {
-                                title: 'Test cases'
-                            }
-                        ]}
-                        onChange={(value: number) => {
-                            if (!updateId) {
-                                globalStore.triggerNotification('error', 'Bạn phải tạo mới bài tập trước', '');
-                                setStep(0);
-                                return;
-                            }
+        <div className={classnames('leetcode', globalStore.isBelow1300 ? 'col' : 'row')}>
+            <div className={classnames('exercises left', { 'p-24': globalStore.isBelow1300 })}>
+                <Modal
+                    title={`${updateId ? 'Chỉnh sửa' : 'Tạo mới'} bài tập`}
+                    className="detail-modal"
+                    open={globalStore.isDetailPopupOpen}
+                    onCancel={() => globalStore.setOpenDetailPopup(false)}
+                    // width={420}
+                    width={800}
+                >
+                    <div className="exercise-form">
+                        <Steps
+                            className="ex-step mb-px"
+                            size="small"
+                            current={step}
+                            items={[
+                                {
+                                    title: 'Thông tin bài tập'
+                                },
+                                {
+                                    title: 'Test cases'
+                                }
+                            ]}
+                            onChange={(value: number) => {
+                                if (!updateId) {
+                                    globalStore.triggerNotification('error', 'Bạn phải tạo mới bài tập trước', '');
+                                    setStep(0);
+                                    return;
+                                }
 
-                            setStep(value);
-                        }}
-                    />
-                    <Form
-                        form={form}
-                        name="basic"
-                        labelCol={{ span: 24 }}
-                        wrapperCol={{ span: 24 }}
-                        labelAlign="left"
-                        initialValues={{ remember: true }}
-                        onFinish={onFinish}
-                        onFinishFailed={onFinishFailed}
-                        autoComplete="off"
-                    >
-                        <div className={classnames({ hide: step != 0 })}>
-                            <div className="flex gap">
-                                <Form.Item
-                                    className="flex-1"
-                                    label="Mã bài tập"
-                                    name="code"
-                                    rules={[{ required: true, message: 'Vui lòng nhập mã bài tập!' }]}
-                                >
-                                    <Input />
-                                </Form.Item>
+                                setStep(value);
+                            }}
+                        />
+                        <Form
+                            form={form}
+                            name="basic"
+                            labelCol={{ span: 24 }}
+                            wrapperCol={{ span: 24 }}
+                            labelAlign="left"
+                            initialValues={{ remember: true }}
+                            onFinish={onFinish}
+                            onFinishFailed={onFinishFailed}
+                            autoComplete="off"
+                        >
+                            <div className={classnames({ hide: step != 0 })}>
+                                <div className="flex gap">
+                                    <Form.Item
+                                        className="flex-1"
+                                        label="Mã bài tập"
+                                        name="code"
+                                        rules={[{ required: true, message: 'Vui lòng nhập mã bài tập!' }]}
+                                    >
+                                        <Input />
+                                    </Form.Item>
 
-                                <Form.Item
-                                    className="flex-1"
-                                    label="Tiêu đề"
-                                    name="title"
-                                    rules={[{ required: true, message: 'Vui lòng nhập tiêu đề!' }]}
-                                >
-                                    <Input />
-                                </Form.Item>
-                            </div>
+                                    <Form.Item
+                                        className="flex-1"
+                                        label="Tiêu đề"
+                                        name="title"
+                                        rules={[{ required: true, message: 'Vui lòng nhập tiêu đề!' }]}
+                                    >
+                                        <Input />
+                                    </Form.Item>
+                                </div>
 
-                            {/* <Form.Item
+                                {/* <Form.Item
                                 label="Max Submissions"
                                 name="maxSubmissions"
                                 rules={[{ required: true, message: 'Please input your max submissions!' }]}
@@ -290,152 +382,251 @@ const Exercises = observer(() => {
                                 <Input type="number" value={0} />
                             </Form.Item> */}
 
-                            <div className="flex gap">
-                                <Form.Item
-                                    className="flex-1"
-                                    label="Giới hạn thời gian"
-                                    name="timeLimit"
-                                    rules={[{ required: true, message: 'Vui lòng nhập giới hạn!' }]}
-                                >
-                                    <Input type="number" />
-                                </Form.Item>
+                                <div className="flex gap">
+                                    <Form.Item
+                                        className="flex-1"
+                                        label="Giới hạn thời gian"
+                                        name="timeLimit"
+                                        rules={[{ required: true, message: 'Vui lòng nhập giới hạn!' }]}
+                                    >
+                                        <InputNumber className="max-width" />
+                                    </Form.Item>
+
+                                    <Form.Item
+                                        className="flex-1"
+                                        label="Bộ nhớ"
+                                        name="memory"
+                                        rules={[{ required: true, message: 'Vui lòng nhập bộ nhớ!' }]}
+                                    >
+                                        <InputNumber className="max-width" />
+                                    </Form.Item>
+
+                                    <Form.Item
+                                        className="flex-1"
+                                        label="Độ khó"
+                                        name="difficulty"
+                                        rules={[{ required: true, message: 'Vui lòng chọn một!' }]}
+                                    >
+                                        <Select
+                                            style={{ width: '100%' }}
+                                            placeholder="Select difficulty"
+                                            // defaultValue={['EASY']}
+                                            onChange={handleChange}
+                                            options={[
+                                                { value: 'EASY', label: 'EASY' },
+                                                { value: 'MEDIUM', label: 'MEDIUM' },
+                                                { value: 'HARD', label: 'HARD' }
+                                            ]}
+                                        />
+                                    </Form.Item>
+
+                                    <Form.Item
+                                        className="flex-1"
+                                        label="Khả năng hiển thị"
+                                        name="visibility"
+                                        rules={[{ required: true, message: 'Vui lòng chọn một!' }]}
+                                    >
+                                        <Select
+                                            style={{ width: '100%' }}
+                                            placeholder="Select visibility"
+                                            onChange={handleChange}
+                                            options={[
+                                                { value: 'DRAFT', label: 'DRAFT' },
+                                                { value: 'PUBLIC', label: 'PUBLIC' },
+                                                { value: 'PRIVATE', label: 'PRIVATE' }
+                                            ]}
+                                        />
+                                    </Form.Item>
+                                </div>
 
                                 <Form.Item
                                     className="flex-1"
-                                    label="Bộ nhớ"
-                                    name="memory"
-                                    rules={[{ required: true, message: 'Vui lòng nhập bộ nhớ!' }]}
-                                >
-                                    <Input type="number" />
-                                </Form.Item>
-
-                                <Form.Item
-                                    className="flex-1"
-                                    label="Độ khó"
-                                    name="difficulty"
-                                    rules={[{ required: true, message: 'Vui lòng chọn một!' }]}
+                                    label="Chủ đề"
+                                    name="topicIds"
+                                    rules={[{ required: true, message: 'Vui lòng chọn ít nhất 1 chủ đề!' }]}
                                 >
                                     <Select
+                                        mode="multiple"
                                         style={{ width: '100%' }}
-                                        placeholder="Select difficulty"
-                                        // defaultValue={['EASY']}
+                                        placeholder="Select topics"
+                                        defaultValue={[]}
                                         onChange={handleChange}
-                                        options={[
-                                            { value: 'EASY', label: 'EASY' },
-                                            { value: 'MEDIUM', label: 'MEDIUM' },
-                                            { value: 'HARD', label: 'HARD' }
-                                        ]}
+                                        options={topics}
                                     />
                                 </Form.Item>
 
                                 <Form.Item
-                                    className="flex-1"
-                                    label="Khả năng hiển thị"
-                                    name="visibility"
-                                    rules={[{ required: true, message: 'Vui lòng chọn một!' }]}
+                                    label="Mô tả"
+                                    name="description"
+                                    rules={[{ required: true, message: 'Vui lòng nhập mô tả!' }]}
                                 >
-                                    <Select
-                                        style={{ width: '100%' }}
-                                        placeholder="Select visibility"
-                                        // defaultValue={['DRAFT']}
-                                        onChange={handleChange}
-                                        options={[{ value: 'DRAFT', label: 'DRAFT' }]}
-                                    />
+                                    <Input.TextArea rows={4} />
                                 </Form.Item>
                             </div>
 
-                            <Form.Item
-                                className="flex-1"
-                                label="Chủ đề"
-                                name="topicIds"
-                                rules={[{ required: true, message: 'Vui lòng chọn ít nhất 1 chủ đề!' }]}
-                            >
-                                <Select
-                                    mode="multiple"
-                                    style={{ width: '100%' }}
-                                    placeholder="Select topics"
-                                    defaultValue={[]}
-                                    onChange={handleChange}
-                                    options={topics}
-                                />
+                            <div className={classnames({ hide: step != 1 })}>
+                                <TestCases updateId={updateId} testCases={testCases} setTestCases={setTestCases} />
+                            </div>
+
+                            <Form.Item label={null}>
+                                <Button className={classnames({ hide: step != 0 })} type="primary" htmlType="submit">
+                                    {updateId ? 'Cập nhật' : 'Tạo mới'}
+                                </Button>
                             </Form.Item>
-
-                            <Form.Item
-                                label="Mô tả"
-                                name="description"
-                                rules={[{ required: true, message: 'Vui lòng nhập mô tả!' }]}
-                            >
-                                <Input.TextArea rows={4} />
-                            </Form.Item>
-                        </div>
-
-                        <div className={classnames({ hide: step != 1 })}>
-                            <TestCases updateId={updateId} testCases={testCases} setTestCases={setTestCases} />
-                        </div>
-
-                        <Form.Item label={null}>
-                            <Button className={classnames({ hide: step != 0 })} type="primary" htmlType="submit">
-                                {updateId ? 'Cập nhật' : 'Tạo mới'}
-                            </Button>
-                        </Form.Item>
-                    </Form>
+                        </Form>
+                    </div>
+                </Modal>
+                <div className="header">
+                    <div className="title">Danh sách bài tập</div>
+                    <div className="description">
+                        Để bắt đầu một cách thuận lợi, bạn nên tập trung vào một lộ trình học. Ví dụ: Để đi làm với vị
+                        trí "Lập trình viên Front-end" bạn nên tập trung vào lộ trình "Front-end".
+                    </div>
                 </div>
-            </Modal>
-            <div className="header">
-                <div className="title">Danh sách bài tập</div>
-                <div className="description">
-                    Để bắt đầu một cách thuận lợi, bạn nên tập trung vào một lộ trình học. Ví dụ: Để đi làm với vị trí
-                    "Lập trình viên Front-end" bạn nên tập trung vào lộ trình "Front-end".
+                <div
+                    className={classnames('wrapper flex', {
+                        'flex-col wrapper-responsive': globalStore.windowSize.width < 1300
+                    })}
+                >
+                    <div className="filters">
+                        <Input placeholder="Tìm kiếm bài tập" onChange={(e) => setSearch(e.target.value)} />
+
+                        {/* <TooltipWrapper tooltipText="Sắp xếp" position="top">
+                            <Popover
+                                content={<div className="custom-pop-content">ab</div>}
+                                title="Sắp xếp"
+                                trigger="click"
+                                open={isSortOpen}
+                                onOpenChange={(open) => setSortOpen(open)}
+                                placement="bottom"
+                            >
+                                <div className="custom-circle-ico">
+                                    <img className="" src="/sources/icons/sort-ico.svg" />
+                                </div>
+                            </Popover>
+                        </TooltipWrapper> */}
+
+                        <TooltipWrapper tooltipText="Bộ lọc" position="top">
+                            <Popover
+                                content={
+                                    <div className="custom-pop-content">
+                                        <div className="filter-container">
+                                            <div className="filter-name">Độ khó</div>
+                                            <Select
+                                                allowClear
+                                                style={{ width: '100%' }}
+                                                placeholder="Chọn độ khó"
+                                                onChange={(value) => handleFilterChange('difficulty', value)}
+                                                options={[
+                                                    { value: 'EASY', label: 'EASY' },
+                                                    { value: 'MEDIUM', label: 'MEDIUM' },
+                                                    { value: 'HARD', label: 'HARD' }
+                                                ]}
+                                            />
+                                        </div>
+                                        <div className="filter-container">
+                                            <div className="filter-name">Chủ đề</div>
+                                            <Select
+                                                allowClear
+                                                mode="multiple"
+                                                style={{ width: '100%' }}
+                                                placeholder="Chọn chủ đề"
+                                                defaultValue={[]}
+                                                onChange={(value) => handleFilterChange('topicIds', value)}
+                                                options={topics}
+                                            />
+                                        </div>
+                                        <div className="filter-container">
+                                            <div className="filter-name">Khả năng hiển thị</div>
+                                            <Select
+                                                allowClear
+                                                style={{ width: '100%' }}
+                                                placeholder="Chọn khả năng hiển thị"
+                                                onChange={(value) => handleFilterChange('visibility', value)}
+                                                options={[
+                                                    { value: 'DRAFT', label: 'DRAFT' },
+                                                    { value: 'PUBLIC', label: 'PUBLIC' },
+                                                    { value: 'PRIVATE', label: 'PRIVATE' }
+                                                ]}
+                                            />
+                                        </div>
+                                        <Button type="primary" className="apply-filter" onClick={applyFilter}>
+                                            Áp dụng
+                                        </Button>
+                                    </div>
+                                }
+                                title="Bộ lọc"
+                                trigger="click"
+                                open={isFilterOpen}
+                                onOpenChange={(open) => setFilterOpen(open)}
+                                placement="bottom"
+                            >
+                                <div className="custom-circle-ico">
+                                    <FilterOutlined className="custom-ant-ico" />
+                                </div>
+                            </Popover>
+                        </TooltipWrapper>
+
+                        <ProtectedElement acceptRoles={['STUDENT']}>
+                            <TooltipWrapper tooltipText="Danh sách bài tập đã hoàn thành" position="top">
+                                <div
+                                    className="custom-circle-ico"
+                                    onClick={() => (window.location.href = '/submissions')}
+                                >
+                                    <UnorderedListOutlined className="custom-ant-ico color-gold" />
+                                </div>
+                            </TooltipWrapper>
+                        </ProtectedElement>
+
+                        <ProtectedElement acceptRoles={['INSTRUCTOR']}>
+                            <TooltipWrapper tooltipText="Tạo mới" position="top">
+                                <div className="custom-circle-ico" onClick={() => globalStore.setOpenDetailPopup(true)}>
+                                    <AppstoreAddOutlined className="custom-ant-ico color-cyan" />
+                                </div>
+                            </TooltipWrapper>
+                        </ProtectedElement>
+
+                        <div className="random">
+                            <ProtectedElement acceptRoles={['STUDENT']}>
+                                <TooltipWrapper tooltipText="Làm ngẫu nhiên" position="left">
+                                    <div className="custom-circle-ico" onClick={selectRandom}>
+                                        <img className="" src="/sources/icons/random-ico.svg" />
+                                    </div>
+                                </TooltipWrapper>
+                            </ProtectedElement>
+                        </div>
+                    </div>
+                    <div className="body">
+                        <LoadingOverlay loading={loading}>
+                            <Table
+                                rowKey="id"
+                                scroll={{ x: 800 }}
+                                pagination={{
+                                    pageSize: 1000,
+                                    showSizeChanger: false,
+                                    showTotal: (total, range) => `${range[0]}-${range[1]} trên ${total} bài tập`
+                                }}
+                                dataSource={displayDatas}
+                                columns={columns}
+                                rowClassName={(record, index) => {
+                                    record;
+                                    return index % 2 === 0 ? 'custom-row row-even' : 'custom-row row-odd';
+                                }}
+                                onRow={(record) => {
+                                    return {
+                                        onClick: () => {
+                                            if (!authentication.isStudent) return;
+                                            navigate(`/${routesConfig.exercise}`.replace(':id?', record.id));
+                                        }
+                                    };
+                                }}
+                            />
+                        </LoadingOverlay>
+                    </div>
                 </div>
             </div>
-            <div
-                className={classnames('wrapper flex', {
-                    'flex-col wrapper-responsive': globalStore.windowSize.width < 1300
-                })}
-            >
-                <div className="search">
-                    <div className="title">
-                        <SearchOutlined />
-                        Bộ lọc
-                    </div>
-                    <Input
-                        value={search}
-                        placeholder="Tìm kiếm theo Mã, Tên, Mô tả, Chủ đề"
-                        onChange={(e) => setSearch(e.target.value)}
-                    />
-                    <Line width={0} height={0} text="Chủ đề" center />
-                    <Select
-                        mode="multiple"
-                        style={{ width: '100%' }}
-                        placeholder="Select topics"
-                        defaultValue={[]}
-                        onChange={handleChange}
-                        options={topics}
-                    />
-                    <ProtectedElement acceptRoles={['INSTRUCTOR']}>
-                        <Line width={0} height={0} text="Quản lý" center />
-                        <Button onClick={() => globalStore.setOpenDetailPopup(true)}>Tạo mới</Button>
-                    </ProtectedElement>
-                </div>
-                <div className="body">
-                    <LoadingOverlay loading={loading}>
-                        <Table
-                            rowKey="id"
-                            scroll={{ x: 800 }}
-                            pagination={{ pageSize: 10, showSizeChanger: false }}
-                            dataSource={displayDatas}
-                            columns={columns}
-                            onRow={(record) => {
-                                return {
-                                    onClick: () => {
-                                        if (!authentication.isStudent) return;
-                                        navigate(`/${routesConfig.exercise}`.replace(':id?', record.id));
-                                    }
-                                };
-                            }}
-                        />
-                    </LoadingOverlay>
-                </div>
+            <div className="right">
+                <CustomCalendar />
             </div>
         </div>
     );

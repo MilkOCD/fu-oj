@@ -133,6 +133,11 @@ export const patch = async (id: any, path: string, data: object, options: object
     return res.data;
 };
 
+export const patchV2 = async (id: any, path: string, data: object, options: object = {}) => {
+    const res = await httpRequest.patch(`${path}`, data, options);
+    return res.data;
+};
+
 export const del = async (path: string, options: object = {}) => {
     const res = await httpRequest.delete(path, options);
     return res.data;

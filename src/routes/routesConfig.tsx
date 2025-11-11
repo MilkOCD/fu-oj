@@ -15,7 +15,8 @@ const routesConfig: IPageRoutes = {
     examExercise: 'exams/:examId/exercise/:exerciseId',
     topics: 'topics',
     ranking: 'ranking',
-    dashboard: 'dashboard'
+    dashboard: 'dashboard',
+    profile: 'profile'
 };
 
 export default routesConfig;

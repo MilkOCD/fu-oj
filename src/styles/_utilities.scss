@@ -1,3 +1,13 @@
+.color-cyan {
+    color: var(--c-cyan) !important;
+}
+.color-gold {
+    color: var(--c-gold) !important;
+}
+.color-red {
+    color: var(--c-red) !important;
+}
+
 .flex {
     display: flex;
 }
@@ -143,4 +153,10 @@
 
 .p-24 {
     padding: var(--base-size-24) !important;
+}
+
+.disabled {
+    pointer-events: none !important;
+    color: var(--color-text-muted) !important;
+    opacity: 0.3 !important;
 }

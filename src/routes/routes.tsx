@@ -1,17 +1,18 @@
+import ProtectedElementRoute from '../components/ProtectedElementRoute/ProtectedElementRoute';
+import Dashboard from '../pages/Dashboard/Dashboard';
+import ExamDetail from '../pages/ExamDetail/ExamDetail';
+import ExamExercise from '../pages/ExamExercise/ExamExercise';
+import Exams from '../pages/Exams/Exams';
 import Exercise from '../pages/Exercise/Exercise';
 import ExerciseCompletionList from '../pages/ExerciseCompletionList/ExerciseCompletionList';
 import Exercises from '../pages/Exercises/Exercises';
-import Home from '../pages/Home/Home';
-import routesConfig from './routesConfig';
-import Groups from '../pages/Groups/Groups';
 import GroupDetail from '../pages/GroupDetail/GroupDetail';
-import Exams from '../pages/Exams/Exams';
-import ExamDetail from '../pages/ExamDetail/ExamDetail';
-import ExamExercise from '../pages/ExamExercise/ExamExercise';
-import Topics from '../pages/Topics/Topics';
+import Groups from '../pages/Groups/Groups';
+import Home from '../pages/Home/Home';
+import Profile from '../pages/Profile/Profile';
 import Ranking from '../pages/Ranking/Ranking';
-import Dashboard from '../pages/Dashboard/Dashboard';
-import ProtectedElementRoute from '../components/ProtectedElementRoute/ProtectedElementRoute';
+import Topics from '../pages/Topics/Topics';
+import routesConfig from './routesConfig';
 
 const router: {
     path: string;
@@ -120,6 +121,10 @@ const router: {
                 <Dashboard />
             </ProtectedElementRoute>
         )
+    },
+    {
+        path: routesConfig.profile,
+        element: <Profile />
     }
 ];
 

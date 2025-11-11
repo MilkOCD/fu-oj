@@ -1,4 +1,6 @@
+import { ConfigProvider, theme } from 'antd';
 import { useEffect } from 'react';
+import 'react-calendar/dist/Calendar.css';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import GlobalComponent from './components/GlobalComponent/GlobalComponent';
@@ -18,7 +20,7 @@ function App() {
     }, []);
 
     return (
-        <>
+        <ConfigProvider theme={{ algorithm: theme.darkAlgorithm }}>
             <ToastContainer />
             <GlobalComponent />
             <BrowserRouter>
@@ -43,7 +45,7 @@ function App() {
                     <Route path="/login" element={<Login />} />
                 </Routes>
             </BrowserRouter>
-        </>
+        </ConfigProvider>
     );
 }
 

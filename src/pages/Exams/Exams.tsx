@@ -1,22 +1,26 @@
+import { AppstoreAddOutlined, FilterOutlined } from '@ant-design/icons';
+import type { FormProps } from 'antd';
+import { Button, Form, Input, Popover, Table, Tabs, Tag, Select, DatePicker } from 'antd';
+import classnames from 'classnames';
+import dayjs from 'dayjs';
+import timezone from 'dayjs/plugin/timezone';
+import utc from 'dayjs/plugin/utc';
 import { observer } from 'mobx-react-lite';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import * as http from '../../lib/httpRequest';
-import ProtectedElement from '../../components/ProtectedElement/ProtectedElement';
-import { Button, Input, Form, Tabs, Tag, Table } from 'antd';
-import type { FormProps } from 'antd';
-import Line from '../../components/Line/Line';
-import globalStore from '../../components/GlobalComponent/globalStore';
-import classnames from 'classnames';
-import { SearchOutlined } from '@ant-design/icons';
 import Highlighter from 'react-highlight-words';
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-import timezone from 'dayjs/plugin/timezone';
+import { useNavigate } from 'react-router-dom';
+import globalStore from '../../components/GlobalComponent/globalStore';
+import ProtectedElement from '../../components/ProtectedElement/ProtectedElement';
+import TooltipWrapper from '../../components/TooltipWrapper/TooltipWrapperComponent';
+import * as http from '../../lib/httpRequest';
 import routesConfig from '../../routes/routesConfig';
 import authentication from '../../shared/auth/authentication';
+import ConfirmStartExamModal from './components/ConfirmStartExamModal';
+import ExamFormModal from './components/ExamFormModal';
+import ExamTable from './components/ExamTable';
 import type { ExamData, SelectOption } from './types';
-import { getExamStatus, filterDataByTab } from './utils';
+import { filterDataByTab, getExamStatus } from './utils';
+import LoadingOverlay from '../../components/LoadingOverlay/LoadingOverlay';
 
 interface CompletedExamData {
     id: string;
@@ -46,9 +50,6 @@ interface CompletedExamData {
     };
     totalScore: number | null;
 }
-import ExamTable from './components/ExamTable';
-import ExamFormModal from './components/ExamFormModal';
-import ConfirmStartExamModal from './components/ConfirmStartExamModal';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -70,12 +71,52 @@ const Exams = observer(() => {
     const [loadingCompletedExams, setLoadingCompletedExams] = useState(false);
     const [ongoingExams, setOngoingExams] = useState<CompletedExamData[]>([]);
     const [loadingOngoingExams, setLoadingOngoingExams] = useState(false);
+    const [isFilterOpen, setFilterOpen]: any = useState(false);
+    const [filters, setFilters] = useState({
+        status: null,
+        startTime: null,
+        endTime: null
+    });
 
     const [form] = Form.useForm();
 
+    const handleFilterChange = (key: string, value: any) => {
+        setFilters((prev) => ({
+            ...prev,
+            [key]: value
+        }));
+    };
+
+    const applyFilter = () => {
+        const filtered = datas.filter((item: any) => {
+            const now = dayjs();
+            const start = item.startTime ? dayjs(item.startTime) : null;
+            const end = item.endTime ? dayjs(item.endTime) : null;
+
+            if (filters.status) {
+                const statusInfo = getExamStatus(item.startTime, item.endTime).status;
+                if (statusInfo !== filters.status) return false;
+            }
+
+            if (filters.startTime) {
+                if (!start || start.isBefore(dayjs(filters.startTime).startOf('day'))) return false;
+            }
+
+            // --- 3️⃣ Lọc theo ngày kết thúc (lọc <= ngày chọn) ---
+            if (filters.endTime) {
+                if (!end || end.isAfter(dayjs(filters.endTime).endOf('day'))) return false;
+            }
+
+            return true;
+        });
+
+        setDisplayDatas(filtered);
+        setFilterOpen(false);
+    };
+
     const handleConfirmStartExam = async () => {
         if (!selectedExamId) return;
-        
+
         try {
             const userId = authentication.account?.data?.id;
             if (!userId) {
@@ -84,17 +125,19 @@ const Exams = observer(() => {
                 setSelectedExamId(null);
                 return;
             }
-            
+
             await http.post('/exam-rankings', {
                 examId: selectedExamId,
                 userId: userId
             });
-            
+
             setConfirmModalOpen(false);
             setSelectedExamId(null);
             navigate(`/${routesConfig.exam}`.replace(':id', selectedExamId));
         } catch (error) {
-            const errorMessage = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Có lỗi xảy ra khi bắt đầu làm bài!';
+            const errorMessage =
+                (error as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+                'Có lỗi xảy ra khi bắt đầu làm bài!';
             globalStore.triggerNotification('error', errorMessage, '');
             setConfirmModalOpen(false);
             setSelectedExamId(null);
@@ -147,12 +190,14 @@ const Exams = observer(() => {
             sorter: (a: ExamData, b: ExamData) => (a.title || '').localeCompare(b.title || ''),
             render: (title: string) => {
                 return (
-                    <Highlighter
-                        highlightClassName="highlight"
-                        searchWords={[search]}
-                        autoEscape={true}
-                        textToHighlight={title || ''}
-                    />
+                    <div className="cell">
+                        <Highlighter
+                            highlightClassName="highlight"
+                            searchWords={[search]}
+                            autoEscape={true}
+                            textToHighlight={title || ''}
+                        />
+                    </div>
                 );
             }
         },
@@ -162,12 +207,14 @@ const Exams = observer(() => {
             key: 'description',
             render: (description: string) => {
                 return (
-                    <Highlighter
-                        highlightClassName="highlight"
-                        searchWords={[search]}
-                        autoEscape={true}
-                        textToHighlight={description || ''}
-                    />
+                    <div className="cell">
+                        <Highlighter
+                            highlightClassName="highlight"
+                            searchWords={[search]}
+                            autoEscape={true}
+                            textToHighlight={description || ''}
+                        />
+                    </div>
                 );
             }
         },
@@ -175,16 +222,26 @@ const Exams = observer(() => {
             title: 'Thời gian bắt đầu',
             dataIndex: 'startTime',
             key: 'startTime',
+            sorter: (a: any, b: any) => {
+                const timeA = a.startTime ? dayjs(a.startTime).valueOf() : 0;
+                const timeB = b.startTime ? dayjs(b.startTime).valueOf() : 0;
+                return timeA - timeB;
+            },
             render: (startTime: string) => {
-                return startTime ? dayjs(startTime).format('DD/MM/YYYY HH:mm') : '-';
+                return <div className="cell">{startTime ? dayjs(startTime).format('DD/MM/YYYY HH:mm') : '-'}</div>;
             }
         },
         {
             title: 'Thời gian kết thúc',
             dataIndex: 'endTime',
             key: 'endTime',
+            sorter: (a: any, b: any) => {
+                const timeA = a.endTime ? dayjs(a.endTime).valueOf() : 0;
+                const timeB = b.endTime ? dayjs(b.endTime).valueOf() : 0;
+                return timeA - timeB;
+            },
             render: (endTime: string) => {
-                return endTime ? dayjs(endTime).format('DD/MM/YYYY HH:mm') : '-';
+                return <div className="cell">{endTime ? dayjs(endTime).format('DD/MM/YYYY HH:mm') : '-'}</div>;
             }
         },
         {
@@ -193,7 +250,11 @@ const Exams = observer(() => {
             key: 'status',
             render: (_: unknown, record: ExamData) => {
                 const statusInfo = getExamStatus(record.startTime, record.endTime);
-                return <Tag color={statusInfo.color}>{statusInfo.label}</Tag>;
+                return (
+                    <div className="cell">
+                        <Tag color={statusInfo.color}>{statusInfo.label}</Tag>
+                    </div>
+                );
             }
         },
         {
@@ -201,7 +262,7 @@ const Exams = observer(() => {
             dataIndex: 'groups',
             key: 'groups',
             render: (groups: Array<{ id: string; name: string }> | undefined) => {
-                return groups ? groups.length : 0;
+                return <div className="cell">{groups ? groups.length : 0}</div>;
             }
         },
         {
@@ -209,7 +270,7 @@ const Exams = observer(() => {
             dataIndex: 'exercises',
             key: 'exercises',
             render: (exercises: Array<{ id: string; title: string }> | undefined) => {
-                return exercises ? exercises.length : 0;
+                return <div className="cell">{exercises ? exercises.length : 0}</div>;
             }
         }
     ];
@@ -275,7 +336,7 @@ const Exams = observer(() => {
         if (activeTab === 'completed-exams' && !authentication.isInstructor) {
             const loadCompletedExams = async () => {
                 setLoadingCompletedExams(true);
-                
+
                 try {
                     const userId = authentication.account?.data?.id;
                     if (!userId) {
@@ -299,7 +360,7 @@ const Exams = observer(() => {
                     setLoadingCompletedExams(false);
                 }
             };
-            
+
             loadCompletedExams();
         }
     }, [activeTab]);
@@ -309,7 +370,7 @@ const Exams = observer(() => {
         if (activeTab === 'ongoing-exams' && !authentication.isInstructor) {
             const loadOngoingExams = async () => {
                 setLoadingOngoingExams(true);
-                
+
                 try {
                     const userId = authentication.account?.data?.id;
                     if (!userId) {
@@ -333,7 +394,7 @@ const Exams = observer(() => {
                     setLoadingOngoingExams(false);
                 }
             };
-            
+
             loadOngoingExams();
         }
     }, [activeTab]);
@@ -344,7 +405,7 @@ const Exams = observer(() => {
             navigate(`/${routesConfig.exam}`.replace(':id', record.id));
             return;
         }
-        
+
         // Student hoặc user khác: check xem đã làm bài chưa
         const userId = authentication.account?.data?.id;
         if (!userId) {
@@ -355,13 +416,13 @@ const Exams = observer(() => {
         try {
             // Check xem user đã làm bài thi này chưa
             const res = await http.get(`/exam-rankings?userId=${userId}&examId=${record.id}`);
-            
+
             // Nếu đã có data (đã làm bài), navigate thẳng
             if (res.data && Array.isArray(res.data) && res.data.length > 0) {
                 navigate(`/${routesConfig.exam}`.replace(':id', record.id));
                 return;
             }
-            
+
             // Nếu chưa có data, mở popup xác nhận
             setSelectedExamId(record.id);
             setConfirmModalOpen(true);
@@ -404,19 +465,25 @@ const Exams = observer(() => {
         {
             title: 'Mã bài thi',
             dataIndex: ['exam', 'examCode'],
-            key: 'examCode'
+            key: 'examCode',
+            render: (examCode: string) => {
+                return <div className="cell">{examCode}</div>;
+            }
         },
         {
             title: 'Tiêu đề',
             dataIndex: ['exam', 'examTitle'],
-            key: 'examTitle'
+            key: 'examTitle',
+            render: (examTitle: string) => {
+                return <div className="cell">{examTitle}</div>;
+            }
         },
         {
             title: 'Điểm số',
             dataIndex: 'totalScore',
             key: 'totalScore',
             render: (score: number | null) => {
-                return score !== null ? score.toFixed(1) : '-';
+                return <div className="cell">{score !== null ? score.toFixed(1) : '-'}</div>;
             }
         },
         {
@@ -424,7 +491,7 @@ const Exams = observer(() => {
             dataIndex: ['exam', 'startTime'],
             key: 'startTime',
             render: (startTime: number) => {
-                return startTime ? dayjs.unix(startTime).format('DD/MM/YYYY HH:mm') : '-';
+                return <div className="cell">{startTime ? dayjs.unix(startTime).format('DD/MM/YYYY HH:mm') : '-'}</div>;
             }
         },
         {
@@ -432,7 +499,7 @@ const Exams = observer(() => {
             dataIndex: ['exam', 'endTime'],
             key: 'endTime',
             render: (endTime: number) => {
-                return endTime ? dayjs.unix(endTime).format('DD/MM/YYYY HH:mm') : '-';
+                return <div className="cell">{endTime ? dayjs.unix(endTime).format('DD/MM/YYYY HH:mm') : '-'}</div>;
             }
         },
         {
@@ -440,12 +507,11 @@ const Exams = observer(() => {
             key: 'action',
             render: (_: unknown, record: CompletedExamData) => {
                 return (
-                    <Button 
-                        type="link" 
-                        onClick={() => handleViewExamDetail(record.exam.examId)}
-                    >
-                        Xem chi tiết
-                    </Button>
+                    <div className="cell">
+                        <Button type="link" onClick={() => handleViewExamDetail(record.exam.examId)}>
+                            Xem chi tiết
+                        </Button>
+                    </div>
                 );
             }
         }
@@ -455,19 +521,25 @@ const Exams = observer(() => {
         {
             title: 'Mã bài thi',
             dataIndex: ['exam', 'examCode'],
-            key: 'examCode'
+            key: 'examCode',
+            render: (examCode: string) => {
+                return <div className="cell">{examCode}</div>;
+            }
         },
         {
             title: 'Tiêu đề',
             dataIndex: ['exam', 'examTitle'],
-            key: 'examTitle'
+            key: 'examTitle',
+            render: (examTitle: string) => {
+                return <div className="cell">{examTitle}</div>;
+            }
         },
         {
             title: 'Thời gian bắt đầu',
             dataIndex: ['exam', 'startTime'],
             key: 'startTime',
             render: (startTime: number) => {
-                return startTime ? dayjs.unix(startTime).format('DD/MM/YYYY HH:mm') : '-';
+                return <div className="cell">{startTime ? dayjs.unix(startTime).format('DD/MM/YYYY HH:mm') : '-'}</div>;
             }
         },
         {
@@ -475,7 +547,7 @@ const Exams = observer(() => {
             dataIndex: ['exam', 'endTime'],
             key: 'endTime',
             render: (endTime: number) => {
-                return endTime ? dayjs.unix(endTime).format('DD/MM/YYYY HH:mm') : '-';
+                return <div className="cell">{endTime ? dayjs.unix(endTime).format('DD/MM/YYYY HH:mm') : '-'}</div>;
             }
         },
         {
@@ -483,7 +555,7 @@ const Exams = observer(() => {
             dataIndex: ['exam', 'timeLimit'],
             key: 'timeLimit',
             render: (timeLimit: number | null) => {
-                return timeLimit !== null ? `${timeLimit} phút` : '-';
+                return <div className="cell">{timeLimit !== null ? `${timeLimit} phút` : '-'}</div>;
             }
         },
         {
@@ -491,143 +563,193 @@ const Exams = observer(() => {
             key: 'action',
             render: (_: unknown, record: CompletedExamData) => {
                 return (
-                    <Button 
-                        type="link" 
-                        onClick={() => handleViewExamDetail(record.exam.examId)}
-                    >
-                        Tiếp tục làm bài
-                    </Button>
+                    <div className="cell">
+                        <Button type="link" onClick={() => handleViewExamDetail(record.exam.examId)}>
+                            Tiếp tục làm bài
+                        </Button>
+                    </div>
                 );
             }
         }
     ];
 
     return (
-        <div className={classnames('exams', { 'p-24': globalStore.isBelow1300 })}>
-            <div className="header">
-                <div className="title">
-                    Bài thi
-                    <ProtectedElement acceptRoles={['INSTRUCTOR']}>
-                        <Button type="primary" onClick={() => globalStore.setOpenDetailPopup(true)}>
-                            Tạo bài thi
-                        </Button>
-                    </ProtectedElement>
-                </div>
-                <div className="description">
-                    Để bắt đầu một cách thuận lợi, bạn nên tập trung vào một lộ trình học. Ví dụ: Để đi làm với vị trí
-                    "Lập trình viên Front-end" bạn nên tập trung vào lộ trình "Front-end".
-                </div>
-            </div>
-            <div
-                className={classnames('wrapper flex', {
-                    'flex-col wrapper-responsive': globalStore.windowSize.width < 1300
-                })}
-            >
-                <div className="search">
-                    <div className="title">
-                        <SearchOutlined />
-                        Bộ lọc
+        <div className={classnames('leetcode', globalStore.isBelow1300 ? 'col' : 'row')}>
+            <div className={classnames('exams', { 'p-24': globalStore.isBelow1300 })}>
+                <div className="header">
+                    <div className="title">Bài thi</div>
+                    <div className="description">
+                        Để bắt đầu một cách thuận lợi, bạn nên tập trung vào một lộ trình học. Ví dụ: Để đi làm với vị
+                        trí "Lập trình viên Front-end" bạn nên tập trung vào lộ trình "Front-end".
                     </div>
-                    <Input
-                        value={search}
-                        placeholder="Tìm kiếm theo Tiêu đề, Mô tả"
-                        onChange={(e) => setSearch(e.target.value)}
-                    />
-                    {!authentication.isInstructor && (
-                        <Button 
-                            onClick={handleViewCompletedExams}
-                            style={{ marginTop: 16, width: '100%' }}
-                        >
-                            Xem lại những bài đã làm
-                        </Button>
-                    )}
-                    <ProtectedElement acceptRoles={['INSTRUCTOR']}>
-                        <Line width={0} height={0} text="Quản lý" center />
-                        <Button onClick={() => globalStore.setOpenDetailPopup(true)}>Tạo mới</Button>
-                    </ProtectedElement>
                 </div>
-                <div className="body">
-                    <Tabs
-                        activeKey={activeTab}
-                        onChange={setActiveTab}
-                        items={[
-                            {
-                                key: 'all',
-                                label: 'Tất cả'
-                            },
-                            {
-                                key: 'upcoming',
-                                label: 'Sắp tới'
-                            },
-                            {
-                                key: 'ongoing',
-                                label: 'Đang diễn ra'
-                            },
-                            {
-                                key: 'completed',
-                                label: 'Đã kết thúc'
-                            },
-                            ...(!authentication.isInstructor ? [
+                <div
+                    className={classnames('wrapper flex', {
+                        'flex-col wrapper-responsive': globalStore.windowSize.width < 1300
+                    })}
+                >
+                    <div className="filters">
+                        <Input
+                            value={search}
+                            placeholder="Tìm kiếm theo Tiêu đề, Mô tả"
+                            onChange={(e) => setSearch(e.target.value)}
+                        />
+
+                        <TooltipWrapper tooltipText="Bộ lọc" position="top">
+                            <Popover
+                                content={
+                                    <div className="custom-pop-content">
+                                        <div className="filter-container">
+                                            <div className="filter-name">Trạng thái</div>
+                                            <Select
+                                                allowClear
+                                                style={{ width: '100%' }}
+                                                placeholder="Chọn độ khó"
+                                                onChange={(value) => handleFilterChange('status', value)}
+                                                options={[
+                                                    { value: 'upcoming', label: 'Sắp diễn ra' },
+                                                    { value: 'ongoing', label: 'Đang diễn ra' },
+                                                    { value: 'completed', label: 'Đã kết thúc' }
+                                                ]}
+                                            />
+                                        </div>
+
+                                        <div className="filter-container">
+                                            <div className="filter-name">Thời gian bắt đầu</div>
+                                            <DatePicker
+                                                className="max-width"
+                                                onChange={(value) => handleFilterChange('startTime', value)}
+                                            />
+                                        </div>
+
+                                        <div className="filter-container">
+                                            <div className="filter-name">Thời gian kết thúc</div>
+                                            <DatePicker
+                                                className="max-width"
+                                                onChange={(value) => handleFilterChange('endTime', value)}
+                                            />
+                                        </div>
+
+                                        <Button type="primary" className="apply-filter" onClick={applyFilter}>
+                                            Áp dụng
+                                        </Button>
+                                    </div>
+                                }
+                                title="Bộ lọc"
+                                trigger="click"
+                                open={isFilterOpen}
+                                onOpenChange={(open) => setFilterOpen(open)}
+                                placement="bottom"
+                            >
+                                <div className="custom-circle-ico">
+                                    <FilterOutlined className="custom-ant-ico" />
+                                </div>
+                            </Popover>
+                        </TooltipWrapper>
+
+                        <ProtectedElement acceptRoles={['INSTRUCTOR']}>
+                            <TooltipWrapper tooltipText="Tạo bài thi" position="top">
+                                <div className="custom-circle-ico" onClick={() => globalStore.setOpenDetailPopup(true)}>
+                                    <AppstoreAddOutlined className="custom-ant-ico color-cyan" />
+                                </div>
+                            </TooltipWrapper>
+                        </ProtectedElement>
+                    </div>
+                    <div className="body">
+                        <Tabs
+                            activeKey={activeTab}
+                            onChange={setActiveTab}
+                            items={[
                                 {
-                                    key: 'ongoing-exams',
-                                    label: 'Bài đang làm'
+                                    key: 'all',
+                                    label: 'Tất cả'
                                 },
                                 {
-                                    key: 'completed-exams',
-                                    label: 'Bài đã làm'
-                                }
-                            ] : [])
-                        ]}
-                        style={{ marginBottom: 16 }}
-                    />
-                    {activeTab === 'ongoing-exams' ? (
-                        <Table
-                            columns={ongoingExamsColumns}
-                            dataSource={ongoingExams}
-                            rowKey="id"
-                            loading={loadingOngoingExams}
-                            pagination={{ pageSize: 10 }}
+                                    key: 'upcoming',
+                                    label: 'Sắp tới'
+                                },
+                                {
+                                    key: 'ongoing',
+                                    label: 'Đang diễn ra'
+                                },
+                                {
+                                    key: 'completed',
+                                    label: 'Đã kết thúc'
+                                },
+                                ...(!authentication.isInstructor
+                                    ? [
+                                          {
+                                              key: 'ongoing-exams',
+                                              label: 'Bài đang làm'
+                                          },
+                                          {
+                                              key: 'completed-exams',
+                                              label: 'Bài đã làm'
+                                          }
+                                      ]
+                                    : [])
+                            ]}
+                            style={{ marginBottom: 16 }}
                         />
-                    ) : activeTab === 'completed-exams' ? (
-                        <Table
-                            columns={completedExamsColumns}
-                            dataSource={completedExams}
-                            rowKey="id"
-                            loading={loadingCompletedExams}
-                            pagination={{ pageSize: 10 }}
-                        />
-                    ) : (
-                        <ExamTable
-                            columns={columns}
-                            displayDatas={displayDatas}
-                            loading={loading}
-                            onRowClick={handleRowClick}
-                            onEdit={handleEdit}
-                            onCopy={handleCopy}
-                            onRefresh={getExams}
-                        />
-                    )}
+                        <LoadingOverlay loading={loading}>
+                            {activeTab === 'ongoing-exams' ? (
+                                <Table
+                                    columns={ongoingExamsColumns}
+                                    dataSource={ongoingExams}
+                                    rowKey="id"
+                                    loading={loadingOngoingExams}
+                                    pagination={{ pageSize: 10 }}
+                                    rowClassName={(record, index) => {
+                                        record;
+                                        return index % 2 === 0 ? 'custom-row row-even' : 'custom-row row-odd';
+                                    }}
+                                />
+                            ) : activeTab === 'completed-exams' ? (
+                                <Table
+                                    columns={completedExamsColumns}
+                                    dataSource={completedExams}
+                                    rowKey="id"
+                                    loading={loadingCompletedExams}
+                                    pagination={{ pageSize: 10 }}
+                                    rowClassName={(record, index) => {
+                                        record;
+                                        return index % 2 === 0 ? 'custom-row row-even' : 'custom-row row-odd';
+                                    }}
+                                />
+                            ) : (
+                                <ExamTable
+                                    columns={columns}
+                                    displayDatas={displayDatas}
+                                    loading={loading}
+                                    onRowClick={handleRowClick}
+                                    onEdit={handleEdit}
+                                    onCopy={handleCopy}
+                                    onRefresh={getExams}
+                                />
+                            )}
+                        </LoadingOverlay>
+                    </div>
                 </div>
+                <ConfirmStartExamModal
+                    open={confirmModalOpen}
+                    onCancel={() => {
+                        setConfirmModalOpen(false);
+                        setSelectedExamId(null);
+                    }}
+                    onConfirm={handleConfirmStartExam}
+                />
+                <ExamFormModal
+                    open={globalStore.isDetailPopupOpen}
+                    updateId={updateId}
+                    editingRecord={editingRecord}
+                    groups={groups}
+                    exercises={exercises}
+                    onFinish={onFinish}
+                    form={form}
+                    setUpdateId={setUpdateId}
+                    setEditingRecord={setEditingRecord}
+                />
             </div>
-            <ConfirmStartExamModal
-                open={confirmModalOpen}
-                onCancel={() => {
-                    setConfirmModalOpen(false);
-                    setSelectedExamId(null);
-                }}
-                onConfirm={handleConfirmStartExam}
-            />
-            <ExamFormModal
-                open={globalStore.isDetailPopupOpen}
-                updateId={updateId}
-                editingRecord={editingRecord}
-                groups={groups}
-                exercises={exercises}
-                onFinish={onFinish}
-                form={form}
-                setUpdateId={setUpdateId}
-                setEditingRecord={setEditingRecord}
-            />
         </div>
     );
 });

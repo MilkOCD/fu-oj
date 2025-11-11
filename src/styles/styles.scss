@@ -100,6 +100,11 @@
 
     --color-w: #ffffff;
     --color-b: #000000;
+
+    // Leetcode
+    --c-gold: #ffb700;
+    --c-cyan: #1cbbba;
+    --c-red: #f43838;
 }
 
 @import url('./_variables.scss');
@@ -150,6 +155,7 @@ body.theme-light {
 @import url('../pages/Topics/topics.scss');
 @import url('../pages/Ranking/ranking.scss');
 @import url('../pages/Dashboard/dashboard.scss');
+@import url('../pages/Profile/profile.scss');
 
 // components
 @import url('../components/GlobalComponent/global-component.scss');
@@ -157,15 +163,20 @@ body.theme-light {
 @import url('../components/Switch/switch.scss');
 @import url('../components/TooltipWrapper/tooltip-wrapper-component.scss');
 @import url('../components/LoadingOverlay/loading-overlay.scss');
+@import url('../components/CustomCalendar/custom-calendar.scss');
 
 // others
 @import url('./others/drawer-content.scss');
 @import url('./others/widget-layout.scss');
 @import url('./others/independence.scss');
 
+// custom
+@import url('./customs/leetcode.scss');
+
 .highlight {
-    background: var(--color-text-primary);
-    color: var(--color-bg);
+    // background: var(--color-text-primary);
+    background: var(--c-cyan);
+    color: white;
 }
 
 input {

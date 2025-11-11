@@ -84,6 +84,28 @@ class GlobalStore {
     get isBelow1300() {
         return this.windowSize.width < 1300;
     }
+
+    uploadImageToCloudinary = async (file: any) => {
+        const cloudName = 'djxrxldo6';
+        const uploadPreset = 'pool-management'; // preset tự tạo
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', uploadPreset);
+
+        try {
+            const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+            return data.secure_url;
+        } catch (err) {
+            console.error('Upload failed:', err);
+            return null;
+        }
+    };
 }
 
 const globalStore = new GlobalStore();
