@@ -89,7 +89,7 @@ const Exams = observer(() => {
 
     const applyFilter = () => {
         const filtered = datas.filter((item: any) => {
-            const now = dayjs();
+            // const now = dayjs();
             const start = item.startTime ? dayjs(item.startTime) : null;
             const end = item.endTime ? dayjs(item.endTime) : null;
 
@@ -453,9 +453,9 @@ const Exams = observer(() => {
         globalStore.setOpenDetailPopup(true);
     };
 
-    const handleViewCompletedExams = () => {
-        setActiveTab('completed-exams');
-    };
+    // const handleViewCompletedExams = () => {
+    //     setActiveTab('completed-exams');
+    // };
 
     const handleViewExamDetail = (examId: string) => {
         navigate(`/${routesConfig.exam}`.replace(':id', examId));

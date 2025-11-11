@@ -21,10 +21,9 @@ import { useNavigate, useParams } from 'react-router-dom';
 import globalStore from '../../components/GlobalComponent/globalStore';
 import { programmingLanguages } from '../../constants/languages';
 import * as http from '../../lib/httpRequest';
+import stompClientLib from '../../lib/stomp-client.lib';
 import routesConfig from '../../routes/routesConfig';
 import utils from '../../utils/utils';
-import stompClientLib from '../../lib/stomp-client.lib';
-import authentication from '../../shared/auth/authentication';
 
 const json = {
     global: { tabSetEnableClose: false },
@@ -400,8 +399,10 @@ const Exercise = observer(() => {
     }, [language]);
 
     useEffect(() => {
+        console.log('log:', `/topic/submission-result-updates/${id}`);
+
         const subscription = stompClientLib.subscribe({
-            destination: `/topic/submission-result-updates/${authentication.account?.data?.id}`,
+            destination: `/topic/submission-result-updates/${id}`,
             onMessage: ({ body }) => {
                 console.log('socket:', JSON.parse(body));
                 // const testCaseResult = testCaseResultSchema.parse(JSON.parse(body));
@@ -423,7 +424,7 @@ const Exercise = observer(() => {
         });
 
         return () => subscription.unsubscribe();
-    }, []);
+    }, [id]);
 
     return (
         <div className="exercise">

@@ -1,8 +1,6 @@
-import { MoonOutlined, SlackOutlined, SearchOutlined } from '@ant-design/icons';
-import { Avatar, Input } from 'antd';
+import { Avatar } from 'antd';
 import { observer } from 'mobx-react-lite';
 import globalStore from '../../../components/GlobalComponent/globalStore';
-import Switch from '../../../components/Switch/Switch';
 import authentication from '../../../shared/auth/authentication';
 
 const LayoutHeader = observer(() => {

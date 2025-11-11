@@ -134,6 +134,7 @@ export const patch = async (id: any, path: string, data: object, options: object
 };
 
 export const patchV2 = async (id: any, path: string, data: object, options: object = {}) => {
+    console.log('log:', id);
     const res = await httpRequest.patch(`${path}`, data, options);
     return res.data;
 };
