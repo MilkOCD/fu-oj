@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { observer } from 'mobx-react-lite';
 import { Card } from 'antd';
 import * as http from '../../../lib/httpRequest';
@@ -18,12 +18,14 @@ interface ExamRankingData {
 interface ExamCountdownTimerProps {
     examId: string;
     compact?: boolean;
+    onTimeExpired?: () => void;
 }
 
-const ExamCountdownTimer = observer(({ examId, compact = false }: ExamCountdownTimerProps) => {
+const ExamCountdownTimer = observer(({ examId, compact = false, onTimeExpired }: ExamCountdownTimerProps) => {
     const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const hasCalledCallbackRef = useRef(false);
 
     useEffect(() => {
         const fetchExamRanking = async () => {
@@ -74,12 +76,27 @@ const ExamCountdownTimer = observer(({ examId, compact = false }: ExamCountdownT
     }, [examId]);
 
     useEffect(() => {
-        if (timeRemaining === null || timeRemaining <= 0) return;
+        if (timeRemaining === null || timeRemaining <= 0) {
+            // Nếu thời gian đã hết và chưa gọi callback
+            if (timeRemaining !== null && timeRemaining <= 0 && onTimeExpired && !hasCalledCallbackRef.current) {
+                hasCalledCallbackRef.current = true;
+                onTimeExpired();
+            }
+            return;
+        }
+
+        // Reset flag khi có thời gian còn lại
+        hasCalledCallbackRef.current = false;
 
         const interval = setInterval(() => {
             setTimeRemaining((prev) => {
                 if (prev === null || prev <= 0) {
                     clearInterval(interval);
+                    // Gọi callback khi hết thời gian (chỉ gọi một lần)
+                    if (onTimeExpired && !hasCalledCallbackRef.current) {
+                        hasCalledCallbackRef.current = true;
+                        onTimeExpired();
+                    }
                     return 0;
                 }
                 return prev - 1000;
@@ -87,7 +104,7 @@ const ExamCountdownTimer = observer(({ examId, compact = false }: ExamCountdownT
         }, 1000);
 
         return () => clearInterval(interval);
-    }, [timeRemaining]);
+    }, [timeRemaining, onTimeExpired]);
 
     const formatTime = (ms: number): string => {
         const totalSeconds = Math.floor(ms / 1000);
