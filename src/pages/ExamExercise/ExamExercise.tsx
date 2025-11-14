@@ -112,7 +112,6 @@ const ExamExercise = observer(() => {
     const [showExitConfirm, setShowExitConfirm] = useState(false);
     const [pendingPath, setPendingPath] = useState<string | null>(null);
     const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
-    const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
     const isNavigatingRef = useRef(false);
 
     const getDefaultTemplate = (lang: string): string => {
@@ -219,10 +218,6 @@ const ExamExercise = observer(() => {
             .finally(() => {
                 setLoading(false);
             });
-    };
-
-    const handleCancelSubmit = () => {
-        setShowSubmitConfirm(false);
     };
 
     const handleCancelSubmit = () => {

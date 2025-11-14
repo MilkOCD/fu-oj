@@ -95,7 +95,6 @@ const ExamDetail = observer(() => {
     const [examData, setExamData] = useState<ExamData | null>(null);
     const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
     const [isTimeExpired, setIsTimeExpired] = useState(false);
-    const [timeRemainingMs, setTimeRemainingMs] = useState<number | null>(null);
     const [submissionsMap, setSubmissionsMap] = useState<Map<string, SubmissionData>>(new Map());
     const timeCheckIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const autoSubmittedRef = useRef<boolean>(false);
@@ -173,12 +172,10 @@ const ExamDetail = observer(() => {
                 if (data.length === 0) {
                     // Chưa bắt đầu làm bài, không disable
                     setIsTimeExpired(false);
-                    setTimeRemainingMs(null);
                     return;
                 }
 
                 const examRanking = data[0];
-                const timeLimit = examRanking.exam?.timeLimit ?? 90; // Mặc định 90 phút nếu null hoặc undefined
                 const timeLimit = examRanking.exam?.timeLimit ?? 90; // Mặc định 90 phút nếu null hoặc undefined
                 const startTimeDate = new Date(examRanking.createdTimestamp);
                 const startTimeMs = startTimeDate.getTime();
@@ -208,7 +205,7 @@ const ExamDetail = observer(() => {
             }
         };
 
-        checkTimeRemaining();
+        loadTimeRemaining();
 
         return () => {
             if (timeCheckIntervalRef.current) {
