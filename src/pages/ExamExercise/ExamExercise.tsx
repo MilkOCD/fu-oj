@@ -111,6 +111,7 @@ const ExamExercise = observer(() => {
     const [selectedCaseResult, setSelectedCaseResult] = useState<any>(1);
     const [showExitConfirm, setShowExitConfirm] = useState(false);
     const [pendingPath, setPendingPath] = useState<string | null>(null);
+    const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
     const isNavigatingRef = useRef(false);
 
     const getDefaultTemplate = (lang: string): string => {
@@ -166,8 +167,21 @@ const ExamExercise = observer(() => {
     };
 
     const submit = () => {
+        // Clear response và error trước khi mở popup
+        setResponse(null);
+        setError('');
+        // Mở popup xác nhận thay vì nộp trực tiếp
+        setShowSubmitConfirm(true);
+    };
+
+    const handleConfirmSubmit = () => {
+        setShowSubmitConfirm(false);
         setError('');
         setLoading(true);
+        // Đảm bảo response đã được clear
+        setResponse(null);
+        // Đảm bảo response đã được clear
+        setResponse(null);
 
         const payload = {
             examId: examId,
@@ -178,23 +192,36 @@ const ExamExercise = observer(() => {
         http.post('/exams/submissions', payload)
             .then((res) => {
                 console.log('log:', res);
-                setResponse(res);
-                // globalStore.triggerNotification('success', 'Nộp bài thành công!', '');
-
-                // Nếu nộp bài thành công (status 201), quay lại trang bài tập
+                // KHÔNG set response để không hiển thị kết quả
+                // Đảm bảo response vẫn là null
+                setResponse(null);
+                
+                // Nếu nộp bài thành công (status 201), quay lại trang bài tập ngay lập tức
+                // KHÔNG set response để không hiển thị kết quả
+                // Đảm bảo response vẫn là null
+                setResponse(null);
+                
+                // Nếu nộp bài thành công (status 201), quay lại trang bài tập ngay lập tức
                 if (res.status === 201 && examId) {
-                    setTimeout(() => {
-                        navigate(`/${routesConfig.exam}`.replace(':id', examId));
-                    }, 1000); // Đợi 1 giây để user thấy thông báo thành công
+                    navigate(`/${routesConfig.exam}`.replace(':id', examId));
+                    navigate(`/${routesConfig.exam}`.replace(':id', examId));
                 }
             })
             .catch((error) => {
                 setError(error.response?.data?.message || 'Có lỗi xảy ra!');
                 globalStore.triggerNotification('error', error.response?.data?.message || 'Nộp bài thất bại!', '');
+                // Đảm bảo không hiển thị response khi có lỗi
+                setResponse(null);
+                // Đảm bảo không hiển thị response khi có lỗi
+                setResponse(null);
             })
             .finally(() => {
                 setLoading(false);
             });
+    };
+
+    const handleCancelSubmit = () => {
+        setShowSubmitConfirm(false);
     };
 
     const factory = (node: any) => {
@@ -489,7 +516,7 @@ const ExamExercise = observer(() => {
                                 </div>
                             ) : (
                                 <div className="icon" onClick={testRun}>
-                                    <img src="/sources/icons/play-ico.svg" alt="" />
+                                    <img src="/sources/icons/play-ico.svg" alt="" style={{ pointerEvents: 'none' }} />
                                 </div>
                             )}
                             <div className="icon submit-btn" onClick={submit}>
@@ -502,7 +529,14 @@ const ExamExercise = observer(() => {
                             </div>
                             {examId && !authentication.isInstructor && (
                                 <div style={{ marginLeft: '8px', display: 'flex', alignItems: 'center' }}>
-                                    <ExamCountdownTimer examId={examId} compact={true} />
+                                    <ExamCountdownTimer 
+                                        examId={examId} 
+                                        compact={true}
+                                        onTimeExpired={() => {
+                                            // Tự động quay về trang danh sách bài tập khi hết thời gian
+                                            navigate(`/${routesConfig.exam}`.replace(':id', examId));
+                                        }}
+                                    />
                                 </div>
                             )}
                         </div>
@@ -537,6 +571,30 @@ const ExamExercise = observer(() => {
                     <Button onClick={handleCancelExit}>Không</Button>
                     <Button type="primary" danger onClick={handleConfirmExit}>
                         Có
+                    </Button>
+                </div>
+            </Modal>
+            <Modal
+                open={showSubmitConfirm}
+                title={
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <ExclamationCircleOutlined style={{ color: '#1890ff', fontSize: 20 }} />
+                        <span>Xác nhận nộp bài</span>
+                    </div>
+                }
+                onCancel={handleCancelSubmit}
+                footer={null}
+            >
+                <p>Bạn có chắc chắn muốn nộp bài này không?</p>
+                <p style={{ fontSize: '13px', color: '#666', marginTop: '8px' }}>
+                    Sau khi nộp bài, bạn sẽ không thể chỉnh sửa lại.
+                </p>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '24px' }}>
+                    <Button onClick={handleCancelSubmit} disabled={loading}>
+                        Không
+                    </Button>
+                    <Button type="primary" onClick={handleConfirmSubmit} loading={loading}>
+                        Đồng ý
                     </Button>
                 </div>
             </Modal>
