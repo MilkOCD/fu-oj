@@ -224,7 +224,7 @@ const Dashboard = observer(() => {
                                     renderItem={(group) => (
                                         <List.Item
                                             style={{ cursor: 'pointer' }}
-                                            onClick={() => navigate(`/${routesConfig.groupDetail}`.replace(':id?', group.id))}
+                                            onClick={() => navigate(`/group/${group.id}/members`)}
                                         >
                                             <List.Item.Meta
                                                 avatar={<Avatar icon={<TeamOutlined />} />}

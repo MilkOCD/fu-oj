@@ -166,7 +166,7 @@ const Groups = observer(() => {
                                                 lg={8}
                                                 xl={8}
                                                 onClick={() => {
-                                                    navigate(`/${routesConfig.groupDetail}`.replace(':id?', item.id));
+                                                    navigate(`/group/${item.id}/members`);
                                                 }}
                                             >
                                                 <Card
