@@ -21,11 +21,9 @@ const StatisticsTab = observer(() => {
     const groupId = params.id || params.groupId;
     const examId = params.examId;
     const [studentsProgress, setStudentsProgress] = useState<StudentProgress[]>([]);
-    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         if (examId && groupId) {
-            setLoading(true);
             const url = `/exams/${examId}/groups/${groupId}/students-progress`;
             http.get(url)
                 .then((res) => {
@@ -33,9 +31,6 @@ const StatisticsTab = observer(() => {
                 })
                 .catch((error) => {
                     console.error('[API] GET', url, '- Error:', error);
-                })
-                .finally(() => {
-                    setLoading(false);
                 });
         }
     }, [examId, groupId]);

@@ -13,7 +13,6 @@ import ProtectedElement from '../../components/ProtectedElement/ProtectedElement
 import TooltipWrapper from '../../components/TooltipWrapper/TooltipWrapperComponent';
 import AIAssistant from '../../components/AIAssistant/AIAssistant';
 import * as http from '../../lib/httpRequest';
-import routesConfig from '../../routes/routesConfig';
 import authentication from '../../shared/auth/authentication';
 
 const { Meta } = Card;

@@ -8,7 +8,6 @@ import globalStore from '../../components/GlobalComponent/globalStore';
 import classnames from 'classnames';
 import { TeamOutlined, UserOutlined, BookOutlined, CalendarOutlined, ClockCircleOutlined } from '@ant-design/icons';
 import authentication from '../../shared/auth/authentication';
-import routesConfig from '../../routes/routesConfig';
 import dayjs from 'dayjs';
 
 const carouselItems = [

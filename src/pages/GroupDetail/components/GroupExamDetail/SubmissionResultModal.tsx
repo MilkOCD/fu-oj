@@ -1,6 +1,5 @@
 import { Modal, Button, Spin, Descriptions, Table, Tag, Card } from 'antd';
 import { CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
-import dayjs from 'dayjs';
 
 interface TestCase {
     id: string;
