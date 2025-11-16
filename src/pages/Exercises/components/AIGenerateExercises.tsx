@@ -1,4 +1,4 @@
-import { Button, Input, InputNumber, Modal, Popconfirm, Select, Table, Tag } from 'antd';
+import { Button, Form, Input, InputNumber, Modal, Popconfirm, Select, Spin, Table, Tag, message } from 'antd';
 import { useEffect, useState } from 'react';
 import globalStore from '../../../components/GlobalComponent/globalStore';
 import * as http from '../../../lib/httpRequest';
@@ -11,44 +11,34 @@ interface AIGenerateExercisesProps {
 }
 
 const AIGenerateExercises = ({ open, onClose, onSuccess }: AIGenerateExercisesProps) => {
+    const [form] = Form.useForm();
     const [aiPrompt, setAIPrompt] = useState('');
     const [aiLoading, setAILoading] = useState(false);
     const [aiPreviewExercises, setAIPreviewExercises] = useState<any[]>([]);
     const [aiStep, setAIStep] = useState(0); // 0: nhập prompt, 1: preview
     const [editingIndex, setEditingIndex] = useState<number | null>(null);
     const [topics, setTopics] = useState<Array<{ value: string; label: string }>>([]);
+    const [topicsLoading, setTopicsLoading] = useState(false);
     const [selectedTopic, setSelectedTopic] = useState<string>('');
     const [selectedLevels, setSelectedLevels] = useState<string[]>([]);
     const [numberOfExercise, setNumberOfExercise] = useState<number>(2);
+    const [deletedExercises, setDeletedExercises] = useState<Array<{ exercise: any; index: number }>>([]);
 
     const handleAIGenerate = async () => {
-        if (!aiPrompt.trim()) {
-            globalStore.triggerNotification('error', 'Vui lòng nhập prompt!', '');
-            return;
-        }
-
-        if (!selectedTopic) {
-            globalStore.triggerNotification('error', 'Vui lòng chọn topic!', '');
-            return;
-        }
-
-        if (selectedLevels.length === 0) {
-            globalStore.triggerNotification('error', 'Vui lòng chọn ít nhất một độ khó!', '');
-            return;
-        }
-
-        if (numberOfExercise < 1) {
-            globalStore.triggerNotification('error', 'Số lượng bài tập phải lớn hơn 0!', '');
+        try {
+            await form.validateFields();
+        } catch {
             return;
         }
 
         setAILoading(true);
         try {
+            const values = form.getFieldsValue();
             const payload = {
-                prompt: aiPrompt,
-                topic: selectedTopic,
-                level: selectedLevels,
-                numberOfExercise: numberOfExercise
+                prompt: values.prompt || aiPrompt,
+                topic: values.topic || selectedTopic,
+                level: values.level || selectedLevels,
+                numberOfExercise: values.numberOfExercise || numberOfExercise
             };
             const res = await http.post('/ai/exercises/generate', payload);
 
@@ -109,11 +99,14 @@ const AIGenerateExercises = ({ open, onClose, onSuccess }: AIGenerateExercisesPr
         setSelectedTopic('');
         setSelectedLevels([]);
         setNumberOfExercise(2);
+        setDeletedExercises([]);
+        form.resetFields();
         onClose();
     };
 
     useEffect(() => {
         if (open) {
+            setTopicsLoading(true);
             // Fetch topics khi modal mở
             http.get('/topics?pageSize=100')
                 .then((res: any) => {
@@ -126,18 +119,61 @@ const AIGenerateExercises = ({ open, onClose, onSuccess }: AIGenerateExercisesPr
                 .catch((error) => {
                     console.error('Error fetching topics:', error);
                     globalStore.triggerNotification('error', 'Không thể tải danh sách topics!', '');
+                })
+                .finally(() => {
+                    setTopicsLoading(false);
                 });
         }
     }, [open]);
 
     const handleDeleteExercise = (index: number) => {
+        const exercise = aiPreviewExercises[index];
         const newExercises = aiPreviewExercises.filter((_, i) => i !== index);
         setAIPreviewExercises(newExercises);
+        
+        // Lưu bài tập đã xóa để có thể undo
+        setDeletedExercises((prev) => [...prev, { exercise, index }]);
+        
         if (editingIndex === index) {
             setEditingIndex(null);
         } else if (editingIndex !== null && editingIndex > index) {
             setEditingIndex(editingIndex - 1);
         }
+
+        // Hiển thị message với undo
+        const key = `delete-${index}-${Date.now()}`;
+        const hide = message.success({
+            content: (
+                <span>
+                    Đã xóa bài tập{' '}
+                    <Button
+                        size="small"
+                        type="link"
+                        style={{ padding: 0, height: 'auto', marginLeft: 8 }}
+                        onClick={() => {
+                            handleUndoDelete(exercise, index);
+                            hide();
+                        }}
+                    >
+                        Hoàn tác
+                    </Button>
+                </span>
+            ),
+            key,
+            duration: 5
+        });
+    };
+
+    const handleUndoDelete = (exercise: any, originalIndex: number) => {
+        setAIPreviewExercises((prev) => {
+            const newExercises = [...prev];
+            // Tìm vị trí phù hợp để insert lại
+            const insertIndex = Math.min(originalIndex, newExercises.length);
+            newExercises.splice(insertIndex, 0, exercise);
+            return newExercises;
+        });
+        setDeletedExercises((prev) => prev.filter((item) => item.index !== originalIndex || item.exercise !== exercise));
+        message.success('Đã khôi phục bài tập');
     };
 
     const handleUpdateExercise = (index: number, field: string, value: any) => {
@@ -163,6 +199,18 @@ const AIGenerateExercises = ({ open, onClose, onSuccess }: AIGenerateExercisesPr
         newExercises[exerciseIndex].testCases = newExercises[exerciseIndex].testCases.filter(
             (_: unknown, i: number) => i !== testCaseIndex
         );
+        setAIPreviewExercises(newExercises);
+    };
+
+    const handleAddTestCase = (exerciseIndex: number) => {
+        const newExercises = [...aiPreviewExercises];
+        const newTestCase = {
+            input: '',
+            output: '',
+            note: '',
+            isPublic: true
+        };
+        newExercises[exerciseIndex].testCases = [...newExercises[exerciseIndex].testCases, newTestCase];
         setAIPreviewExercises(newExercises);
     };
 
@@ -249,58 +297,106 @@ Yêu cầu cụ thể: Tạo 2 bài tập về thuật toán sắp xếp:
             bodyStyle={{ maxHeight: '85vh', overflowY: 'auto' }}
         >
             {aiStep === 0 ? (
-                <div style={{ marginBottom: 16 }}>
+                <Form
+                    form={form}
+                    layout="vertical"
+                    initialValues={{
+                        topic: selectedTopic,
+                        numberOfExercise: numberOfExercise,
+                        level: selectedLevels,
+                        prompt: aiPrompt
+                    }}
+                >
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
-                        <div>
-                            <div style={{ marginBottom: 8, fontWeight: 500 }}>Topic *</div>
+                        <Form.Item
+                            name="topic"
+                            label="Topic"
+                            rules={[{ required: true, message: 'Vui lòng chọn topic!' }]}
+                        >
                             <Select
                                 style={{ width: '100%' }}
                                 placeholder="Chọn topic"
                                 value={selectedTopic || undefined}
-                                onChange={(value) => setSelectedTopic(value)}
+                                onChange={(value) => {
+                                    setSelectedTopic(value);
+                                    form.setFieldsValue({ topic: value });
+                                }}
                                 options={topics}
+                                notFoundContent={topicsLoading ? <Spin size="small" /> : 'Không có dữ liệu'}
+                                loading={topicsLoading}
                             />
-                        </div>
-                        <div>
-                            <div style={{ marginBottom: 8, fontWeight: 500 }}>Số lượng bài tập *</div>
+                        </Form.Item>
+                        <Form.Item
+                            name="numberOfExercise"
+                            label="Số lượng bài tập"
+                            rules={[
+                                { required: true, message: 'Vui lòng nhập số lượng bài tập!' },
+                                { type: 'number', min: 1, max: 10, message: 'Số lượng phải từ 1 đến 10!' }
+                            ]}
+                        >
                             <InputNumber
                                 style={{ width: '100%' }}
                                 min={1}
                                 max={10}
                                 value={numberOfExercise}
-                                onChange={(value) => setNumberOfExercise(value || 2)}
+                                onChange={(value) => {
+                                    setNumberOfExercise(value || 2);
+                                    form.setFieldsValue({ numberOfExercise: value || 2 });
+                                }}
                             />
-                        </div>
+                        </Form.Item>
                     </div>
-                    <div style={{ marginBottom: 16 }}>
-                        <div style={{ marginBottom: 8, fontWeight: 500 }}>Độ khó *</div>
+                    <Form.Item
+                        name="level"
+                        label="Độ khó"
+                        rules={[{ required: true, message: 'Vui lòng chọn ít nhất một độ khó!' }]}
+                    >
                         <Select
                             mode="multiple"
                             style={{ width: '100%' }}
                             placeholder="Chọn độ khó"
                             value={selectedLevels}
-                            onChange={(value) => setSelectedLevels(value)}
+                            onChange={(value) => {
+                                setSelectedLevels(value);
+                                form.setFieldsValue({ level: value });
+                            }}
                             options={[
                                 { value: 'EASY', label: 'EASY' },
                                 { value: 'MEDIUM', label: 'MEDIUM' },
                                 { value: 'HARD', label: 'HARD' }
                             ]}
                         />
+                    </Form.Item>
+                    <Form.Item
+                        name="prompt"
+                        label={
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                                <span>Nhập prompt:</span>
+                                <Button size="small" type="link" onClick={handleUseDefaultPrompt}>
+                                    Sử dụng prompt mẫu
+                                </Button>
+                            </div>
+                        }
+                        rules={[{ required: true, message: 'Vui lòng nhập prompt!' }]}
+                    >
+                        <Input.TextArea
+                            rows={15}
+                            placeholder="Nhập prompt để tạo bài tập..."
+                            value={aiPrompt}
+                            onChange={(e) => {
+                                setAIPrompt(e.target.value);
+                                form.setFieldsValue({ prompt: e.target.value });
+                            }}
+                            style={{ fontFamily: 'monospace', fontSize: 12 }}
+                        />
+                    </Form.Item>
+                    <div style={{ marginTop: 16, padding: 12, backgroundColor: '#f5f5f5', border: '1px solid #d9d9d9', borderRadius: 4 }}>
+                        <div style={{ color: '#595959', fontSize: 13, fontWeight: 500, marginBottom: 4 }}>⚠️ Lưu ý:</div>
+                        <div style={{ color: '#8c8c8c', fontSize: 12 }}>
+                            AI tạo bài tập có thể sai, vì vậy hãy double-check lại nhé!
+                        </div>
                     </div>
-                    <div style={{ marginBottom: 8, fontWeight: 500, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span>Nhập prompt:</span>
-                        <Button size="small" type="link" onClick={handleUseDefaultPrompt}>
-                            Sử dụng prompt mẫu
-                        </Button>
-                    </div>
-                    <Input.TextArea
-                        rows={15}
-                        placeholder="Nhập prompt để tạo bài tập..."
-                        value={aiPrompt}
-                        onChange={(e) => setAIPrompt(e.target.value)}
-                        style={{ fontFamily: 'monospace', fontSize: 12 }}
-                    />
-                </div>
+                </Form>
             ) : (
                 <div style={{ maxHeight: '80vh', overflowY: 'auto' }}>
                     {aiPreviewExercises.map((exercise, index) => (
@@ -484,8 +580,18 @@ Yêu cầu cụ thể: Tạo 2 bài tập về thuật toán sắp xếp:
                                     </div>
                                 )}
                             </div>
-                            <div style={{ marginBottom: 8 }}>
+                            <div style={{ marginBottom: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <strong>Test Cases ({exercise.testCases.length}):</strong>
+                                {editingIndex === index && (
+                                    <Button
+                                        size="small"
+                                        type="dashed"
+                                        onClick={() => handleAddTestCase(index)}
+                                        style={{ marginBottom: 8 }}
+                                    >
+                                        + Thêm test case
+                                    </Button>
+                                )}
                             </div>
                             <Table
                                 dataSource={exercise.testCases.map((tc: any, tcIndex: number) => ({ ...tc, key: tcIndex }))}
