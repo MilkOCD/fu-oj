@@ -1,5 +1,5 @@
-import { Button, Input, Modal, Table, Tag } from 'antd';
-import { useState } from 'react';
+import { Button, Input, InputNumber, Modal, Popconfirm, Select, Table, Tag } from 'antd';
+import { useEffect, useState } from 'react';
 import globalStore from '../../../components/GlobalComponent/globalStore';
 import * as http from '../../../lib/httpRequest';
 import utils from '../../../utils/utils';
@@ -15,6 +15,11 @@ const AIGenerateExercises = ({ open, onClose, onSuccess }: AIGenerateExercisesPr
     const [aiLoading, setAILoading] = useState(false);
     const [aiPreviewExercises, setAIPreviewExercises] = useState<any[]>([]);
     const [aiStep, setAIStep] = useState(0); // 0: nhập prompt, 1: preview
+    const [editingIndex, setEditingIndex] = useState<number | null>(null);
+    const [topics, setTopics] = useState<Array<{ value: string; label: string }>>([]);
+    const [selectedTopic, setSelectedTopic] = useState<string>('');
+    const [selectedLevels, setSelectedLevels] = useState<string[]>([]);
+    const [numberOfExercise, setNumberOfExercise] = useState<number>(2);
 
     const handleAIGenerate = async () => {
         if (!aiPrompt.trim()) {
@@ -22,15 +27,37 @@ const AIGenerateExercises = ({ open, onClose, onSuccess }: AIGenerateExercisesPr
             return;
         }
 
+        if (!selectedTopic) {
+            globalStore.triggerNotification('error', 'Vui lòng chọn topic!', '');
+            return;
+        }
+
+        if (selectedLevels.length === 0) {
+            globalStore.triggerNotification('error', 'Vui lòng chọn ít nhất một độ khó!', '');
+            return;
+        }
+
+        if (numberOfExercise < 1) {
+            globalStore.triggerNotification('error', 'Số lượng bài tập phải lớn hơn 0!', '');
+            return;
+        }
+
         setAILoading(true);
         try {
-            const res = await http.post('/ai/exercises/generate', { prompt: aiPrompt });
+            const payload = {
+                prompt: aiPrompt,
+                topic: selectedTopic,
+                level: selectedLevels,
+                numberOfExercise: numberOfExercise
+            };
+            const res = await http.post('/ai/exercises/generate', payload);
 
             if (res.exercises && res.exercises.length > 0) {
                 // Bỏ qua id: null trong testCases
                 const exercisesWithoutId = res.exercises.map((exerciseData: any) => ({
                     ...exerciseData,
                     testCases: exerciseData.testCases.map((tc: any) => {
+                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
                         const { id, ...rest } = tc;
                         return rest;
                     })
@@ -57,7 +84,7 @@ const AIGenerateExercises = ({ open, onClose, onSuccess }: AIGenerateExercisesPr
             for (const exerciseData of aiPreviewExercises) {
                 const payload = {
                     ...exerciseData,
-                    topicIds: [] // Cần chọn topics sau
+                    topicIds: exerciseData.topicIds || (selectedTopic ? [selectedTopic] : [])
                 };
 
                 await http.post('/exercises', payload);
@@ -78,7 +105,65 @@ const AIGenerateExercises = ({ open, onClose, onSuccess }: AIGenerateExercisesPr
         setAIPrompt('');
         setAIPreviewExercises([]);
         setAIStep(0);
+        setEditingIndex(null);
+        setSelectedTopic('');
+        setSelectedLevels([]);
+        setNumberOfExercise(2);
         onClose();
+    };
+
+    useEffect(() => {
+        if (open) {
+            // Fetch topics khi modal mở
+            http.get('/topics?pageSize=100')
+                .then((res: any) => {
+                    const topicsList = (res.data || []).map((topic: any) => ({
+                        value: topic.id,
+                        label: topic.name
+                    }));
+                    setTopics(topicsList);
+                })
+                .catch((error) => {
+                    console.error('Error fetching topics:', error);
+                    globalStore.triggerNotification('error', 'Không thể tải danh sách topics!', '');
+                });
+        }
+    }, [open]);
+
+    const handleDeleteExercise = (index: number) => {
+        const newExercises = aiPreviewExercises.filter((_, i) => i !== index);
+        setAIPreviewExercises(newExercises);
+        if (editingIndex === index) {
+            setEditingIndex(null);
+        } else if (editingIndex !== null && editingIndex > index) {
+            setEditingIndex(editingIndex - 1);
+        }
+    };
+
+    const handleUpdateExercise = (index: number, field: string, value: any) => {
+        const newExercises = [...aiPreviewExercises];
+        newExercises[index] = {
+            ...newExercises[index],
+            [field]: value
+        };
+        setAIPreviewExercises(newExercises);
+    };
+
+    const handleUpdateTestCase = (exerciseIndex: number, testCaseIndex: number, field: string, value: any) => {
+        const newExercises = [...aiPreviewExercises];
+        newExercises[exerciseIndex].testCases[testCaseIndex] = {
+            ...newExercises[exerciseIndex].testCases[testCaseIndex],
+            [field]: value
+        };
+        setAIPreviewExercises(newExercises);
+    };
+
+    const handleDeleteTestCase = (exerciseIndex: number, testCaseIndex: number) => {
+        const newExercises = [...aiPreviewExercises];
+        newExercises[exerciseIndex].testCases = newExercises[exerciseIndex].testCases.filter(
+            (_: unknown, i: number) => i !== testCaseIndex
+        );
+        setAIPreviewExercises(newExercises);
     };
 
     const defaultPrompt = `Hãy tạo EXACTLY N bài tập lập trình theo đúng yêu cầu sau:
@@ -102,7 +187,6 @@ const AIGenerateExercises = ({ open, onClose, onSuccess }: AIGenerateExercisesPr
   "maxSubmissions": 0,
   "testCases": [
     {
-      "id": null,
       "input": "...",
       "output": "...",
       "isPublic": true/false
@@ -160,11 +244,49 @@ Yêu cầu cụ thể: Tạo 2 bài tập về thuật toán sắp xếp:
                           </Button>
                       ]
             }
-            width={900}
+            width={1200}
             style={{ top: 20 }}
+            bodyStyle={{ maxHeight: '85vh', overflowY: 'auto' }}
         >
             {aiStep === 0 ? (
                 <div style={{ marginBottom: 16 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+                        <div>
+                            <div style={{ marginBottom: 8, fontWeight: 500 }}>Topic *</div>
+                            <Select
+                                style={{ width: '100%' }}
+                                placeholder="Chọn topic"
+                                value={selectedTopic || undefined}
+                                onChange={(value) => setSelectedTopic(value)}
+                                options={topics}
+                            />
+                        </div>
+                        <div>
+                            <div style={{ marginBottom: 8, fontWeight: 500 }}>Số lượng bài tập *</div>
+                            <InputNumber
+                                style={{ width: '100%' }}
+                                min={1}
+                                max={10}
+                                value={numberOfExercise}
+                                onChange={(value) => setNumberOfExercise(value || 2)}
+                            />
+                        </div>
+                    </div>
+                    <div style={{ marginBottom: 16 }}>
+                        <div style={{ marginBottom: 8, fontWeight: 500 }}>Độ khó *</div>
+                        <Select
+                            mode="multiple"
+                            style={{ width: '100%' }}
+                            placeholder="Chọn độ khó"
+                            value={selectedLevels}
+                            onChange={(value) => setSelectedLevels(value)}
+                            options={[
+                                { value: 'EASY', label: 'EASY' },
+                                { value: 'MEDIUM', label: 'MEDIUM' },
+                                { value: 'HARD', label: 'HARD' }
+                            ]}
+                        />
+                    </div>
                     <div style={{ marginBottom: 8, fontWeight: 500, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <span>Nhập prompt:</span>
                         <Button size="small" type="link" onClick={handleUseDefaultPrompt}>
@@ -180,7 +302,7 @@ Yêu cầu cụ thể: Tạo 2 bài tập về thuật toán sắp xếp:
                     />
                 </div>
             ) : (
-                <div style={{ maxHeight: '70vh', overflowY: 'auto' }}>
+                <div style={{ maxHeight: '80vh', overflowY: 'auto' }}>
                     {aiPreviewExercises.map((exercise, index) => (
                         <div
                             key={index}
@@ -188,76 +310,287 @@ Yêu cầu cụ thể: Tạo 2 bài tập về thuật toán sắp xếp:
                             style={{
                                 marginBottom: 24,
                                 padding: 16,
-                                borderRadius: 8
+                                borderRadius: 8,
+                                border: '1px solid #d9d9d9'
                             }}
                         >
-                            <div style={{ marginBottom: 12, fontSize: 16, fontWeight: 600 }}>
-                                Bài tập {index + 1}: {exercise.title}
+                            <div style={{ marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div style={{ fontSize: 16, fontWeight: 600 }}>
+                                    Bài tập {index + 1}: {editingIndex === index ? (
+                                        <Input
+                                            value={exercise.title}
+                                            onChange={(e) => handleUpdateExercise(index, 'title', e.target.value)}
+                                            style={{ width: '60%', marginLeft: 8 }}
+                                        />
+                                    ) : (
+                                        exercise.title
+                                    )}
+                                </div>
+                                <div style={{ display: 'flex', gap: 8 }}>
+                                    {editingIndex === index ? (
+                                        <Button size="small" type="primary" onClick={() => setEditingIndex(null)}>
+                                            Lưu
+                                        </Button>
+                                    ) : (
+                                        <Button size="small" onClick={() => setEditingIndex(index)}>
+                                            Sửa
+                                        </Button>
+                                    )}
+                                    <Popconfirm
+                                        title="Xóa bài tập"
+                                        description="Bạn có chắc chắn muốn xóa bài tập này?"
+                                        onConfirm={() => handleDeleteExercise(index)}
+                                        okText="Xóa"
+                                        cancelText="Hủy"
+                                    >
+                                        <Button size="small" danger>
+                                            Xóa
+                                        </Button>
+                                    </Popconfirm>
+                                </div>
                             </div>
                             <div style={{ marginBottom: 8 }}>
-                                <strong>Mã bài tập:</strong> {exercise.code}
+                                <strong>Mã bài tập:</strong>{' '}
+                                {editingIndex === index ? (
+                                    <Input
+                                        value={exercise.code}
+                                        onChange={(e) => handleUpdateExercise(index, 'code', e.target.value)}
+                                        style={{ width: '200px', marginLeft: 8 }}
+                                    />
+                                ) : (
+                                    exercise.code
+                                )}
+                            </div>
+                            {exercise.topicIds && exercise.topicIds.length > 0 && (
+                                <div style={{ marginBottom: 8 }}>
+                                    <strong>Topics:</strong>{' '}
+                                    {editingIndex === index ? (
+                                        <Select
+                                            mode="multiple"
+                                            value={exercise.topicIds}
+                                            onChange={(value) => handleUpdateExercise(index, 'topicIds', value)}
+                                            style={{ width: '300px', marginLeft: 8 }}
+                                            options={topics}
+                                        />
+                                    ) : (
+                                        exercise.topicIds.map((topicId: string) => {
+                                            const topic = topics.find((t) => t.value === topicId);
+                                            return (
+                                                <Tag key={topicId} color="blue" style={{ marginRight: 4 }}>
+                                                    {topic?.label || topicId}
+                                                </Tag>
+                                            );
+                                        })
+                                    )}
+                                </div>
+                            )}
+                            <div style={{ marginBottom: 8 }}>
+                                <strong>Độ khó:</strong>{' '}
+                                {editingIndex === index ? (
+                                    <Select
+                                        value={exercise.difficulty}
+                                        onChange={(value) => handleUpdateExercise(index, 'difficulty', value)}
+                                        style={{ width: '150px', marginLeft: 8 }}
+                                        options={[
+                                            { value: 'EASY', label: 'EASY' },
+                                            { value: 'MEDIUM', label: 'MEDIUM' },
+                                            { value: 'HARD', label: 'HARD' }
+                                        ]}
+                                    />
+                                ) : (
+                                    utils.getDifficultyClass(exercise.difficulty)
+                                )}
                             </div>
                             <div style={{ marginBottom: 8 }}>
-                                <strong>Độ khó:</strong> {utils.getDifficultyClass(exercise.difficulty)}
+                                <strong>Giới hạn thời gian:</strong>{' '}
+                                {editingIndex === index ? (
+                                    <InputNumber
+                                        value={exercise.timeLimit}
+                                        onChange={(value) => handleUpdateExercise(index, 'timeLimit', value)}
+                                        min={0}
+                                        step={0.1}
+                                        style={{ width: '150px', marginLeft: 8 }}
+                                        addonAfter="s"
+                                    />
+                                ) : (
+                                    `${exercise.timeLimit}s`
+                                )}
                             </div>
                             <div style={{ marginBottom: 8 }}>
-                                <strong>Giới hạn thời gian:</strong> {exercise.timeLimit}s
+                                <strong>Bộ nhớ:</strong>{' '}
+                                {editingIndex === index ? (
+                                    <InputNumber
+                                        value={exercise.memory}
+                                        onChange={(value) => handleUpdateExercise(index, 'memory', value)}
+                                        min={0}
+                                        style={{ width: '150px', marginLeft: 8 }}
+                                        addonAfter="bytes"
+                                    />
+                                ) : (
+                                    `${exercise.memory} bytes`
+                                )}
                             </div>
                             <div style={{ marginBottom: 8 }}>
-                                <strong>Bộ nhớ:</strong> {exercise.memory} bytes
+                                <strong>Khả năng hiển thị:</strong>{' '}
+                                {editingIndex === index ? (
+                                    <Select
+                                        value={exercise.visibility}
+                                        onChange={(value) => handleUpdateExercise(index, 'visibility', value)}
+                                        style={{ width: '150px', marginLeft: 8 }}
+                                        options={[
+                                            { value: 'DRAFT', label: 'DRAFT' },
+                                            { value: 'PUBLIC', label: 'PUBLIC' },
+                                            { value: 'PRIVATE', label: 'PRIVATE' }
+                                        ]}
+                                    />
+                                ) : (
+                                    <Tag color={exercise.visibility === 'PUBLIC' ? 'green' : exercise.visibility === 'PRIVATE' ? 'red' : 'orange'}>
+                                        {exercise.visibility || 'DRAFT'}
+                                    </Tag>
+                                )}
                             </div>
+                            {editingIndex === index && (
+                                <div style={{ marginBottom: 8 }}>
+                                    <strong>Solution:</strong>
+                                    <Input.TextArea
+                                        value={exercise.solution || ''}
+                                        onChange={(e) => handleUpdateExercise(index, 'solution', e.target.value)}
+                                        rows={5}
+                                        style={{ marginTop: 4, fontFamily: 'monospace', fontSize: 12 }}
+                                        placeholder="Nhập solution code..."
+                                    />
+                                </div>
+                            )}
                             <div style={{ marginBottom: 12 }}>
                                 <strong>Mô tả:</strong>
-                                <div
-                                    className="ai-exercise-description"
-                                    style={{
-                                        marginTop: 4,
-                                        padding: 8,
-                                        borderRadius: 4,
-                                        whiteSpace: 'pre-wrap'
-                                    }}
-                                >
-                                    {exercise.description}
-                                </div>
+                                {editingIndex === index ? (
+                                    <Input.TextArea
+                                        value={exercise.description}
+                                        onChange={(e) => handleUpdateExercise(index, 'description', e.target.value)}
+                                        rows={6}
+                                        style={{ marginTop: 4 }}
+                                    />
+                                ) : (
+                                    <div
+                                        className="ai-exercise-description"
+                                        style={{
+                                            marginTop: 4,
+                                            padding: 8,
+                                            borderRadius: 4,
+                                            whiteSpace: 'pre-wrap'
+                                        }}
+                                    >
+                                        {exercise.description}
+                                    </div>
+                                )}
                             </div>
                             <div style={{ marginBottom: 8 }}>
                                 <strong>Test Cases ({exercise.testCases.length}):</strong>
                             </div>
                             <Table
-                                dataSource={exercise.testCases}
+                                dataSource={exercise.testCases.map((tc: any, tcIndex: number) => ({ ...tc, key: tcIndex }))}
                                 columns={[
                                     {
                                         title: 'Input',
                                         dataIndex: 'input',
                                         key: 'input',
-                                        render: (text: string) => (
-                                            <div style={{ fontFamily: 'monospace', whiteSpace: 'pre-wrap' }}>
-                                                {text}
-                                            </div>
-                                        )
+                                        render: (text: string, record: any) => {
+                                            const testCaseIndex = record.key as number;
+                                            return editingIndex === index ? (
+                                                <Input.TextArea
+                                                    value={text}
+                                                    onChange={(e) => handleUpdateTestCase(index, testCaseIndex, 'input', e.target.value)}
+                                                    rows={2}
+                                                    style={{ fontFamily: 'monospace', fontSize: 12 }}
+                                                />
+                                            ) : (
+                                                <div style={{ fontFamily: 'monospace', whiteSpace: 'pre-wrap' }}>
+                                                    {text}
+                                                </div>
+                                            );
+                                        }
                                     },
                                     {
                                         title: 'Output',
                                         dataIndex: 'output',
                                         key: 'output',
-                                        render: (text: string) => (
-                                            <div style={{ fontFamily: 'monospace', whiteSpace: 'pre-wrap' }}>
-                                                {text}
-                                            </div>
-                                        )
+                                        render: (text: string, record: any) => {
+                                            const testCaseIndex = record.key as number;
+                                            return editingIndex === index ? (
+                                                <Input.TextArea
+                                                    value={text}
+                                                    onChange={(e) => handleUpdateTestCase(index, testCaseIndex, 'output', e.target.value)}
+                                                    rows={2}
+                                                    style={{ fontFamily: 'monospace', fontSize: 12 }}
+                                                />
+                                            ) : (
+                                                <div style={{ fontFamily: 'monospace', whiteSpace: 'pre-wrap' }}>
+                                                    {text}
+                                                </div>
+                                            );
+                                        }
                                     },
                                     {
                                         title: 'Note',
                                         dataIndex: 'note',
-                                        key: 'note'
+                                        key: 'note',
+                                        render: (text: string, record: any) => {
+                                            const testCaseIndex = record.key as number;
+                                            return editingIndex === index ? (
+                                                <Input
+                                                    value={text || ''}
+                                                    onChange={(e) => handleUpdateTestCase(index, testCaseIndex, 'note', e.target.value)}
+                                                />
+                                            ) : (
+                                                text || '-'
+                                            );
+                                        }
                                     },
                                     {
                                         title: 'State',
                                         dataIndex: 'isPublic',
                                         key: 'isPublic',
-                                        render: (isPublic: boolean) =>
-                                            isPublic ? <Tag color="green">Public</Tag> : <Tag color="red">Hidden</Tag>
-                                    }
+                                        render: (isPublic: boolean, record: any) => {
+                                            const testCaseIndex = record.key as number;
+                                            return editingIndex === index ? (
+                                                <Select
+                                                    value={isPublic}
+                                                    onChange={(value) => handleUpdateTestCase(index, testCaseIndex, 'isPublic', value)}
+                                                    style={{ width: '100%' }}
+                                                    options={[
+                                                        { value: true, label: 'Public' },
+                                                        { value: false, label: 'Hidden' }
+                                                    ]}
+                                                />
+                                            ) : (
+                                                isPublic ? <Tag color="green">Public</Tag> : <Tag color="red">Hidden</Tag>
+                                            );
+                                        }
+                                    },
+                                    ...(editingIndex === index
+                                        ? [
+                                              {
+                                                  title: 'Thao tác',
+                                                  key: 'action',
+                                                  render: (_: unknown, record: any) => {
+                                                      const testCaseIndex = record.key as number;
+                                                      return (
+                                                          <Popconfirm
+                                                              title="Xóa test case"
+                                                              description="Bạn có chắc chắn muốn xóa test case này?"
+                                                              onConfirm={() => handleDeleteTestCase(index, testCaseIndex)}
+                                                              okText="Xóa"
+                                                              cancelText="Hủy"
+                                                          >
+                                                              <Button size="small" danger>
+                                                                  Xóa
+                                                              </Button>
+                                                          </Popconfirm>
+                                                      );
+                                                  }
+                                              }
+                                          ]
+                                        : [])
                                 ]}
                                 pagination={false}
                                 size="small"
