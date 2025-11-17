@@ -1,5 +1,7 @@
 import { Button, Input, Popconfirm, Select, Table, Tag } from 'antd';
 
+import type { ExercisePreview } from './ExercisePreviewCard';
+
 interface TestCase {
     input: string;
     output: string;
@@ -10,7 +12,11 @@ interface TestCase {
 interface TestCaseTableProps {
     testCases: TestCase[];
     isEditing: boolean;
-    onUpdateTestCase: (testCaseIndex: number, field: string, value: any) => void;
+    onUpdateTestCase: (
+        testCaseIndex: number,
+        field: keyof ExercisePreview['testCases'][number],
+        value: string | boolean | undefined
+    ) => void;
     onDeleteTestCase: (testCaseIndex: number) => void;
 }
 
