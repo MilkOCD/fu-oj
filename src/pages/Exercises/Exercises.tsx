@@ -20,7 +20,6 @@ import LoadingOverlay from '../../components/LoadingOverlay/LoadingOverlay';
 import ProtectedElement from '../../components/ProtectedElement/ProtectedElement';
 import AIAssistant from '../../components/AIAssistant/AIAssistant';
 import TooltipWrapper from '../../components/TooltipWrapper/TooltipWrapperComponent';
-import AIGenerateExercises from './components/AIGenerateExercises';
 import * as http from '../../lib/httpRequest';
 import routesConfig from '../../routes/routesConfig';
 import authentication from '../../shared/auth/authentication';
@@ -42,7 +41,6 @@ const Exercises = observer(() => {
         topicIds: [],
         visibility: null
     });
-    const [isAIModalOpen, setAIModalOpen] = useState(false);
 
     const [form] = Form.useForm();
 
@@ -482,11 +480,6 @@ const Exercises = observer(() => {
                         </Form>
                     </div>
                 </Modal>
-                <AIGenerateExercises
-                    open={isAIModalOpen}
-                    onClose={() => setAIModalOpen(false)}
-                    onSuccess={getExercises}
-                />
                 <div className="header">
                     <div className="title">Danh sách bài tập</div>
                     <div className="description">
@@ -596,7 +589,10 @@ const Exercises = observer(() => {
                                 </div>
                             </TooltipWrapper>
                             <TooltipWrapper tooltipText="Tạo câu hỏi với AI" position="top">
-                                <div className="custom-circle-ico" onClick={() => setAIModalOpen(true)}>
+                                <div
+                                    className="custom-circle-ico"
+                                    onClick={() => navigate(`/${routesConfig.aiExercises}`)}
+                                >
                                     <RobotOutlined className="custom-ant-ico color-purple" />
                                 </div>
                             </TooltipWrapper>
