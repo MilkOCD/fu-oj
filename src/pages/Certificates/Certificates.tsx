@@ -11,7 +11,7 @@ import * as http from '../../lib/httpRequest';
 import './certificates.scss';
 
 const { Meta } = Card;
-const { Text, Title } = Typography;
+const { Text } = Typography;
 
 interface UserProfileDTO {
     rollNumber?: string;
