@@ -71,6 +71,13 @@ class Utils {
         }
     };
 
+    formatDateVN = (date?: string, format: string = 'DD/MM/YYYY HH:mm', defaultEmpty: string = ''): string => {
+        if (!date) return defaultEmpty;
+
+        const m = moment.utc(date).local().locale('vi'); // UTC -> local time Việt Nam
+        return m.isValid() ? m.format(format) : defaultEmpty;
+    };
+
     copyToClipBoard = (str: string) => {
         navigator.clipboard.writeText(str);
     };

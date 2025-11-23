@@ -102,7 +102,7 @@ const Submissions = observer(({ id, submissionId }: { id: string | undefined; su
                                 }
                             }}
                         >
-                            <div className="submission-info">{utils.formatDate(d.exercise.updatedTimestamp)}</div>
+                            <div className="submission-info">{utils.formatDateVN(d.updatedTimestamp)}</div>
                             <div className="submission-info">
                                 {d.isAccepted ? (
                                     <div className="color-cyan">Đã thông qua</div>

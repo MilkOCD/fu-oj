@@ -36,7 +36,9 @@ const LayoutHeader = observer(() => {
 
                 <div className="profile" onClick={() => globalStore.setDrawerKey('user')}>
                     <Avatar src={authentication.account?.data?.avatar?.url} style={{ height: 25, width: 25 }} />
-                    {authentication.account?.data?.lastName ||
+                    {(authentication.account?.data?.lastName || '') +
+                        ' - ' +
+                        (authentication.account?.data?.role || '') ||
                         authentication.account?.data?.role ||
                         'Bạn cần đăng nhập để tiếp tục'}
                 </div>
