@@ -41,12 +41,12 @@ const Submissions = observer(({ id, submissionId }: { id: string | undefined; su
 
         if (filters.from) {
             const fromDate = filters.from.startOf('day').toDate(); // nếu filters.from là moment
-            filtered = filtered.filter((d: any) => new Date(d.exercise.updatedTimestamp) >= fromDate);
+            filtered = filtered.filter((d: any) => new Date(d.updatedTimestamp) >= fromDate);
         }
 
         if (filters.to) {
             const toDate = filters.to.endOf('day').toDate(); // đảm bảo bao gồm cả ngày cuối
-            filtered = filtered.filter((d: any) => new Date(d.exercise.updatedTimestamp) <= toDate);
+            filtered = filtered.filter((d: any) => new Date(d.updatedTimestamp) <= toDate);
         }
 
         if (filters.result !== null && filters.result !== undefined) {
@@ -102,7 +102,7 @@ const Submissions = observer(({ id, submissionId }: { id: string | undefined; su
                                 }
                             }}
                         >
-                            <div className="submission-info">{utils.formatDate(d.exercise.updatedTimestamp)}</div>
+                            <div className="submission-info">{utils.formatDateVN(d.updatedTimestamp)}</div>
                             <div className="submission-info">
                                 {d.isAccepted ? (
                                     <div className="color-cyan">Đã thông qua</div>
