@@ -211,7 +211,7 @@ const ExamFormModal = observer(
                             />
                         </Form.Item>
 
-                        <Form.Item label="Độ khó" name="difficulty">
+                        <Form.Item label="Lọc bài tập theo độ khó" name="difficulty">
                             <Select
                                 allowClear
                                 style={{ width: '100%' }}
@@ -225,7 +225,7 @@ const ExamFormModal = observer(
                             />
                         </Form.Item>
 
-                        <Form.Item label="Chủ đề" name="topics">
+                        <Form.Item label="Lọc bài tập theo chủ đề" name="topics">
                             <Select
                                 allowClear
                                 mode="multiple"
@@ -251,6 +251,7 @@ const ExamFormModal = observer(
                                     value: item.value,
                                     label: (
                                         <Tooltip
+                                            placement="right"
                                             className="custom-tooltip"
                                             title={
                                                 <>
