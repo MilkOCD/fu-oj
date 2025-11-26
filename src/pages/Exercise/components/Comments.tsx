@@ -6,8 +6,6 @@ import * as http from '../../../lib/httpRequest';
 import './tabset.scss';
 import utils from '../../../utils/utils';
 
-const { TextArea } = Input;
-
 interface Comment {
     id: string;
     content: string;
