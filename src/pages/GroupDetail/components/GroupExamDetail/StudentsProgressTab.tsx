@@ -40,6 +40,7 @@ const StudentsProgressTab = observer(() => {
     const [loadingSubmission, setLoadingSubmission] = useState(false);
     const [groupExamId, setGroupExamId] = useState<string | null>(null);
     const subscriptionRef = useRef<{ unsubscribe: () => void } | null>(null);
+    const modalOpenRef = useRef(false);
 
     const fetchStudentsProgress = useCallback(() => {
         if (examId && groupId) {
@@ -101,8 +102,10 @@ const StudentsProgressTab = observer(() => {
                 destination: `/topic/exam/groupExam/${groupExamId}`,
                 onMessage: () => {
                     console.log('[Socket] Received update for groupExam:', groupExamId);
-                    // Refresh data when receiving socket message
-                    fetchStudentsProgress();
+                    // Only refresh data when modal is not open to avoid interrupting user
+                    if (!modalOpenRef.current) {
+                        fetchStudentsProgress();
+                    }
                 }
             });
         }
@@ -115,6 +118,11 @@ const StudentsProgressTab = observer(() => {
             }
         };
     }, [groupExamId, fetchStudentsProgress]);
+
+    // Update ref when modalOpen changes
+    useEffect(() => {
+        modalOpenRef.current = modalOpen;
+    }, [modalOpen]);
 
     const handleViewSubmissions = (userId: string) => {
         setModalOpen(true);
