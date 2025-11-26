@@ -742,7 +742,7 @@ const Exercise = observer(() => {
 
         return () => {
             if (tourRef.current) {
-                tourRef.current.destroy();
+                tourRef.current.cancel();
                 tourRef.current = null;
             }
         };
