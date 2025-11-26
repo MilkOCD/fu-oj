@@ -57,16 +57,17 @@ const json = {
                     },
                     {
                         type: 'tab',
-                        name: 'AI Assistant',
-                        component: 'ai-assistant',
-                        icon: '/sources/icons/ai-assistant-ico.svg'
-                    },
-                    {
-                        type: 'tab',
                         name: 'Comment',
                         component: 'comments',
                         icon: '/sources/icons/list-ico.svg'
+                    },
+                    {
+                        type: 'tab',
+                        name: 'AI Assistant',
+                        component: 'ai-assistant',
+                        icon: '/sources/icons/ai-assistant-ico.svg'
                     }
+
                 ]
             },
             {
@@ -498,10 +499,10 @@ const Exercise = observer(() => {
                     <Submissions id={id || exerciseId} submissionId={submissionId} />
                 </div>
             );
-        } else if (component === 'ai-assistant') {
-            return <AIAssistant />;
         } else if (component === 'comments') {
             return <Comments exerciseId={id || exerciseId} />;
+        } else if (component === 'ai-assistant') {
+            return <AIAssistant />;
         }
         return null;
     };
@@ -568,7 +569,7 @@ const Exercise = observer(() => {
             setEditorValue('');
             setResponse(null);
         }
-        return () => {};
+        return () => { };
     }, [submissionId]);
 
     useEffect(() => {
