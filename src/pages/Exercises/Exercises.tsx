@@ -27,7 +27,6 @@ import routesConfig from '../../routes/routesConfig';
 import authentication from '../../shared/auth/authentication';
 import utils from '../../utils/utils';
 import CourseSlider, { type CourseSliderItem } from './components/CourseSlider';
-import globalDataStore from '../../components/GlobalComponent/globalDataStore';
 
 const Exercises = observer(() => {
     const navigate = useNavigate();

@@ -3,8 +3,6 @@ import type { GetProp, UploadProps } from 'antd';
 import { message } from 'antd';
 import moment from 'moment';
 import globalDataStore from '../components/GlobalComponent/globalDataStore';
-import * as _ from 'lodash';
-import authentication from '../shared/auth/authentication';
 
 class Utils {
     capitalizeFirstLetter(word: string): string {

@@ -140,9 +140,9 @@ const ExerciseCompletionList = observer(() => {
         }
     ];
 
-    const handleChange = (value: string[]) => {
-        console.log(`selected ${value}`);
-    };
+    // const handleChange = (value: string[]) => {
+    //     console.log(`selected ${value}`);
+    // };
 
     const getExerciseCompletionList = () => {
         http.get(`/submissions?student=${authentication.account?.data.id}&pageSize=99999`).then((res) => {
