@@ -148,6 +148,7 @@ class StompClient {
         const key = this.keyOf(destination, headers);
         let entry = this.channels.get(key);
         if (!entry) {
+            console.log('[STOMP] Creating channel', { destination, headers });
             entry = { destination, headers, handlers: new Set<MessageHandler>() };
             this.channels.set(key, entry);
         }
@@ -155,22 +156,20 @@ class StompClient {
 
         // ensure underlying STOMP subscription exists if connected
         if (this.connected && !entry.stompSub) {
-            entry.stompSub = this.client.subscribe(
-                destination,
-                (msg) => {
-                    const current = this.channels.get(key);
-                    if (!current) return;
-                    current.handlers.forEach((h) => {
-                        try {
-                            h(msg);
-                        } catch (err) {
-                            console.error('[STOMP] handler error', err);
-                        }
-                    });
-                },
-                headers
-            );
+            console.log('[STOMP] Subscribing underlying STOMP', { destination, headers });
+            entry.stompSub = this.client.subscribe(destination, (msg) => {
+                const current = this.channels.get(key);
+                if (!current) return;
+                current.handlers.forEach((h) => {
+                    try {
+                        h(msg);
+                    } catch (err) {
+                        console.error('[STOMP] handler error', err);
+                    }
+                });
+            }, headers);
         } else if (!this.connected) {
+            console.log('[STOMP] Client not connected, activating');
             this.activate();
         }
 
