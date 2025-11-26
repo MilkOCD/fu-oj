@@ -27,6 +27,7 @@ import routesConfig from '../../routes/routesConfig';
 import utils from '../../utils/utils';
 import Submissions from './components/Submissions';
 import AIAssistant from './components/AIAssistant';
+import Comments from './components/Comments';
 
 const json = {
     global: { tabSetEnableClose: false },
@@ -55,6 +56,12 @@ const json = {
                         name: 'AI Assistant',
                         component: 'ai-assistant',
                         icon: '/sources/icons/ai-assistant-ico.svg'
+                    },
+                    {
+                        type: 'tab',
+                        name: 'Comment',
+                        component: 'comments',
+                        icon: '/sources/icons/list-ico.svg'
                     }
                 ]
             },
@@ -468,6 +475,8 @@ const Exercise = observer(() => {
             return <Submissions id={id || exerciseId} submissionId={submissionId} />;
         } else if (component === 'ai-assistant') {
             return <AIAssistant />;
+        } else if (component === 'comments') {
+            return <Comments exerciseId={id || exerciseId} />;
         }
         return null;
     };
