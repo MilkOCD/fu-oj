@@ -72,7 +72,7 @@ const GroupDetail = observer(() => {
     };
 
     const getDashboardData = () => {
-        if (!id || !authentication.isInstructor) return;
+        if (!id) return;
 
         const url = `/dashboard/instructor/?groupId=${id}`;
         setLoadingDashboard(true);

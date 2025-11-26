@@ -28,7 +28,6 @@ interface StudentProgress {
     submissionExercises: SubmissionExercise[];
 }
 
-
 const StudentsProgressTab = observer(() => {
     const params = useParams();
     const groupId = params.id || params.groupId;
@@ -127,7 +126,7 @@ const StudentsProgressTab = observer(() => {
     const handleViewSubmissions = (userId: string) => {
         setModalOpen(true);
         setLoadingSubmission(true);
-        const url = `/exams/submissions/results?userId=${userId}&examId=${examId}`;
+        const url = `/exams/submissions/results?userId=${userId}&groupExamId=${groupExamId}`;
         http.get(url)
             .then((res) => {
                 setSubmissionResult(res.data || null);
@@ -194,10 +193,7 @@ const StudentsProgressTab = observer(() => {
                     return <span>-</span>;
                 }
                 return (
-                    <Button 
-                        type="link"
-                        onClick={() => handleViewSubmissions(record.userId)}
-                    >
+                    <Button type="link" onClick={() => handleViewSubmissions(record.userId)}>
                         Xem bài nộp
                     </Button>
                 );
@@ -267,7 +263,8 @@ const StudentsProgressTab = observer(() => {
                             />
                         );
                     },
-                    rowExpandable: (record: StudentProgress) => record.hasJoined && record.submissionExercises.length > 0
+                    rowExpandable: (record: StudentProgress) =>
+                        record.hasJoined && record.submissionExercises.length > 0
                 }}
             />
 
@@ -285,4 +282,3 @@ const StudentsProgressTab = observer(() => {
 });
 
 export default StudentsProgressTab;
-

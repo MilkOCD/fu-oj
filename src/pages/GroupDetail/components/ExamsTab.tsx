@@ -173,7 +173,9 @@ const ExamsTab = observer(() => {
         setSubmissionDetailData(null);
         try {
             const res = await http.get(`/exams/submissions/results?userId=${userId}&examId=${examId}`);
-            const detail = (res && typeof res === 'object' && 'data' in res ? (res as { data: SubmissionSummary }).data : res) as SubmissionSummary | null;
+            const detail = (
+                res && typeof res === 'object' && 'data' in res ? (res as { data: SubmissionSummary }).data : res
+            ) as SubmissionSummary | null;
             if (detail) {
                 setSubmissionDetailData(detail);
                 setSubmissionDetailModalOpen(true);
@@ -204,7 +206,7 @@ const ExamsTab = observer(() => {
         }
 
         try {
-            const res = await http.get(`/exam-rankings?userId=${currentUserId}&examId=${record.id}`);
+            const res = await http.get(`/exam-rankings?userId=${currentUserId}&groupExamId=${record.groupExamId}`);
             if (res.data && Array.isArray(res.data) && res.data.length > 0) {
                 const rankingRecord = res.data[0];
                 if (rankingRecord.completed) {
@@ -227,18 +229,17 @@ const ExamsTab = observer(() => {
         }
     };
 
-    const studentStatusMap =
-        !isInstructor
-            ? new Map<string, 'not-started' | 'in-progress' | 'completed'>(
-                  exams.map((exam) => {
-                      const ranking = examRankingsMap.get(exam.id);
-                      if (!ranking) {
-                          return [exam.id, 'not-started'];
-                      }
-                      return [exam.id, ranking.completed ? 'completed' : 'in-progress'];
-                  })
-              )
-            : undefined;
+    const studentStatusMap = !isInstructor
+        ? new Map<string, 'not-started' | 'in-progress' | 'completed'>(
+              exams.map((exam) => {
+                  const ranking = examRankingsMap.get(exam.id);
+                  if (!ranking) {
+                      return [exam.id, 'not-started'];
+                  }
+                  return [exam.id, ranking.completed ? 'completed' : 'in-progress'];
+              })
+          )
+        : undefined;
 
     return (
         <>
@@ -274,4 +275,3 @@ const ExamsTab = observer(() => {
 });
 
 export default ExamsTab;
-

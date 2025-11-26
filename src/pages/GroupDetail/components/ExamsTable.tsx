@@ -189,4 +189,3 @@ const ExamsTable = ({
 };
 
 export default ExamsTable;
-

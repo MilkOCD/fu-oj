@@ -268,8 +268,12 @@ const Exams = observer(() => {
         // Lấy danh sách exercises
         http.get('/exercises?pageSize=9999999')
             .then((res) => {
+                let exercises = res.data;
+
+                exercises = exercises.filter((e: any) => !(e.visibility == 'DRAFT'));
+
                 setExercises(
-                    res.data.map((exercise: any) => ({
+                    exercises.map((exercise: any) => ({
                         value: exercise.id,
                         label: exercise.title || exercise.code || '',
                         ...exercise
@@ -279,7 +283,6 @@ const Exams = observer(() => {
             .catch((error) => {
                 console.error('Error fetching exercises:', error);
             });
-
     }, []);
 
     useEffect(() => {
