@@ -16,50 +16,14 @@ import classnames from 'classnames';
 import * as FlexLayout from 'flexlayout-react';
 import 'flexlayout-react/style/light.css';
 import { observer } from 'mobx-react-lite';
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import Joyride from 'react-joyride';
-
-// Define types inline to avoid import issues with Vite
-type Step = {
-    target: string | HTMLElement;
-    content: string | React.ReactNode;
-    title?: string | React.ReactNode;
-    placement?: 'top' | 'top-start' | 'top-end' | 'bottom' | 'bottom-start' | 'bottom-end' | 'left' | 'left-start' | 'left-end' | 'right' | 'right-start' | 'right-end' | 'auto' | 'center';
-    disableBeacon?: boolean;
-    [key: string]: unknown;
-};
-
-type CallBackProps = {
-    action: string;
-    controlled: boolean;
-    index: number;
-    lifecycle: string;
-    origin: string | null;
-    size: number;
-    status: string;
-    step: Step;
-    type: string;
-};
-
-// STATUS constants
-const STATUS = {
-    IDLE: 'idle',
-    READY: 'ready',
-    WAITING: 'waiting',
-    RUNNING: 'running',
-    PAUSED: 'paused',
-    SKIPPED: 'skipped',
-    FINISHED: 'finished',
-    ERROR: 'error'
-} as const;
 import globalStore from '../../components/GlobalComponent/globalStore';
 import TooltipWrapper from '../../components/TooltipWrapper/TooltipWrapperComponent';
 import { programmingLanguages } from '../../constants/languages';
 import * as http from '../../lib/httpRequest';
 import stompClientLib from '../../lib/stomp-client.lib';
 import routesConfig from '../../routes/routesConfig';
-import authentication from '../../shared/auth/authentication';
 import utils from '../../utils/utils';
 import Submissions from './components/Submissions';
 import AIAssistant from './components/AIAssistant';
@@ -182,7 +146,6 @@ const Exercise = observer(() => {
     const [response, setResponse] = useState<any>(null);
     const [selectedCaseResult, setSelectedCaseResult] = useState<any>(1);
     const [solution, setSolution] = useState<string | null>(null);
-    const [runTour, setRunTour] = useState<boolean>(false);
 
     const getDefaultTemplate = (lang: string): string => {
         switch (lang) {
@@ -265,7 +228,7 @@ const Exercise = observer(() => {
         const component = node.getComponent();
         if (component === 'desc') {
             return (
-                <div className="exercise-description" data-tourid="exercise-description">
+                <div className="exercise-description">
                     <h2 className="header">{exercise?.title || 'Title'}</h2>
                     <div className="tags">
                         <div className="tag difficulty">
@@ -305,7 +268,7 @@ const Exercise = observer(() => {
             );
         } else if (component === 'editor') {
             return (
-                <div className="code" data-tourid="code-editor">
+                <div className="code">
                     <div className="actions">
                         <Select
                             value={language}
@@ -333,7 +296,7 @@ const Exercise = observer(() => {
             );
         } else if (component === 'testResult') {
             return (
-                <div className="testResult" data-tourid="test-result-tab">
+                <div className="testResult">
                     {loading && (
                         <>
                             <LoadingOutlined className="mb-px" style={{ color: '#555555', fontSize: 20 }} />
@@ -502,17 +465,9 @@ const Exercise = observer(() => {
                 </div>
             );
         } else if (component === 'submissions') {
-            return (
-                <div data-tourid="submissions-tab">
-                    <Submissions id={id || exerciseId} submissionId={submissionId} />
-                </div>
-            );
+            return <Submissions id={id || exerciseId} submissionId={submissionId} />;
         } else if (component === 'ai-assistant') {
-            return (
-                <div data-tourid="ai-assistant-tab">
-                    <AIAssistant />
-                </div>
-            );
+            return <AIAssistant />;
         }
         return null;
     };
@@ -586,71 +541,6 @@ const Exercise = observer(() => {
         if (response?.data?.exercise?.solution) setSolution(response?.data?.exercise?.solution);
     }, [response?.data?.exercise?.solution]);
 
-    // Tour guide steps
-    const tourSteps: Step[] = [
-        {
-            target: '[data-tourid="exercise-description"]',
-            content: 'Đây là phần mô tả bài tập. Bạn có thể xem đề bài, độ khó và các ví dụ test case ở đây. Bạn có thể chuyển sang các tab khác như "Danh sách bài tập đã nộp" và "AI Assistant" ở phía trên.',
-            placement: 'right',
-            disableBeacon: true
-        },
-        {
-            target: '[data-tourid="code-editor"]',
-            content: 'Đây là trình soạn thảo code. Bạn có thể chọn ngôn ngữ lập trình ở trên và viết code giải bài tập ở đây.',
-            placement: 'left',
-            disableBeacon: true
-        },
-        {
-            target: '[data-tourid="test-run-btn"]',
-            content: 'Nút "Test Run" (biểu tượng play) cho phép bạn chạy thử code với các test case mà không nộp bài. Kết quả sẽ hiển thị ở tab TestResult bên dưới.',
-            placement: 'bottom',
-            disableBeacon: true
-        },
-        {
-            target: '[data-tourid="submit-btn"]',
-            content: 'Nút "Nộp bài" để nộp bài làm của bạn. Sau khi nộp, hệ thống sẽ chấm điểm và hiển thị kết quả ở tab TestResult.',
-            placement: 'bottom',
-            disableBeacon: true
-        },
-        {
-            target: '[data-tourid="test-result-tab"]',
-            content: 'Tab TestResult hiển thị kết quả sau khi bạn chạy test hoặc nộp bài. Bạn có thể xem từng test case đã pass hay fail và so sánh output của bạn với output mong đợi.',
-            placement: 'top',
-            disableBeacon: true
-        }
-    ];
-
-    // Check if tour should run (only for STUDENT and first time)
-    useEffect(() => {
-        if (authentication.isStudent && exercise) {
-            const tourKey = 'exercise-tour-completed';
-            const hasCompletedTour = localStorage.getItem(tourKey);
-            
-            if (!hasCompletedTour) {
-                // Delay to ensure DOM and FlexLayout are ready
-                setTimeout(() => {
-                    // Double check that elements exist before starting tour
-                    const descriptionEl = document.querySelector('[data-tourid="exercise-description"]');
-                    const editorEl = document.querySelector('[data-tourid="code-editor"]');
-                    
-                    if (descriptionEl && editorEl) {
-                        setRunTour(true);
-                    }
-                }, 1000);
-            }
-        }
-    }, [exercise]);
-
-    // Handle tour callback
-    const handleJoyrideCallback = (data: CallBackProps) => {
-        const { status } = data;
-        
-        if (status === STATUS.FINISHED || status === STATUS.SKIPPED) {
-            localStorage.setItem('exercise-tour-completed', 'true');
-            setRunTour(false);
-        }
-    };
-
     return (
         <div className="exercise">
             <div className="container">
@@ -694,11 +584,11 @@ const Exercise = observer(() => {
                                     <LoadingOutlined />
                                 </div>
                             ) : (
-                                <div className="icon" onClick={testRun} data-tourid="test-run-btn">
+                                <div className="icon" onClick={testRun}>
                                     <img src="/sources/icons/play-ico.svg" alt="" />
                                 </div>
                             )}
-                            <div className="icon submit-btn" onClick={submit} data-tourid="submit-btn">
+                            <div className="icon submit-btn" onClick={submit}>
                                 {loading ? (
                                     <LoadingOutlined style={{ fontSize: 18 }} />
                                 ) : (
@@ -721,27 +611,6 @@ const Exercise = observer(() => {
                     <FlexLayout.Layout ref={layoutRef} model={model} factory={factory} />
                 </div>
             </div>
-            <Joyride
-                steps={tourSteps}
-                run={runTour}
-                continuous={true}
-                showProgress={true}
-                showSkipButton={true}
-                callback={handleJoyrideCallback}
-                styles={{
-                    options: {
-                        primaryColor: 'var(--color-link)',
-                        zIndex: 10000
-                    }
-                }}
-                locale={{
-                    back: 'Quay lại',
-                    close: 'Đóng',
-                    last: 'Hoàn thành',
-                    next: 'Tiếp theo',
-                    skip: 'Bỏ qua'
-                }}
-            />
         </div>
     );
 });

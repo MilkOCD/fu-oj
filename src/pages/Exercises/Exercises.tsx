@@ -11,10 +11,9 @@ import type { FormProps } from 'antd';
 import { Button, Form, Input, InputNumber, Modal, Popconfirm, Popover, Select, Steps, Table, Tag } from 'antd';
 import classnames from 'classnames';
 import { observer } from 'mobx-react-lite';
-import React, { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Highlighter from 'react-highlight-words';
 import { useNavigate } from 'react-router-dom';
-import Joyride from 'react-joyride';
 import AIAssistant from '../../components/AIAssistant/AIAssistant';
 import CustomCalendar from '../../components/CustomCalendar/CustomCalendar';
 import globalStore from '../../components/GlobalComponent/globalStore';
@@ -26,40 +25,6 @@ import routesConfig from '../../routes/routesConfig';
 import authentication from '../../shared/auth/authentication';
 import utils from '../../utils/utils';
 import CourseSlider, { type CourseSliderItem } from './components/CourseSlider';
-
-// Define types inline to avoid import issues with Vite
-type Step = {
-    target: string | HTMLElement;
-    content: string | React.ReactNode;
-    title?: string | React.ReactNode;
-    placement?: 'top' | 'top-start' | 'top-end' | 'bottom' | 'bottom-start' | 'bottom-end' | 'left' | 'left-start' | 'left-end' | 'right' | 'right-start' | 'right-end' | 'auto' | 'center';
-    disableBeacon?: boolean;
-    [key: string]: unknown;
-};
-
-type CallBackProps = {
-    action: string;
-    controlled: boolean;
-    index: number;
-    lifecycle: string;
-    origin: string | null;
-    size: number;
-    status: string;
-    step: Step;
-    type: string;
-};
-
-// STATUS constants
-const STATUS = {
-    IDLE: 'idle',
-    READY: 'ready',
-    WAITING: 'waiting',
-    RUNNING: 'running',
-    PAUSED: 'paused',
-    SKIPPED: 'skipped',
-    FINISHED: 'finished',
-    ERROR: 'error'
-} as const;
 
 const Exercises = observer(() => {
     const navigate = useNavigate();
@@ -81,7 +46,6 @@ const Exercises = observer(() => {
     const [courses, setCourses] = useState<CourseSliderItem[]>([]);
     const [coursesLoading, setCoursesLoading] = useState(false);
     const [form] = Form.useForm();
-    const [runTour, setRunTour] = useState<boolean>(false);
 
     const columns = [
         {
@@ -195,7 +159,7 @@ const Exercises = observer(() => {
             width: 100,
             render: (_: any, record: any) => {
                 return (
-                    <div className="actions-row cell" onClick={(e) => e.stopPropagation()} data-tourid="table-actions">
+                    <div className="actions-row cell" onClick={(e) => e.stopPropagation()}>
                         {/* <TooltipWrapper tooltipText="Thêm vào yêu thích" position="left">
                             <HeartOutlined className="action-row-btn" />
                         </TooltipWrapper> */}
@@ -498,141 +462,6 @@ const Exercises = observer(() => {
         }
     }, [isDetailPopupOpen, form]);
 
-    // Tour guide steps for STUDENT
-    const studentTourSteps: Step[] = [
-        {
-            target: '[data-tourid="course-slider"]',
-            content: 'Đây là phần khóa học nổi bật. Bạn có thể chọn khóa học phù hợp để luyện tập theo lộ trình, tương tự như LeetCode study plan.',
-            placement: 'bottom',
-            disableBeacon: true
-        },
-        {
-            target: '[data-tourid="search-input"]',
-            content: 'Bạn có thể tìm kiếm bài tập theo mã bài tập hoặc tiêu đề ở đây.',
-            placement: 'bottom',
-            disableBeacon: true
-        },
-        {
-            target: '[data-tourid="filter-btn"]',
-            content: 'Nút bộ lọc cho phép bạn lọc bài tập theo độ khó, chủ đề và khả năng hiển thị.',
-            placement: 'bottom',
-            disableBeacon: true
-        },
-        {
-            target: '[data-tourid="random-btn"]',
-            content: 'Nút "Làm ngẫu nhiên" sẽ chọn ngẫu nhiên một bài tập từ danh sách để bạn luyện tập.',
-            placement: 'left',
-            disableBeacon: true
-        },
-        {
-            target: '[data-tourid="exercises-table"]',
-            content: 'Đây là danh sách tất cả các bài tập. Bạn có thể click vào một bài tập để bắt đầu làm. Bảng hiển thị mã bài tập, tiêu đề, độ khó và chủ đề.',
-            placement: 'top',
-            disableBeacon: true
-        }
-    ];
-
-    // Tour guide steps for INSTRUCTOR
-    const instructorTourSteps: Step[] = [
-        {
-            target: '[data-tourid="ai-create-btn"]',
-            content: 'Nút "Tạo câu hỏi với AI" cho phép bạn tạo bài tập mới một cách nhanh chóng với sự hỗ trợ của AI.',
-            placement: 'bottom',
-            disableBeacon: true
-        },
-        {
-            target: '[data-tourid="create-btn"]',
-            content: 'Nút "Tạo mới" để tạo bài tập thủ công. Bạn sẽ điền thông tin bài tập và test cases trong modal.',
-            placement: 'bottom',
-            disableBeacon: true
-        },
-        {
-            target: '[data-tourid="search-input"]',
-            content: 'Bạn có thể tìm kiếm bài tập theo mã bài tập hoặc tiêu đề ở đây.',
-            placement: 'bottom',
-            disableBeacon: true
-        },
-        {
-            target: '[data-tourid="filter-btn"]',
-            content: 'Nút bộ lọc cho phép bạn lọc bài tập theo độ khó, chủ đề và khả năng hiển thị.',
-            placement: 'bottom',
-            disableBeacon: true
-        },
-        {
-            target: '[data-tourid="exercises-table"]',
-            content: 'Đây là danh sách tất cả các bài tập bạn đã tạo. Bảng hiển thị mã bài tập, tiêu đề, độ khó và chủ đề.',
-            placement: 'top',
-            disableBeacon: true
-        },
-        {
-            target: '[data-tourid="table-actions"]',
-            content: 'Trong mỗi hàng bài tập, bạn có thể sử dụng nút chỉnh sửa (biểu tượng bánh răng) để cập nhật thông tin hoặc nút xóa (biểu tượng thùng rác) để xóa bài tập.',
-            placement: 'left',
-            disableBeacon: true
-        }
-    ];
-
-    const tourSteps = authentication.isInstructor ? instructorTourSteps : studentTourSteps;
-
-    // Check if tour should run (for STUDENT or INSTRUCTOR, first time only)
-    useEffect(() => {
-        const isInstructor = authentication.isInstructor;
-        const isStudent = authentication.isStudent;
-        const tourKey = isInstructor ? 'exercises-instructor-tour-completed' : 'exercises-tour-completed';
-        const hasCompletedTour = localStorage.getItem(tourKey);
-        
-        if ((isStudent || isInstructor) && !hasCompletedTour && !loading && datas.length > 0) {
-            // Delay to ensure DOM is ready
-            let retryCount = 0;
-            const maxRetries = 10;
-            
-            const checkElements = () => {
-                if (isInstructor) {
-                    const aiCreateBtn = document.querySelector('[data-tourid="ai-create-btn"]');
-                    const createBtn = document.querySelector('[data-tourid="create-btn"]');
-                    const searchInput = document.querySelector('[data-tourid="search-input"]');
-                    const filterBtn = document.querySelector('[data-tourid="filter-btn"]');
-                    const exercisesTable = document.querySelector('[data-tourid="exercises-table"]');
-                    const tableActions = document.querySelector('[data-tourid="table-actions"]');
-                    
-                    if (aiCreateBtn && createBtn && searchInput && filterBtn && exercisesTable && tableActions) {
-                        setRunTour(true);
-                    } else if (retryCount < maxRetries) {
-                        retryCount++;
-                        setTimeout(checkElements, 500);
-                    }
-                } else {
-                    const courseSlider = document.querySelector('[data-tourid="course-slider"]');
-                    const searchInput = document.querySelector('[data-tourid="search-input"]');
-                    const filterBtn = document.querySelector('[data-tourid="filter-btn"]');
-                    const randomBtn = document.querySelector('[data-tourid="random-btn"]');
-                    const exercisesTable = document.querySelector('[data-tourid="exercises-table"]');
-                    
-                    if (courseSlider || searchInput || filterBtn || randomBtn || exercisesTable) {
-                        setRunTour(true);
-                    } else if (retryCount < maxRetries) {
-                        retryCount++;
-                        setTimeout(checkElements, 500);
-                    }
-                }
-            };
-
-            setTimeout(checkElements, 1500);
-        }
-    }, [loading, datas.length]);
-
-    // Handle tour callback
-    const handleJoyrideCallback = (data: CallBackProps) => {
-        const { status } = data;
-        const isInstructor = authentication.isInstructor;
-        const tourKey = isInstructor ? 'exercises-instructor-tour-completed' : 'exercises-tour-completed';
-        
-        if (status === STATUS.FINISHED || status === STATUS.SKIPPED) {
-            localStorage.setItem(tourKey, 'true');
-            setRunTour(false);
-        }
-    };
-
     return (
         <div className={classnames('leetcode', globalStore.isBelow1300 ? 'col' : 'row')}>
             <div className={classnames('exercises left', { 'p-24': globalStore.isBelow1300 })}>
@@ -810,14 +639,12 @@ const Exercises = observer(() => {
                     </div>
                 </div>
 
-                <div data-tourid="course-slider">
-                    <CourseSlider
-                        courses={courses}
-                        loading={coursesLoading}
-                        onManageClick={() => navigate('/courses')}
-                        onExploreCourse={(courseId) => navigate(`/courses/${courseId}`)}
-                    />
-                </div>
+                <CourseSlider
+                    courses={courses}
+                    loading={coursesLoading}
+                    onManageClick={() => navigate('/courses')}
+                    onExploreCourse={(courseId) => navigate(`/courses/${courseId}`)}
+                />
 
                 <div
                     className={classnames('wrapper flex', {
@@ -825,11 +652,7 @@ const Exercises = observer(() => {
                     })}
                 >
                     <div className="filters">
-                        <Input 
-                            placeholder="Tìm kiếm bài tập" 
-                            onChange={(e) => setSearch(e.target.value)}
-                            data-tourid="search-input"
-                        />
+                        <Input placeholder="Tìm kiếm bài tập" onChange={(e) => setSearch(e.target.value)} />
 
                         {/* <TooltipWrapper tooltipText="Sắp xếp" position="top">
                             <Popover
@@ -901,7 +724,7 @@ const Exercises = observer(() => {
                                 onOpenChange={(open) => setFilterOpen(open)}
                                 placement="bottom"
                             >
-                                <div className="custom-circle-ico" data-tourid="filter-btn">
+                                <div className="custom-circle-ico">
                                     <FilterOutlined className="custom-ant-ico" />
                                 </div>
                             </Popover>
@@ -923,16 +746,11 @@ const Exercises = observer(() => {
                                 <div
                                     className="custom-btn-ico"
                                     onClick={() => navigate(`/${routesConfig.aiExercises}`)}
-                                    data-tourid="ai-create-btn"
                                 >
                                     <RobotOutlined className="custom-ant-ico color-purple" />
                                     Tạo câu hỏi với AI
                                 </div>
-                                <div 
-                                    className="custom-btn-ico" 
-                                    onClick={() => globalStore.setOpenDetailPopup(true)}
-                                    data-tourid="create-btn"
-                                >
+                                <div className="custom-btn-ico" onClick={() => globalStore.setOpenDetailPopup(true)}>
                                     <AppstoreAddOutlined className="custom-ant-ico color-cyan" />
                                     Tạo mới
                                 </div>
@@ -942,14 +760,14 @@ const Exercises = observer(() => {
                         <div className="random">
                             <ProtectedElement acceptRoles={['STUDENT']}>
                                 <TooltipWrapper tooltipText="Làm ngẫu nhiên" position="left">
-                                    <div className="custom-circle-ico" onClick={selectRandom} data-tourid="random-btn">
+                                    <div className="custom-circle-ico" onClick={selectRandom}>
                                         <img className="" src="/sources/icons/random-ico.svg" />
                                     </div>
                                 </TooltipWrapper>
                             </ProtectedElement>
                         </div>
                     </div>
-                    <div className="body" data-tourid="exercises-table">
+                    <div className="body">
                         <LoadingOverlay loading={loading}>
                             <Table
                                 rowKey="id"
@@ -983,27 +801,6 @@ const Exercises = observer(() => {
             <ProtectedElement acceptRoles={['STUDENT']}>
                 <AIAssistant />
             </ProtectedElement>
-            <Joyride
-                steps={tourSteps}
-                run={runTour}
-                continuous={true}
-                showProgress={true}
-                showSkipButton={true}
-                callback={handleJoyrideCallback}
-                styles={{
-                    options: {
-                        primaryColor: 'var(--color-link)',
-                        zIndex: 10000
-                    }
-                }}
-                locale={{
-                    back: 'Quay lại',
-                    close: 'Đóng',
-                    last: 'Hoàn thành',
-                    next: 'Tiếp theo',
-                    skip: 'Bỏ qua'
-                }}
-            />
         </div>
     );
 });
