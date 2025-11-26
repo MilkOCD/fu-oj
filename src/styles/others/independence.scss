@@ -45,4 +45,8 @@
             }
         }
     }
+
+    .ant-modal-wrap {
+        z-index: 999999999999999 !important;
+    }
 }

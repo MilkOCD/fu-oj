@@ -19,7 +19,7 @@
     border: 1px solid var(--color-border) !important;
     color: var(--color-text-secondary) !important;
     box-shadow: 0 4px 12px var(--box-shadow-color) !important;
-    padding: 1rem !important;
+    // padding: 1rem !important;
 }
 
 .shepherd-text {
@@ -43,23 +43,23 @@
     font-weight: 500 !important;
     cursor: pointer !important;
     transition: opacity 0.2s !important;
-    
+
     &:hover {
         background: var(--color-link) !important;
         opacity: 0.9 !important;
         color: #ffffff !important;
     }
-    
+
     &:focus {
         background: var(--color-link) !important;
         color: #ffffff !important;
         outline: none !important;
     }
-    
+
     &.shepherd-button-secondary {
         background: transparent !important;
         color: #ffffff !important;
-        
+
         &:hover {
             color: #ffffff !important;
             opacity: 0.8 !important;
@@ -70,7 +70,7 @@
 // Skip button color for dark mode
 body.theme-dark .shepherd-button.shepherd-button-secondary {
     color: var(--color-link) !important;
-    
+
     &:hover {
         color: var(--color-link) !important;
         opacity: 0.8 !important;
@@ -104,7 +104,7 @@ body.theme-dark .shepherd-button.shepherd-button-secondary {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    
+
     &:hover {
         background: var(--color-link) !important;
         opacity: 0.9 !important;
@@ -114,10 +114,9 @@ body.theme-dark .shepherd-button.shepherd-button-secondary {
 body.theme-dark .shepherd-cancel-icon {
     color: var(--color-link) !important;
     background: transparent !important;
-    
+
     &:hover {
         background: transparent !important;
         opacity: 0.8 !important;
     }
 }
-

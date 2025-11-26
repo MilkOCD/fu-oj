@@ -163,10 +163,7 @@ const ExamExercise = observer(() => {
                 if (Array.isArray(res.data) && res.data.length > 0) {
                     const ranking = res.data[0];
                     const groupExamId =
-                        ranking.groupExamId ||
-                        ranking.groupExam?.groupExamId ||
-                        ranking.groupExam?.id ||
-                        null;
+                        ranking.groupExamId || ranking.groupExam?.groupExamId || ranking.groupExam?.id || null;
                     setGroupExamId(groupExamId);
                 } else {
                     setGroupExamId(null);
@@ -526,6 +523,98 @@ const ExamExercise = observer(() => {
         isNavigatingRef.current = false;
     }, [location.pathname]);
 
+    useEffect(() => {
+        const blockKeys = (e: any) => {
+            // Chặn phím F1–F12
+            if (e.key.startsWith('F')) {
+                e.preventDefault();
+                console.log('⚠️ Chặn phím function:', e.key);
+                return;
+            }
+
+            // Chặn DevTools
+            if (
+                e.key === 'F12' ||
+                (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) ||
+                (e.metaKey && e.altKey && e.key === 'I')
+            ) {
+                e.preventDefault();
+                console.log('⚠️ Cố mở DevTools:', e.key);
+                return;
+            }
+
+            // Chặn tất cả tổ hợp Ctrl (copy, paste, save…)
+            if (e.ctrlKey || e.metaKey) {
+                e.preventDefault();
+                console.log('⚠️ Chặn tổ hợp:', e.key);
+                return;
+            }
+        };
+
+        const blockContext = (e: any) => {
+            e.preventDefault();
+            console.log('⚠️ Chuột phải bị chặn');
+        };
+
+        const blockCopy = (e: any) => {
+            e.preventDefault();
+            console.log('⚠️ Copy bị chặn');
+        };
+
+        const blockPaste = (e: any) => {
+            e.preventDefault();
+            console.log('⚠️ Paste bị chặn');
+        };
+
+        const blockCut = (e: any) => {
+            e.preventDefault();
+            console.log('⚠️ Cut bị chặn');
+        };
+
+        const blockSelect = (e: any) => {
+            e.preventDefault();
+            console.log('⚠️ Chặn chọn văn bản');
+        };
+
+        // Phát hiện DevTools qua kích thước cửa sổ
+        let devtoolsOpen = false;
+        const detectDevTools = () => {
+            const threshold = 160;
+            if (
+                window.outerHeight - window.innerHeight > threshold ||
+                window.outerWidth - window.innerWidth > threshold
+            ) {
+                if (!devtoolsOpen) {
+                    devtoolsOpen = true;
+                    console.log('⚠️ DevTools vừa mở!');
+                }
+            } else {
+                devtoolsOpen = false;
+            }
+        };
+
+        window.addEventListener('keydown', blockKeys, true);
+        window.addEventListener('contextmenu', blockContext, true);
+        window.addEventListener('copy', blockCopy, true);
+        window.addEventListener('paste', blockPaste, true);
+        window.addEventListener('cut', blockCut, true);
+        window.addEventListener('selectstart', blockSelect, true);
+        window.addEventListener('resize', detectDevTools);
+
+        const interval = setInterval(detectDevTools, 500);
+
+        return () => {
+            window.removeEventListener('keydown', blockKeys, true);
+            window.removeEventListener('contextmenu', blockContext, true);
+            window.removeEventListener('copy', blockCopy, true);
+            window.removeEventListener('paste', blockPaste, true);
+            window.removeEventListener('cut', blockCut, true);
+            window.removeEventListener('selectstart', blockSelect, true);
+            window.removeEventListener('resize', detectDevTools);
+            clearInterval(interval);
+        };
+    }, []);
+
     return (
         <div className="exercise">
             <div className="container">
@@ -543,7 +632,7 @@ const ExamExercise = observer(() => {
                     <div className="center">
                         <div
                             className={classnames('group-btn', { disabled: loading })}
-                            style={{ display: 'flex', alignItems: 'center', gap: '16px' }}
+                            // style={{ display: 'flex', alignItems: 'center', gap: '16px' }}
                         >
                             <BugOutlined className="icon" style={{ color: '#FFA118' }} />
                             {loading ? (
@@ -563,19 +652,19 @@ const ExamExercise = observer(() => {
                                 )}
                                 Nộp bài
                             </div>
-                            {examId && !authentication.isInstructor && (
-                                <div style={{ marginLeft: '8px', display: 'flex', alignItems: 'center' }}>
-                                    <ExamCountdownTimer
-                                        examId={examId}
-                                        compact={true}
-                                        onTimeExpired={() => {
-                                            // Tự động quay về trang danh sách bài tập khi hết thời gian
-                                            navigate(`/${routesConfig.exam}`.replace(':id', examId));
-                                        }}
-                                    />
-                                </div>
-                            )}
                         </div>
+                        {examId && !authentication.isInstructor && (
+                            <div style={{ marginLeft: '8px', display: 'flex', alignItems: 'center' }}>
+                                <ExamCountdownTimer
+                                    examId={examId}
+                                    compact={true}
+                                    onTimeExpired={() => {
+                                        // Tự động quay về trang danh sách bài tập khi hết thời gian
+                                        navigate(`/${routesConfig.exam}`.replace(':id', examId));
+                                    }}
+                                />
+                            </div>
+                        )}
                     </div>
                     <div className="right">
                         <div className="group-btn">

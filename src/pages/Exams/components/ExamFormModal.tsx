@@ -191,7 +191,32 @@ const ExamFormModal = observer(
                         <Form.Item
                             label="Thời gian làm bài (phút)"
                             name="timeLimit"
-                            rules={[{ required: true, message: 'Vui lòng nhập thời gian làm bài!' }]}
+                            dependencies={['startTime', 'endTime']}
+                            rules={[
+                                { required: true, message: 'Vui lòng nhập thời gian làm bài!' },
+                                ({ getFieldValue }) => ({
+                                    validator(_, value) {
+                                        const start = getFieldValue('startTime');
+                                        const end = getFieldValue('endTime');
+
+                                        if (!start || !end || !value) {
+                                            return Promise.resolve();
+                                        }
+
+                                        const diffMinutes = end.diff(start, 'minute');
+
+                                        if (value > diffMinutes) {
+                                            return Promise.reject(
+                                                new Error(
+                                                    `Thời gian làm bài không được vượt quá ${diffMinutes} phút (khoảng giữa thời gian bắt đầu và kết thúc)!`
+                                                )
+                                            );
+                                        }
+
+                                        return Promise.resolve();
+                                    }
+                                })
+                            ]}
                         >
                             <InputNumber
                                 min={1}
