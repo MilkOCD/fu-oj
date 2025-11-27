@@ -4,6 +4,7 @@ import {
     DeleteOutlined,
     FilterOutlined,
     RobotOutlined,
+    SearchOutlined,
     SettingOutlined,
     UnorderedListOutlined
 } from '@ant-design/icons';
@@ -99,7 +100,7 @@ const Exercises = observer(() => {
         // },
         {
             title: 'Độ khó',
-            width: 100,
+            width: 50,
             dataIndex: 'difficulty',
             key: 'difficulty',
             render: (difficulty: string) => {
@@ -142,15 +143,15 @@ const Exercises = observer(() => {
                             ];
                             const color = colors[index];
 
-                            if (index > 1) {
+                            if (index > 2) {
                                 return <></>;
                             }
 
                             const temp = topics.map((t) => t.name.trim().toUpperCase());
 
-                            return index == 1 ? (
+                            return index == 2 ? (
                                 <Tag key={text}>
-                                    <TooltipWrapper tooltipText={temp.slice(1).join(', ')} position="left">
+                                    <TooltipWrapper tooltipText={temp.slice(2).join(', ')} position="left">
                                         ...
                                     </TooltipWrapper>
                                 </Tag>
@@ -266,7 +267,7 @@ const Exercises = observer(() => {
         // },
         {
             title: 'Độ khó',
-            width: 100,
+            width: 50,
             dataIndex: 'difficulty',
             key: 'difficulty',
             render: (difficulty: string) => {
@@ -300,15 +301,15 @@ const Exercises = observer(() => {
                             ];
                             const color = colors[index];
 
-                            if (index > 1) {
+                            if (index > 2) {
                                 return <></>;
                             }
 
                             const temp = topics.map((t) => t.name.trim().toUpperCase());
 
-                            return index == 1 ? (
+                            return index == 2 ? (
                                 <Tag key={text}>
-                                    <TooltipWrapper tooltipText={temp.slice(1).join(', ')} position="left">
+                                    <TooltipWrapper tooltipText={temp.slice(2).join(', ')} position="left">
                                         ...
                                     </TooltipWrapper>
                                 </Tag>
@@ -1080,6 +1081,7 @@ const Exercises = observer(() => {
                             placeholder="Tìm kiếm bài tập"
                             onChange={(e) => setSearch(e.target.value)}
                             data-tourid="search-input"
+                            prefix={<SearchOutlined />}
                         />
 
                         {/* <TooltipWrapper tooltipText="Sắp xếp" position="top">
@@ -1162,7 +1164,7 @@ const Exercises = observer(() => {
                             <TooltipWrapper tooltipText="Danh sách bài tập đã hoàn thành" position="top">
                                 <div
                                     className="custom-circle-ico"
-                                    onClick={() => (window.location.href = '/submissions')}
+                                    onClick={() => navigate(`/${routesConfig.submissionsOfAStudent}`)}
                                 >
                                     <UnorderedListOutlined className="custom-ant-ico color-gold" />
                                 </div>
@@ -1192,11 +1194,10 @@ const Exercises = observer(() => {
 
                         <div className="random">
                             <ProtectedElement acceptRoles={['STUDENT']}>
-                                <TooltipWrapper tooltipText="Làm ngẫu nhiên" position="left">
-                                    <div className="custom-circle-ico" onClick={selectRandom} data-tourid="random-btn">
-                                        <img className="" src="/sources/icons/random-ico.svg" />
-                                    </div>
-                                </TooltipWrapper>
+                                <div className="custom-btn-ico" onClick={selectRandom} data-tourid="random-btn">
+                                    <img className="" src="/sources/icons/random-ico.svg" />
+                                    Làm ngẫu nhiên
+                                </div>
                             </ProtectedElement>
                         </div>
                     </div>

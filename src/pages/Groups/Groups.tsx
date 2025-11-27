@@ -1,4 +1,11 @@
-import { AppstoreAddOutlined, DeleteOutlined, EditOutlined, MessageOutlined, SettingOutlined } from '@ant-design/icons';
+import {
+    AppstoreAddOutlined,
+    DeleteOutlined,
+    EditOutlined,
+    MessageOutlined,
+    SearchOutlined,
+    SettingOutlined
+} from '@ant-design/icons';
 import type { FormProps } from 'antd';
 import { Avatar, Button, Card, Checkbox, Col, Empty, Form, Input, Modal, Popconfirm, Row } from 'antd';
 import classnames from 'classnames';
@@ -132,7 +139,11 @@ const Groups = observer(() => {
                 </div>
                 <div className="wrapper flex">
                     <div className="filters">
-                        <Input placeholder="Tìm kiếm nhóm" onChange={(e) => setSearch(e.target.value)} />
+                        <Input
+                            placeholder="Tìm kiếm nhóm"
+                            onChange={(e) => setSearch(e.target.value)}
+                            prefix={<SearchOutlined />}
+                        />
 
                         <div className="group-create">
                             <ProtectedElement acceptRoles={['STUDENT']}>

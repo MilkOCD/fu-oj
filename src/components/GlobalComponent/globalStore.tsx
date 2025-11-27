@@ -14,7 +14,7 @@ class GlobalStore {
     isLROpen: boolean = true;
     drawerKey: string = '';
     openNotificationWithIcon: ((type: NotificationType, message?: string, description?: string) => void) | null = null;
-    theme: 'theme-dark' | 'theme-light' = 'theme-light';
+    theme: 'theme-dark' | 'theme-light' = 'theme-dark';
     isDetailPopupOpen: boolean = false;
 
     constructor() {

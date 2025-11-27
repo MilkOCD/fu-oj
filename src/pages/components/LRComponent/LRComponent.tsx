@@ -6,6 +6,8 @@ import { useNavigate } from 'react-router-dom';
 import globalStore from '../../../components/GlobalComponent/globalStore';
 import authentication from '../../../shared/auth/authentication';
 import './lr-component.scss';
+import { LoadingOutlined } from '@ant-design/icons';
+import classnames from 'classnames';
 
 const flexSliderItems = [
     {
@@ -102,7 +104,7 @@ const LRComponent = observer(() => {
     );
 });
 
-const LoginComponent = () => {
+const LoginComponent = observer(() => {
     const onFinish: FormProps<FieldType>['onFinish'] = (values) => {
         authentication.login(values.username || '', values.password || '', !!values.remember);
     };
@@ -145,8 +147,13 @@ const LoginComponent = () => {
                 </Form.Item>
 
                 <Form.Item label={null}>
-                    <Button className="login-btn" block type="primary" htmlType="submit">
-                        Đăng nhập
+                    <Button
+                        className={classnames('login-btn', { disabled: authentication.loading })}
+                        block
+                        type="primary"
+                        htmlType="submit"
+                    >
+                        Đăng nhập {authentication.loading && <LoadingOutlined />}
                     </Button>
                 </Form.Item>
             </Form>
@@ -167,7 +174,7 @@ const LoginComponent = () => {
             </div>
         </div>
     );
-};
+});
 
 const MoveFromRightComponent = () => {
     return (

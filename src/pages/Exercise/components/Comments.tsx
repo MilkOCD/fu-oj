@@ -71,9 +71,7 @@ const Comments = observer(({ exerciseId }: { exerciseId: string | undefined }) =
     });
 
     const sortByTimestamp = (list: CommentNode[]) =>
-        [...list].sort(
-            (a, b) => new Date(a.createdTimestamp).getTime() - new Date(b.createdTimestamp).getTime()
-        );
+        [...list].sort((a, b) => new Date(a.createdTimestamp).getTime() - new Date(b.createdTimestamp).getTime());
 
     const upsertComment = (list: CommentNode[], incoming: CommentNode) => {
         const next = [...list];
@@ -89,8 +87,7 @@ const Comments = observer(({ exerciseId }: { exerciseId: string | undefined }) =
         return sortByTimestamp(next);
     };
 
-    const removeComment = (list: CommentNode[], commentId: string) =>
-        list.filter((item) => item.id !== commentId);
+    const removeComment = (list: CommentNode[], commentId: string) => list.filter((item) => item.id !== commentId);
 
     const updateCommentInTree = (
         list: CommentNode[],
@@ -152,9 +149,9 @@ const Comments = observer(({ exerciseId }: { exerciseId: string | undefined }) =
                             return prev.map((comment) =>
                                 comment.id === payload.parentId
                                     ? {
-                                        ...comment,
-                                        replies: upsertComment(comment.replies ?? [], normalized)
-                                    }
+                                          ...comment,
+                                          replies: upsertComment(comment.replies ?? [], normalized)
+                                      }
                                     : comment
                             );
                         case 'UPDATED':
@@ -166,9 +163,9 @@ const Comments = observer(({ exerciseId }: { exerciseId: string | undefined }) =
                             return prev.map((comment) =>
                                 comment.id === payload.parentId
                                     ? {
-                                        ...comment,
-                                        replies: upsertComment(comment.replies ?? [], normalized)
-                                    }
+                                          ...comment,
+                                          replies: upsertComment(comment.replies ?? [], normalized)
+                                      }
                                     : comment
                             );
                         case 'DELETED':
@@ -180,11 +177,11 @@ const Comments = observer(({ exerciseId }: { exerciseId: string | undefined }) =
                             return prev.map((comment) =>
                                 comment.id === payload.parentId
                                     ? {
-                                        ...comment,
-                                        replies: (comment.replies ?? []).filter(
-                                            (reply) => reply.id !== payload.commentId
-                                        )
-                                    }
+                                          ...comment,
+                                          replies: (comment.replies ?? []).filter(
+                                              (reply) => reply.id !== payload.commentId
+                                          )
+                                      }
                                     : comment
                             );
                         default:
@@ -222,9 +219,7 @@ const Comments = observer(({ exerciseId }: { exerciseId: string | undefined }) =
                 const replies = await fetchCommentPage(parentId);
                 setComments((prev) =>
                     prev.map((comment) =>
-                        comment.id === parentId
-                            ? { ...comment, replies: sortByTimestamp(replies) }
-                            : comment
+                        comment.id === parentId ? { ...comment, replies: sortByTimestamp(replies) } : comment
                     )
                 );
                 repliesLoadedRef.current.add(parentId);
@@ -326,26 +321,23 @@ const Comments = observer(({ exerciseId }: { exerciseId: string | undefined }) =
         }
     }, [activeReplyParent, exerciseId, fetchRepliesForParent, replyContent]);
 
-    const handleReportComment = useCallback(
-        async (commentId: string) => {
-            setReportingId(commentId);
-            try {
-                await http.post(`/comments/report/${commentId}`, {});
-                antMessage.success('Đã báo cáo bình luận!');
-                setComments((prev) =>
-                    updateCommentInTree(prev, commentId, (node) => ({
-                        ...node,
-                        reportCount: (node.reportCount ?? 0) + 1
-                    }))
-                );
-            } catch (error: any) {
-                antMessage.error(error?.response?.data?.message || 'Không thể báo cáo bình luận. Vui lòng thử lại sau.');
-            } finally {
-                setReportingId((current) => (current === commentId ? null : current));
-            }
-        },
-        []
-    );
+    const handleReportComment = useCallback(async (commentId: string) => {
+        setReportingId(commentId);
+        try {
+            await http.post(`/comments/report/${commentId}`, {});
+            antMessage.success('Đã báo cáo bình luận!');
+            setComments((prev) =>
+                updateCommentInTree(prev, commentId, (node) => ({
+                    ...node,
+                    reportCount: (node.reportCount ?? 0) + 1
+                }))
+            );
+        } catch (error: any) {
+            antMessage.error(error?.response?.data?.message || 'Không thể báo cáo bình luận. Vui lòng thử lại sau.');
+        } finally {
+            setReportingId((current) => (current === commentId ? null : current));
+        }
+    }, []);
 
     const handleDeleteComment = useCallback((commentId: string) => {
         setDeleteTargetId(commentId);
@@ -359,9 +351,7 @@ const Comments = observer(({ exerciseId }: { exerciseId: string | undefined }) =
             antMessage.success('Đã xóa bình luận!');
             // WebSocket DELETED event will update UI for all clients
         } catch (error: any) {
-            antMessage.error(
-                error?.response?.data?.message || 'Không thể xóa bình luận. Vui lòng thử lại sau.'
-            );
+            antMessage.error(error?.response?.data?.message || 'Không thể xóa bình luận. Vui lòng thử lại sau.');
         } finally {
             setDeletingId(null);
             setDeleteTargetId(null);
@@ -392,11 +382,7 @@ const Comments = observer(({ exerciseId }: { exerciseId: string | undefined }) =
             });
             const updated: CommentDTO | undefined = response as CommentDTO;
             if (updated) {
-                setComments((prev) =>
-                    updateCommentInTree(prev, updated.id, (node) =>
-                        normalizeComment(updated, node)
-                    )
-                );
+                setComments((prev) => updateCommentInTree(prev, updated.id, (node) => normalizeComment(updated, node)));
             } else {
                 // fallback local update
                 setComments((prev) =>
@@ -473,10 +459,7 @@ const Comments = observer(({ exerciseId }: { exerciseId: string | undefined }) =
     const avatarLetter = (user?: UserProfile | null) =>
         user?.firstName?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U';
 
-    const commentListData = useMemo(
-        () => comments.slice(0, Math.max(visibleTopCount, 1)),
-        [comments, visibleTopCount]
-    );
+    const commentListData = useMemo(() => comments.slice(0, Math.max(visibleTopCount, 1)), [comments, visibleTopCount]);
 
     return (
         <div className="comments-container" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -565,7 +548,9 @@ const Comments = observer(({ exerciseId }: { exerciseId: string | undefined }) =
                                                 </div>
                                             </>
                                         ) : (
-                                            <div style={{ color: '#ddd', whiteSpace: 'pre-wrap' }}>{comment.content}</div>
+                                            <div style={{ color: '#ddd', whiteSpace: 'pre-wrap' }}>
+                                                {comment.content}
+                                            </div>
                                         )}
                                     </div>
                                     <div
@@ -627,8 +612,7 @@ const Comments = observer(({ exerciseId }: { exerciseId: string | undefined }) =
                                             {(() => {
                                                 const totalReplies = (comment.replies ?? []).length;
                                                 const visibleRepliesCount =
-                                                    replyVisibleMap[comment.id] ??
-                                                    Math.min(1, totalReplies);
+                                                    replyVisibleMap[comment.id] ?? Math.min(1, totalReplies);
                                                 const visibleReplies = (comment.replies ?? []).slice(
                                                     0,
                                                     visibleRepliesCount
@@ -691,7 +675,10 @@ const Comments = observer(({ exerciseId }: { exerciseId: string | undefined }) =
                                                                                     {buildDisplayName(reply.user)}
                                                                                 </span>
                                                                                 <span
-                                                                                    style={{ color: '#888', fontSize: '11px' }}
+                                                                                    style={{
+                                                                                        color: '#888',
+                                                                                        fontSize: '11px'
+                                                                                    }}
                                                                                 >
                                                                                     {utils.formatDate(
                                                                                         reply.createdTimestamp,
@@ -704,7 +691,9 @@ const Comments = observer(({ exerciseId }: { exerciseId: string | undefined }) =
                                                                                     <Input.TextArea
                                                                                         value={editingContent}
                                                                                         onChange={(e) =>
-                                                                                            setEditingContent(e.target.value)
+                                                                                            setEditingContent(
+                                                                                                e.target.value
+                                                                                            )
                                                                                         }
                                                                                         rows={2}
                                                                                         style={{
@@ -735,7 +724,9 @@ const Comments = observer(({ exerciseId }: { exerciseId: string | undefined }) =
                                                                                             type="primary"
                                                                                             onClick={handleSubmitEdit}
                                                                                             loading={editingSubmitting}
-                                                                                            disabled={!editingContent.trim()}
+                                                                                            disabled={
+                                                                                                !editingContent.trim()
+                                                                                            }
                                                                                         >
                                                                                             Lưu
                                                                                         </Button>
@@ -767,7 +758,9 @@ const Comments = observer(({ exerciseId }: { exerciseId: string | undefined }) =
                                                                                         type="link"
                                                                                         size="small"
                                                                                         style={{ padding: 0 }}
-                                                                                        onClick={() => handleStartEdit(reply)}
+                                                                                        onClick={() =>
+                                                                                            handleStartEdit(reply)
+                                                                                        }
                                                                                     >
                                                                                         Sửa
                                                                                     </Button>
@@ -776,8 +769,14 @@ const Comments = observer(({ exerciseId }: { exerciseId: string | undefined }) =
                                                                                         size="small"
                                                                                         danger
                                                                                         style={{ padding: 0 }}
-                                                                                        loading={deletingId === reply.id}
-                                                                                        onClick={() => handleDeleteComment(reply.id)}
+                                                                                        loading={
+                                                                                            deletingId === reply.id
+                                                                                        }
+                                                                                        onClick={() =>
+                                                                                            handleDeleteComment(
+                                                                                                reply.id
+                                                                                            )
+                                                                                        }
                                                                                     >
                                                                                         Xóa
                                                                                     </Button>
@@ -794,7 +793,9 @@ const Comments = observer(({ exerciseId }: { exerciseId: string | undefined }) =
                                                                                         handleReportComment(reply.id)
                                                                                     }
                                                                                 >
-                                                                                    {renderReportLabel(reply.reportCount)}
+                                                                                    {renderReportLabel(
+                                                                                        reply.reportCount
+                                                                                    )}
                                                                                 </Button>
                                                                             )}
                                                                         </div>
@@ -822,10 +823,11 @@ const Comments = observer(({ exerciseId }: { exerciseId: string | undefined }) =
                                                             >
                                                                 {(replyVisibleMap[comment.id] ??
                                                                     Math.min(1, totalReplies)) < totalReplies
-                                                                    ? `Xem thêm ${totalReplies -
-                                                                    (replyVisibleMap[comment.id] ??
-                                                                        Math.min(1, totalReplies))
-                                                                    } trả lời`
+                                                                    ? `Xem thêm ${
+                                                                          totalReplies -
+                                                                          (replyVisibleMap[comment.id] ??
+                                                                              Math.min(1, totalReplies))
+                                                                      } trả lời`
                                                                     : 'Ẩn bớt trả lời'}
                                                             </Button>
                                                         )}
@@ -843,9 +845,7 @@ const Comments = observer(({ exerciseId }: { exerciseId: string | undefined }) =
                     <div style={{ textAlign: 'center', marginTop: '12px' }}>
                         <Button
                             type="link"
-                            onClick={() =>
-                                setVisibleTopCount((prev) => Math.min(prev + 5, comments.length))
-                            }
+                            onClick={() => setVisibleTopCount((prev) => Math.min(prev + 5, comments.length))}
                         >
                             Xem thêm bình luận
                         </Button>
@@ -859,12 +859,7 @@ const Comments = observer(({ exerciseId }: { exerciseId: string | undefined }) =
                     </div>
                 )}
             </div>
-            <Modal
-                open={!!deleteTargetId}
-                title="Xóa bình luận"
-                footer={null}
-                onCancel={handleCancelDelete}
-            >
+            <Modal open={!!deleteTargetId} title="Xóa bình luận" footer={null} onCancel={handleCancelDelete}>
                 <p>Bạn có chắc chắn muốn xóa bình luận này?</p>
                 <div
                     style={{
@@ -877,12 +872,7 @@ const Comments = observer(({ exerciseId }: { exerciseId: string | undefined }) =
                     <Button onClick={handleCancelDelete} disabled={!!deletingId}>
                         Hủy
                     </Button>
-                    <Button
-                        type="primary"
-                        danger
-                        loading={!!deletingId}
-                        onClick={handleConfirmDelete}
-                    >
+                    <Button type="primary" danger loading={!!deletingId} onClick={handleConfirmDelete}>
                         Xóa
                     </Button>
                 </div>
@@ -926,6 +916,3 @@ const Comments = observer(({ exerciseId }: { exerciseId: string | undefined }) =
 });
 
 export default Comments;
-
-
-

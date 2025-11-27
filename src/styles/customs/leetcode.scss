@@ -53,6 +53,22 @@
                 box-shadow: none !important;
                 outline: none !important;
             }
+
+            & > .ant-input-affix-wrapper {
+                border: none;
+                border-radius: var(--borderRadius-full);
+                height: var(--base-size-32);
+                width: var(--base-size-220);
+                background: var(--color-tooltip-bg) !important;
+
+                & > input {
+                    background: var(--color-tooltip-bg) !important;
+                }
+            }
+
+            & > .ant-input-affix-wrapper-focused {
+                box-shadow: none;
+            }
         }
 
         .body {
