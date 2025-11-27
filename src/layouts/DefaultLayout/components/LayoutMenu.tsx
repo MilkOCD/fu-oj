@@ -18,13 +18,13 @@ import globalStore from '../../../components/GlobalComponent/globalStore';
 import authentication from '../../../shared/auth/authentication';
 
 const menuItems = [
-    {
-        id: 'home',
-        name: 'Trang chủ',
-        icon: <HomeFilled />,
-        to: '/home',
-        allowedRoles: ['STUDENT', 'INSTRUCTOR', 'ADMIN']
-    },
+    // {
+    //     id: 'home',
+    //     name: 'Trang chủ',
+    //     icon: <HomeFilled />,
+    //     to: '/home',
+    //     allowedRoles: ['STUDENT', 'INSTRUCTOR', 'ADMIN']
+    // },
     {
         id: 'groups',
         name: 'Nhóm',
@@ -128,6 +128,16 @@ const LayoutMenu = observer(() => {
                     'wrapper-min': globalStore.windowSize.width < 675
                 })}
             >
+                <div
+                    className={classnames('menu-item', { selected: selected == 'home' })}
+                    onClick={() => {
+                        navigate('/home');
+                        setSelected('home');
+                    }}
+                >
+                    <div className="icon">{<HomeFilled />}</div>
+                    <div className="name">Trang chủ</div>
+                </div>
                 {filteredMenuItems.map((item) => (
                     <div
                         key={item.id}

@@ -7,6 +7,7 @@ import authentication from '../../../shared/auth/authentication';
 import { useNavigate } from 'react-router-dom';
 import routesConfig from '../../../routes/routesConfig';
 import utils from '../../../utils/utils';
+import ProtectedElement from '../../../components/ProtectedElement/ProtectedElement';
 
 const QuickAction = observer(() => {
     const navigate = useNavigate();
@@ -57,12 +58,14 @@ const QuickAction = observer(() => {
                         Top rank
                     </div>
                 </li>
-                <li className="selected" onClick={selectRandom}>
-                    <div className="action-item">
-                        <RocketOutlined className="ico" />
-                        Thử thách
-                    </div>
-                </li>
+                <ProtectedElement acceptRoles={['STUDENT']}>
+                    <li className="selected" onClick={selectRandom}>
+                        <div className="action-item">
+                            <RocketOutlined className="ico" />
+                            Thử thách
+                        </div>
+                    </li>
+                </ProtectedElement>
                 <li
                     onClick={() => {
                         globalStore.setWindowLoading(true);

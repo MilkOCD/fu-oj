@@ -1,11 +1,4 @@
-import {
-    AppstoreAddOutlined,
-    DeleteOutlined,
-    EditOutlined,
-    MessageOutlined,
-    SearchOutlined,
-    SettingOutlined
-} from '@ant-design/icons';
+import { AppstoreAddOutlined, DeleteOutlined, EditOutlined, SearchOutlined, SettingOutlined } from '@ant-design/icons';
 import type { FormProps } from 'antd';
 import { Avatar, Button, Card, Checkbox, Col, Empty, Form, Input, Modal, Popconfirm, Row } from 'antd';
 import classnames from 'classnames';
@@ -128,7 +121,10 @@ const Groups = observer(() => {
 
     return (
         <div className={classnames('leetcode', globalStore.isBelow1300 ? 'col' : 'row')}>
-            <div className={classnames('groups left', { 'p-24': globalStore.isBelow1300 })}>
+            <div
+                className={classnames('groups left', { 'p-24': globalStore.isBelow1300 })}
+                style={{ overflow: 'visible' }}
+            >
                 <div className="header">
                     <div className="title">Nhóm</div>
                     <div className="description">
@@ -148,7 +144,7 @@ const Groups = observer(() => {
                         <div className="group-create">
                             <ProtectedElement acceptRoles={['STUDENT']}>
                                 <div className="custom-btn-ico" onClick={() => setJoinDialogOpen(true)}>
-                                    <MessageOutlined className="custom-ant-ico color-gold" />
+                                    <img src="/sources/icons/group-ico.svg" alt="" />
                                     Nhập mã tham gia nhóm
                                 </div>
                             </ProtectedElement>
@@ -166,7 +162,7 @@ const Groups = observer(() => {
 
                     <div className="body">
                         <LoadingOverlay loading={loading}>
-                            <div className={classnames('content mb-36', { 'ml-16 mr-16': !globalStore.isBelow1300 })}>
+                            <div className={classnames('content mb-36')}>
                                 <Row gutter={[16, 16]}>
                                     {displayDatas.length ? (
                                         displayDatas.map((item: any) => (
@@ -230,6 +226,7 @@ const Groups = observer(() => {
                                                                               }
                                                                           );
                                                                       }}
+                                                                      onPopupClick={(e) => e.stopPropagation()}
                                                                   >
                                                                       <DeleteOutlined
                                                                           key="ellipsis"
@@ -261,21 +258,27 @@ const Groups = observer(() => {
                                                                 src={item?.owner?.avatar?.url || '/sources/thaydat.jpg'}
                                                             />
                                                         }
-                                                        title={`Creator Name`}
+                                                        title={item.owner.firstName + ' ' + item.owner.lastName}
                                                         description={item.owner.email}
                                                     />
                                                     <div className="group-infos">
-                                                        {/* <div className="header">Mô tả</div>
+                                                        <div className="header">Mô tả</div>
                                                         <div className="topics">
                                                             <div className="topic">
-                                                                <Highlighter
-                                                                    highlightClassName="highlight"
-                                                                    searchWords={[search]}
-                                                                    autoEscape={true}
-                                                                    textToHighlight={item.description}
-                                                                />
+                                                                <TooltipWrapper
+                                                                    tooltipText={item.description}
+                                                                    position="top"
+                                                                >
+                                                                    <Highlighter
+                                                                        className="max-1-line"
+                                                                        highlightClassName="highlight"
+                                                                        searchWords={[search]}
+                                                                        autoEscape={true}
+                                                                        textToHighlight={item.description}
+                                                                    />
+                                                                </TooltipWrapper>
                                                             </div>
-                                                        </div> */}
+                                                        </div>
                                                         <div className="members">
                                                             {item.alittleStudent?.map((i: any, index: any) => {
                                                                 return (
@@ -413,7 +416,7 @@ const Groups = observer(() => {
                 </Modal>
             </div>
             <div className="right">
-                <CustomCalendar dateArr={utils.getDates()} />
+                <CustomCalendar dateArr={utils.getDates()} message="Nhớ kiểm tra lịch thi của hôm nay nhé!" />
             </div>
         </div>
     );

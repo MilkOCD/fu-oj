@@ -15,7 +15,7 @@ function shortWeekdayLetters(_locale: string | undefined, date: Date): any {
     return letters[day];
 }
 
-const CustomCalendar = observer(({ dateArr }: { dateArr?: any }) => {
+const CustomCalendar = observer(({ dateArr, message }: { dateArr?: any; message?: string }) => {
     const [value, onChange] = useState<Value>(new Date());
 
     const highlightDates = (dateArr || []).map((d: string) => new Date(d));
@@ -26,7 +26,7 @@ const CustomCalendar = observer(({ dateArr }: { dateArr?: any }) => {
                 {authentication.isStudent ? (
                     <div className="big-title-container">
                         <img className="ico" src="/sources/icons/fire-ico.svg" />
-                        Streak
+                        Mạch luyện tập
                     </div>
                 ) : (
                     <div className="big-title-container">
@@ -84,6 +84,7 @@ const CustomCalendar = observer(({ dateArr }: { dateArr?: any }) => {
                     formatShortWeekday={shortWeekdayLetters}
                 />
             </div>
+            <div className="message">{message || 'Hãy nhớ duy trì mạch luyện tập của bạn!'}</div>
         </div>
     );
 });

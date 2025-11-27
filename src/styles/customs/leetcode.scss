@@ -377,6 +377,23 @@
         }
     }
 
+    & > .actions {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-top: var(--base-size-24);
+
+        & > .clear-all {
+            transition: color 0.3s;
+
+            &:hover {
+                cursor: pointer;
+                color: var(--c-red);
+                box-shadow: var(--color-bg) 1px 1px 1px;
+            }
+        }
+    }
+
     .apply-filter {
         display: flex;
         justify-content: center;
@@ -388,6 +405,5 @@
         border-radius: var(--borderRadius-small);
         display: flex;
         margin-left: auto;
-        margin-top: var(--base-size-24);
     }
 }

@@ -1,12 +1,15 @@
 import { Button, Form, Spin, Tag, message } from 'antd';
+import classnames from 'classnames';
+import { observer } from 'mobx-react-lite';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import globalStore from '../../../components/GlobalComponent/globalStore';
 import * as http from '../../../lib/httpRequest';
-import ExerciseForm from './ExerciseForm';
-import ExercisePreviewCard from './ExercisePreviewCard';
-import type { ExercisePreview } from './ExercisePreviewCard';
 import routesConfig from '../../../routes/routesConfig';
+import ExerciseForm from './ExerciseForm';
+import type { ExercisePreview } from './ExercisePreviewCard';
+import ExercisePreviewCard from './ExercisePreviewCard';
+import { SettingOutlined } from '@ant-design/icons';
 
 type GeneratedTestCase = ExercisePreview['testCases'][number] & { id?: string | null };
 
@@ -30,7 +33,7 @@ const JUDGE0_BASE_URL = import.meta.env.VITE_JUDGE0_BASE_URL || 'http://74.226.2
 
 const LANGUAGE_ID_MAP: Record<string, number> = {
     Java: 62,
-    'JavaScript': 63,
+    JavaScript: 63,
     TypeScript: 74,
     Python: 71,
     'C++': 54,
@@ -57,7 +60,7 @@ interface RunResult extends JudgeSubmission {
     isPassed: boolean;
 }
 
-const AIGenerateExercises = () => {
+const AIGenerateExercises = observer(() => {
     const navigate = useNavigate();
     const [form] = Form.useForm();
     const [aiLoading, setAILoading] = useState(false);
@@ -105,7 +108,7 @@ const AIGenerateExercises = () => {
                 solutionLanguage: values.solutionLanguage || solutionLanguage,
                 visibility: values.visibility || visibility
             };
-            
+
             // Chỉ thêm prompt nếu có giá trị
             const promptValue = values.prompt || prompt;
             if (promptValue && promptValue.trim()) {
@@ -142,7 +145,11 @@ const AIGenerateExercises = () => {
         description: exercise.description,
         maxSubmissions: 0,
         topicIds:
-            exercise.topicIds && exercise.topicIds.length > 0 ? exercise.topicIds : selectedTopic ? [selectedTopic] : [],
+            exercise.topicIds && exercise.topicIds.length > 0
+                ? exercise.topicIds
+                : selectedTopic
+                ? [selectedTopic]
+                : [],
         visibility: exercise.visibility || visibility,
         timeLimit: exercise.timeLimit,
         memory: exercise.memory,
@@ -187,7 +194,11 @@ const AIGenerateExercises = () => {
             message.success(`Đã tạo bài tập "${exercise.title}" thành công!`);
         } catch (error: unknown) {
             const err = error as { response?: { data?: { message?: string } } };
-            globalStore.triggerNotification('error', err.response?.data?.message || 'Có lỗi xảy ra khi tạo bài tập!', '');
+            globalStore.triggerNotification(
+                'error',
+                err.response?.data?.message || 'Có lỗi xảy ra khi tạo bài tập!',
+                ''
+            );
         } finally {
             setSingleCreateLoading(false);
         }
@@ -221,32 +232,32 @@ const AIGenerateExercises = () => {
     };
 
     useEffect(() => {
-            setTopicsLoading(true);
-            http.get('/topics?pageSize=100')
+        setTopicsLoading(true);
+        http.get('/topics?pageSize=100')
             .then((res: { data?: Array<{ id: string; name: string }> }) => {
                 const topicsList = (res.data || []).map((topic) => ({
-                        value: topic.id,
-                        label: topic.name
-                    }));
-                    setTopics(topicsList);
-                })
-                .catch((error) => {
-                    console.error('Error fetching topics:', error);
-                    globalStore.triggerNotification('error', 'Không thể tải danh sách topics!', '');
-                })
-                .finally(() => {
-                    setTopicsLoading(false);
-                });
+                    value: topic.id,
+                    label: topic.name
+                }));
+                setTopics(topicsList);
+            })
+            .catch((error) => {
+                console.error('Error fetching topics:', error);
+                globalStore.triggerNotification('error', 'Không thể tải danh sách topics!', '');
+            })
+            .finally(() => {
+                setTopicsLoading(false);
+            });
     }, []);
 
     const handleDeleteExercise = (index: number) => {
         const exercise = aiPreviewExercises[index];
         const newExercises = aiPreviewExercises.filter((_, i) => i !== index);
         setAIPreviewExercises(newExercises);
-        
+
         // Lưu bài tập đã xóa để có thể undo
         setDeletedExercises((prev) => [...prev, { exercise, index }]);
-        
+
         if (editingIndex === index) {
             setEditingIndex(null);
         } else if (editingIndex !== null && editingIndex > index) {
@@ -285,7 +296,9 @@ const AIGenerateExercises = () => {
             newExercises.splice(insertIndex, 0, exercise);
             return newExercises;
         });
-        setDeletedExercises((prev) => prev.filter((item) => item.index !== originalIndex || item.exercise !== exercise));
+        setDeletedExercises((prev) =>
+            prev.filter((item) => item.index !== originalIndex || item.exercise !== exercise)
+        );
         message.success('Đã khôi phục bài tập');
     };
 
@@ -336,37 +349,38 @@ const AIGenerateExercises = () => {
         setAIPreviewExercises(newExercises);
     };
 
-
     const renderPrimaryActions = () => {
         if (aiStep === 0) {
-    return (
-                <>
+            return (
+                <div className="on-the-right flex flex-center gap">
+                    <SettingOutlined /> {'>>'}
                     <Button onClick={handleBackToExercises}>Hủy</Button>
                     <Button type="primary" loading={aiLoading} onClick={handleAIGenerate}>
-                              Tạo bài tập
-                          </Button>
-                </>
+                        Tạo bài tập
+                    </Button>
+                </div>
             );
         }
 
         return (
-            <>
-                          <Button
-                              onClick={() => {
-                                  setAIStep(0);
-                                  setAIPreviewExercises([]);
-                              }}
-                          >
-                              Quay lại
+            <div className="on-the-right flex flex-center gap">
+                <SettingOutlined /> {'>>'}
+                <Button
+                    onClick={() => {
+                        setAIStep(0);
+                        setAIPreviewExercises([]);
+                    }}
+                >
+                    Quay lại
                 </Button>
                 <Button onClick={handleBackToExercises}>Hủy</Button>
                 <Button type="default" loading={singleCreateLoading} onClick={handleCreateSingleExercise}>
                     Tạo bài tập hiện tại
                 </Button>
                 <Button type="primary" loading={aiLoading} onClick={handleAICreateExercises}>
-                              Tạo {aiPreviewExercises.length} bài tập
-                          </Button>
-            </>
+                    Tạo {aiPreviewExercises.length} bài tập
+                </Button>
+            </div>
         );
     };
 
@@ -477,9 +491,7 @@ const AIGenerateExercises = () => {
             }
 
             const submissionData = await response.json();
-            const rawSubmissions = Array.isArray(submissionData)
-                ? submissionData
-                : submissionData.submissions || [];
+            const rawSubmissions = Array.isArray(submissionData) ? submissionData : submissionData.submissions || [];
             const tokens: string[] = rawSubmissions.map((item: { token?: string }) => item.token).filter(Boolean);
 
             if (!tokens.length) {
@@ -525,9 +537,7 @@ const AIGenerateExercises = () => {
 
         if (runError) {
             return (
-                <div style={{ color: '#fecdd3', background: '#451a1a', padding: 12, borderRadius: 8 }}>
-                    {runError}
-                </div>
+                <div style={{ color: '#fecdd3', background: '#451a1a', padding: 12, borderRadius: 8 }}>{runError}</div>
             );
         }
 
@@ -561,8 +571,13 @@ const AIGenerateExercises = () => {
                             Thời gian: {result.time ?? 'N/A'}s
                         </div>
                         <div style={{ fontSize: 12, color: '#cbd5f5' }}>
-                            <div>🎯 Expected: <span style={{ color: '#f8fafc' }}>{result.expected || '""'}</span></div>
-                            <div>📤 Output: <span style={{ color: '#f8fafc' }}>{(result.stdout || '').trim() || '""'}</span></div>
+                            <div>
+                                🎯 Expected: <span style={{ color: '#f8fafc' }}>{result.expected || '""'}</span>
+                            </div>
+                            <div>
+                                📤 Output:{' '}
+                                <span style={{ color: '#f8fafc' }}>{(result.stdout || '').trim() || '""'}</span>
+                            </div>
                             {result.stderr && (
                                 <div>
                                     ⚠️ Stderr:{' '}
@@ -650,7 +665,9 @@ const AIGenerateExercises = () => {
                             }}
                         >
                             <div style={{ fontSize: 13, color: '#8c8c8c', marginBottom: 4 }}>Thông tin nhanh</div>
-                            <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 12 }}>{activeExercise.title}</div>
+                            <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 12 }}>
+                                {activeExercise.title}
+                            </div>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                                 <div>
                                     <div style={{ fontSize: 12, color: '#8c8c8c' }}>Giới hạn thời gian</div>
@@ -691,7 +708,9 @@ const AIGenerateExercises = () => {
                                 onStartEdit={() => setEditingIndex(activeExerciseIndex)}
                                 onStopEdit={() => setEditingIndex(null)}
                                 onDelete={() => handleDeleteExercise(activeExerciseIndex)}
-                                onUpdateExercise={(field, value) => handleUpdateExercise(activeExerciseIndex, field, value)}
+                                onUpdateExercise={(field, value) =>
+                                    handleUpdateExercise(activeExerciseIndex, field, value)
+                                }
                                 onUpdateTestCase={(testCaseIndex, field, value) =>
                                     handleUpdateTestCase(activeExerciseIndex, testCaseIndex, field, value)
                                 }
@@ -715,7 +734,12 @@ const AIGenerateExercises = () => {
                                         </div>
                                         <div style={{ fontSize: 18, fontWeight: 600 }}>Chạy thử code</div>
                                     </div>
-                                    <Button type="primary" onClick={handleRunExercise} loading={runLoading} disabled={runLoading}>
+                                    <Button
+                                        type="primary"
+                                        onClick={handleRunExercise}
+                                        loading={runLoading}
+                                        disabled={runLoading}
+                                    >
                                         {runLoading ? 'Đang chạy...' : 'Chạy thử'}
                                     </Button>
                                 </div>
@@ -740,7 +764,7 @@ const AIGenerateExercises = () => {
     };
 
     return (
-        <div className="ai-generate-exercises-page" style={{ padding: 24 }}>
+        <div className={classnames('ai-generate-exercises-page', { 'p-24': globalStore.isBelow1300 })}>
             <div
                 style={{
                     display: 'flex',
@@ -761,43 +785,35 @@ const AIGenerateExercises = () => {
                     {renderPrimaryActions()}
                 </div>
             </div>
-            <div
-                style={{
-                    borderRadius: 12,
-                    padding: 24,
-                    boxShadow: '0 8px 24px rgba(15, 23, 42, 0.08)',
-                    minHeight: 'calc(100vh - 200px)'
-                }}
-        >
-            {aiStep === 0 ? (
-                <ExerciseForm
-                    form={form}
-                    topics={topics}
-                    topicsLoading={topicsLoading}
-                    selectedTopic={selectedTopic}
-                    setSelectedTopic={setSelectedTopic}
-                    selectedLevels={selectedLevels}
-                    setSelectedLevels={setSelectedLevels}
-                    numberOfExercise={numberOfExercise}
-                    setNumberOfExercise={setNumberOfExercise}
-                    numberOfPublicTestCases={numberOfPublicTestCases}
-                    setNumberOfPublicTestCases={setNumberOfPublicTestCases}
-                    numberOfPrivateTestCases={numberOfPrivateTestCases}
-                    setNumberOfPrivateTestCases={setNumberOfPrivateTestCases}
-                    solutionLanguage={solutionLanguage}
-                    setSolutionLanguage={setSolutionLanguage}
-                    prompt={prompt}
-                    setPrompt={setPrompt}
-                    visibility={visibility}
-                    setVisibility={setVisibility}
-                />
-            ) : (
+            <div className="ex-creation-form-by-ai-container mb-24">
+                {aiStep === 0 ? (
+                    <ExerciseForm
+                        form={form}
+                        topics={topics}
+                        topicsLoading={topicsLoading}
+                        selectedTopic={selectedTopic}
+                        setSelectedTopic={setSelectedTopic}
+                        selectedLevels={selectedLevels}
+                        setSelectedLevels={setSelectedLevels}
+                        numberOfExercise={numberOfExercise}
+                        setNumberOfExercise={setNumberOfExercise}
+                        numberOfPublicTestCases={numberOfPublicTestCases}
+                        setNumberOfPublicTestCases={setNumberOfPublicTestCases}
+                        numberOfPrivateTestCases={numberOfPrivateTestCases}
+                        setNumberOfPrivateTestCases={setNumberOfPrivateTestCases}
+                        solutionLanguage={solutionLanguage}
+                        setSolutionLanguage={setSolutionLanguage}
+                        prompt={prompt}
+                        setPrompt={setPrompt}
+                        visibility={visibility}
+                        setVisibility={setVisibility}
+                    />
+                ) : (
                     renderPreviewLayout()
                 )}
             </div>
-                </div>
+        </div>
     );
-};
+});
 
 export default AIGenerateExercises;
-

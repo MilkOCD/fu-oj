@@ -1,3 +1,7 @@
+.text-align-right {
+    text-align: right;
+}
+
 .color-white {
     color: white;
 }
@@ -313,6 +317,16 @@
     border-top: 1px solid var(--color-border);
 }
 
+.on-the-right {
+    position: fixed;
+    bottom: var(--base-size-24);
+    right: var(--base-size-24);
+    background: var(--color-background);
+    padding: var(--base-size-8) var(--base-size-16);
+    border-radius: var(--borderRadius-medium);
+    z-index: 1;
+}
+
 // LAMPNT
 .ant-btn-send.disabled-2 {
     border-color: #464646 !important;
@@ -333,4 +347,77 @@
 /* Bộ đếm ký tự (0/255) màu đỏ */
 .lampnt .ant-input-suffix .ant-input-data-count {
     color: #898989 !important;
+}
+
+// TRONGHG
+.ex-creation-form-by-ai-container {
+    padding: var(--base-size-24);
+    border: 1px solid var(--color-border);
+    border-radius: var(--borderRadius-large);
+    box-shadow: var(--color-border) 10px 10px 10px;
+
+    .ex-creation-form-by-ai {
+        & > div {
+            & > .ant-form-item {
+                margin: 0;
+                padding: 0;
+
+                & > .ant-row {
+                    & > .ant-col {
+                        margin: 0;
+                        padding: 0;
+
+                        & > label {
+                            font-weight: var(--base-text-weight-medium);
+                            margin-left: var(--base-size-4);
+                        }
+
+                        & > .ant-form-item-control-input {
+                            & > .ant-form-item-control-input-content {
+                                & > input {
+                                    // padding: var(--base-size-12) var(--base-size-42) var(--base-size-12)
+                                    //     var(--base-size-20);
+                                    // border-radius: var(--borderRadius-full);
+                                    font-size: var(--base-size-14) !important;
+                                }
+
+                                & > .ant-select {
+                                    & > .ant-select-selector {
+                                        // border-radius: var(--borderRadius-full);
+                                        font-size: var(--base-size-14) !important;
+
+                                        & > .ant-select-selection-wrap {
+                                            // padding: var(--base-size-12) var(--base-size-42)
+                                            //     var(--base-size-12) var(--base-size-12);
+                                            margin-left: var(--base-size-8);
+
+                                            & > .ant-select-selection-placeholder {
+                                                // padding: var(--base-size-12) var(--base-size-42)
+                                                //     var(--base-size-12) var(--base-size-12);
+                                            }
+                                        }
+                                    }
+                                }
+
+                                & > button {
+                                    width: 100%;
+                                    background: #1dbfaf;
+                                    background-image: linear-gradient(70.06deg, #2cccff -5%, #22dfbf 106%);
+                                    border-radius: var(--borderRadius-full);
+                                    font-size: var(--base-size-16);
+                                    padding: var(--base-size-20) 0;
+                                    // margin-top: var(--base-size-48);
+                                    margin-top: var(--base-size-24);
+
+                                    &:hover {
+                                        opacity: 0.8;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

@@ -5,8 +5,7 @@ import {
     FilterOutlined,
     RobotOutlined,
     SearchOutlined,
-    SettingOutlined,
-    UnorderedListOutlined
+    SettingOutlined
 } from '@ant-design/icons';
 import type { FormProps } from 'antd';
 import { Button, Form, Input, InputNumber, Modal, Popconfirm, Popover, Select, Steps, Table, Tag } from 'antd';
@@ -100,7 +99,7 @@ const Exercises = observer(() => {
         // },
         {
             title: 'Độ khó',
-            width: 50,
+            width: 70,
             dataIndex: 'difficulty',
             key: 'difficulty',
             render: (difficulty: string) => {
@@ -166,7 +165,7 @@ const Exercises = observer(() => {
             }
         },
         {
-            title: '',
+            title: <div className="text-align-right">Hành động</div>,
             dataIndex: 'actions',
             key: 'actions',
             width: 100,
@@ -336,7 +335,13 @@ const Exercises = observer(() => {
         }));
     };
 
-    const applyFilter = () => {
+    const applyFilter = (isReset?: boolean) => {
+        if (isReset) {
+            setDisplayDatas(datas);
+            setFilterOpen(false);
+            return;
+        }
+
         const filtered = datas.filter((item: any) => {
             // 1. Lọc độ khó
             if (filters.difficulty && item.difficulty !== filters.difficulty) {
@@ -1107,6 +1112,7 @@ const Exercises = observer(() => {
                                             <div className="filter-name">Độ khó</div>
                                             <Select
                                                 allowClear
+                                                value={filters.difficulty}
                                                 style={{ width: '100%' }}
                                                 placeholder="Chọn độ khó"
                                                 onChange={(value) => handleFilterChange('difficulty', value)}
@@ -1121,6 +1127,7 @@ const Exercises = observer(() => {
                                             <div className="filter-name">Chủ đề</div>
                                             <Select
                                                 allowClear
+                                                value={filters.topicIds}
                                                 mode="multiple"
                                                 style={{ width: '100%' }}
                                                 placeholder="Chọn chủ đề"
@@ -1133,6 +1140,7 @@ const Exercises = observer(() => {
                                             <div className="filter-name">Khả năng hiển thị</div>
                                             <Select
                                                 allowClear
+                                                value={filters.visibility}
                                                 style={{ width: '100%' }}
                                                 placeholder="Chọn khả năng hiển thị"
                                                 onChange={(value) => handleFilterChange('visibility', value)}
@@ -1143,9 +1151,28 @@ const Exercises = observer(() => {
                                                 ]}
                                             />
                                         </div>
-                                        <Button type="primary" className="apply-filter" onClick={applyFilter}>
-                                            Áp dụng
-                                        </Button>
+                                        <div className="actions">
+                                            <div
+                                                className="clear-all"
+                                                onClick={() => {
+                                                    setFilters({
+                                                        difficulty: null,
+                                                        topicIds: [],
+                                                        visibility: null
+                                                    });
+                                                    applyFilter(true);
+                                                }}
+                                            >
+                                                Xóa hết
+                                            </div>
+                                            <Button
+                                                type="primary"
+                                                className="apply-filter"
+                                                onClick={() => applyFilter()}
+                                            >
+                                                Áp dụng
+                                            </Button>
+                                        </div>
                                     </div>
                                 }
                                 title="Bộ lọc"
@@ -1160,7 +1187,7 @@ const Exercises = observer(() => {
                             </Popover>
                         </TooltipWrapper>
 
-                        <ProtectedElement acceptRoles={['STUDENT']}>
+                        {/* <ProtectedElement acceptRoles={['STUDENT']}>
                             <TooltipWrapper tooltipText="Danh sách bài tập đã hoàn thành" position="top">
                                 <div
                                     className="custom-circle-ico"
@@ -1169,12 +1196,12 @@ const Exercises = observer(() => {
                                     <UnorderedListOutlined className="custom-ant-ico color-gold" />
                                 </div>
                             </TooltipWrapper>
-                        </ProtectedElement>
+                        </ProtectedElement> */}
 
                         <div className="group-create">
                             <ProtectedElement acceptRoles={['INSTRUCTOR']}>
                                 <div
-                                    className="custom-btn-ico"
+                                    className="custom-btn-ico custom-btn-ico-hot"
                                     onClick={() => navigate(`/${routesConfig.aiExercises}`)}
                                     data-tourid="ai-create-btn"
                                 >

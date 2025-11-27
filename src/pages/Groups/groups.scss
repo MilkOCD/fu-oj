@@ -153,7 +153,8 @@
 
     & > .topics {
         & > .topic {
-            font-size: var(--base-size-16);
+            font-size: var(--base-size-14);
+            color: var(--color-text-muted);
         }
     }
 
@@ -161,6 +162,13 @@
         display: flex;
         align-items: center;
         margin-top: var(--base-size-24);
+
+        & > .tooltip-wrapper {
+            &:not(:first-child) {
+                z-index: 1;
+                margin-left: -8px; // đè lên 8px
+            }
+        }
 
         .member {
             width: var(--base-size-24);

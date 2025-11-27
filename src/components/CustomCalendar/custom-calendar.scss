@@ -1,3 +1,16 @@
+.custom-calendar-container {
+    & > .message {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        font-weight: var(--base-text-weight-medium);
+        color: var(--color-text-muted);
+        animation: ripple 1.5s ease-in-out infinite;
+        margin-top: var(--base-size-8);
+    }
+}
+
 .big-title {
     padding: var(--base-size-4);
     // padding-top: var(--base-size-12);
@@ -52,7 +65,7 @@
             position: absolute;
             right: var(--base-size-16);
             top: -20px;
-            opacity: 0.5;
+            // opacity: 0.5;
             display: flex;
             gap: var(--base-size-8);
             align-items: flex-end;
@@ -186,4 +199,14 @@ abbr {
     background: #ff9500 !important;
     color: white !important;
     border-radius: var(--borderRadius-full);
+}
+
+@keyframes ripple {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-4px);
+    }
 }
