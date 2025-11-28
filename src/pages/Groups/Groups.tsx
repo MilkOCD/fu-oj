@@ -126,7 +126,7 @@ const Groups = observer(() => {
                 style={{ overflow: 'visible' }}
             >
                 <div className="header">
-                    <div className="title">Nhóm</div>
+                    <div className="title">{authentication.isStudent ? 'Nhóm' : 'Quản lý nhóm'}</div>
                     <div className="description">
                         Giúp sinh viên và giảng viên tại FPT tạo, tham gia và quản lý các nhóm luyện tập lập trình. Mỗi
                         nhóm hoạt động như một “phòng học nhỏ” nơi các thành viên có thể cùng làm bài, thảo luận, và

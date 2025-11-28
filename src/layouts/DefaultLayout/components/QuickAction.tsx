@@ -1,13 +1,13 @@
-import { LogoutOutlined, RocketOutlined, SketchOutlined } from '@ant-design/icons';
+import { LogoutOutlined, RocketOutlined } from '@ant-design/icons';
 import { observer } from 'mobx-react-lite';
-import { useState, useEffect } from 'react';
-import * as http from '../../../lib/httpRequest';
-import globalStore from '../../../components/GlobalComponent/globalStore';
-import authentication from '../../../shared/auth/authentication';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import routesConfig from '../../../routes/routesConfig';
-import utils from '../../../utils/utils';
+import globalStore from '../../../components/GlobalComponent/globalStore';
 import ProtectedElement from '../../../components/ProtectedElement/ProtectedElement';
+import * as http from '../../../lib/httpRequest';
+import routesConfig from '../../../routes/routesConfig';
+import authentication from '../../../shared/auth/authentication';
+import utils from '../../../utils/utils';
 
 const QuickAction = observer(() => {
     const navigate = useNavigate();
@@ -44,7 +44,7 @@ const QuickAction = observer(() => {
     return (
         <div className="quick-action">
             <ul>
-                <li
+                {/* <li
                     onClick={() => {
                         globalStore.triggerNotification(
                             'error',
@@ -57,7 +57,7 @@ const QuickAction = observer(() => {
                         <SketchOutlined className="ico" />
                         Top rank
                     </div>
-                </li>
+                </li> */}
                 <ProtectedElement acceptRoles={['STUDENT']}>
                     <li className="selected" onClick={selectRandom}>
                         <div className="action-item">

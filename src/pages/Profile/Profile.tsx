@@ -129,6 +129,8 @@ const Profile = observer(() => {
             setImageUrl(authentication.account?.data?.avatar?.url);
         }
 
+        if (!authentication.account?.data?.id) return;
+
         http.get(`/scores?userId=${authentication.account?.data?.id}`).then((res) => {
             if (res.data[0]) {
                 setScores(res.data[0]);

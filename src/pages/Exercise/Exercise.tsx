@@ -542,9 +542,14 @@ const Exercise = observer(() => {
                 onMessage: ({ body }) => {
                     const result = JSON.parse(body);
 
-                    console.log('log:', result);
+                    console.log('Socket trả về:', result);
 
-                    setResponse({ data: { results: result } });
+                    let allPassed = true;
+                    result.map((r: any) => {
+                        if (r.verdict != 'ACCEPTED') allPassed = false;
+                    });
+
+                    setResponse({ data: { results: result, allPassed } });
                 }
             });
         }

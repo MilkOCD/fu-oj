@@ -3,6 +3,7 @@ import type { GetProp, UploadProps } from 'antd';
 import { message } from 'antd';
 import moment from 'moment';
 import globalDataStore from '../components/GlobalComponent/globalDataStore';
+import numeral from 'numeral';
 
 class Utils {
     capitalizeFirstLetter(word: string): string {
@@ -28,6 +29,18 @@ class Utils {
             <div className="color-gold">{formatted}</div>
         ) : (
             <div className="color-red">{formatted}</div>
+        );
+    };
+
+    getDifficultyBackground = (difficulty: string) => {
+        const formatted = this.capitalizeFirstLetter(difficulty);
+
+        return difficulty == 'EASY' ? (
+            <div className="bg-cyan">{formatted}</div>
+        ) : difficulty == 'MEDIUM' ? (
+            <div className="bg-gold">{formatted}</div>
+        ) : (
+            <div className="bg-red">{formatted}</div>
         );
     };
 
@@ -94,6 +107,18 @@ class Utils {
         return m.isValid() ? m.format(format) : defaultEmpty;
     };
 
+    formatNumber = (data: number, precision: number = 2, _default: string = '0'): string => {
+        if (data == null || isNaN(data) || !isFinite(data)) return _default;
+
+        const fixedPrecision = Math.max(0, precision); // đảm bảo không âm
+        const formatString = '0,0.' + '0'.repeat(fixedPrecision); // tạo chuỗi định dạng, ví dụ: '0,0.00'
+
+        const formatted = numeral(data).format(formatString);
+
+        // Nếu kết quả là 'NaN', trả về giá trị mặc định
+        return formatted === 'NaN' ? _default : formatted;
+    };
+
     copyToClipBoard = (str: string) => {
         navigator.clipboard.writeText(str);
     };
@@ -115,6 +140,11 @@ class Utils {
 
         return dates;
     };
+
+    getDateTheWeekBefore(date: Date = new Date(), weeks: number = 1) {
+        date.setDate(date.getDate() - weeks * 7);
+        return date;
+    }
 
     s4 = () => {
         return Math.floor((1 + Math.random()) * 0x10000)

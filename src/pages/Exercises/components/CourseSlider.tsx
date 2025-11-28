@@ -81,10 +81,14 @@ const CourseSlider = ({ courses, loading, onManageClick, onExploreCourse }: Cour
                     >
                         <LeftOutlined />
                     </button> */}
-                    <div className="slider-window overflow">
+                    <div className="slider-window overflow overflow-visible">
                         <div className="slider-track" ref={trackRef}>
                             {courses.map((course, index) => (
-                                <div className={`course-card theme-${(index % 6) + 1}`} key={course.id}>
+                                <div
+                                    className={`course-card hover-scale theme-${(index % 6) + 1}`}
+                                    key={course.id}
+                                    onClick={() => onExploreCourse(course.id)}
+                                >
                                     <div className="course-card-content">
                                         <div className="course-card-title">{course.title}</div>
                                         <div className="course-card-description max-2-lines">
@@ -93,9 +97,6 @@ const CourseSlider = ({ courses, loading, onManageClick, onExploreCourse }: Cour
                                     </div>
                                     <div className="course-card-footer">
                                         <span className="course-card-label">Course #{index + 1}</span>
-                                        <Button type="link" size="small" onClick={() => onExploreCourse(course.id)}>
-                                            Khám phá
-                                        </Button>
                                     </div>
                                 </div>
                             ))}

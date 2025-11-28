@@ -3,9 +3,11 @@ import {
     AppstoreAddOutlined,
     DeleteOutlined,
     FilterOutlined,
+    LineOutlined,
     RobotOutlined,
     SearchOutlined,
-    SettingOutlined
+    SettingOutlined,
+    ThunderboltFilled
 } from '@ant-design/icons';
 import type { FormProps } from 'antd';
 import { Button, Form, Input, InputNumber, Modal, Popconfirm, Popover, Select, Steps, Table, Tag } from 'antd';
@@ -224,9 +226,17 @@ const Exercises = observer(() => {
             dataIndex: 'code',
             key: 'code',
             sorter: (a: any, b: any) => (a.code || '').localeCompare(b.code || ''),
-            render: (code: string) => {
+            render: (code: string, record: any) => {
                 return (
                     <div className="cell">
+                        <TooltipWrapper
+                            tooltipText={record.solved ? 'Đã hoàn thành' : 'Chưa hoàn thành'}
+                            position="right"
+                        >
+                            <div className={classnames({ solved: record.solved, unsolved: !record.solved })}>
+                                {record.solved ? <ThunderboltFilled /> : <LineOutlined />}
+                            </div>
+                        </TooltipWrapper>
                         <Highlighter
                             highlightClassName="highlight"
                             searchWords={[search]}
@@ -1060,21 +1070,25 @@ const Exercises = observer(() => {
                     </div>
                 </Modal>
                 <div className="header">
-                    <div className="title">Danh sách bài tập</div>
+                    <div className="title">
+                        {authentication.isStudent ? 'Danh sách bài tập' : 'Quản lý danh sách bài tập'}
+                    </div>
                     <div className="description">
                         Để bắt đầu một cách thuận lợi, bạn nên tập trung vào một lộ trình học. Ví dụ: Để đi làm với vị
                         trí "Lập trình viên Front-end" bạn nên tập trung vào lộ trình "Front-end".
                     </div>
                 </div>
 
-                <div data-tourid="course-slider">
-                    <CourseSlider
-                        courses={courses}
-                        loading={coursesLoading}
-                        onManageClick={() => navigate('/courses')}
-                        onExploreCourse={(courseId) => navigate(`/courses/${courseId}`)}
-                    />
-                </div>
+                <ProtectedElement acceptRoles={['STUDENT']}>
+                    <div data-tourid="course-slider">
+                        <CourseSlider
+                            courses={courses}
+                            loading={coursesLoading}
+                            onManageClick={() => navigate('/courses')}
+                            onExploreCourse={(courseId) => navigate(`/courses/${courseId}`)}
+                        />
+                    </div>
+                </ProtectedElement>
 
                 <div
                     className={classnames('wrapper flex', {
