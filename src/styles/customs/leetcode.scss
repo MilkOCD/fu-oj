@@ -115,6 +115,25 @@
                             td,
                             td .cell {
                                 background-color: inherit !important;
+
+                                & > .tooltip-wrapper {
+                                    height: 100% !important;
+                                    display: inline-flex !important;
+                                    align-items: center;
+
+                                    & > span {
+                                        & > span {
+                                            display: block;
+                                            display: -webkit-box;
+                                            -webkit-line-clamp: 1;
+                                            overflow: hidden;
+                                            text-overflow: ellipsis;
+                                            word-break: break-word;
+                                            /* autoprefixer: off*/
+                                            -webkit-box-orient: vertical;
+                                        }
+                                    }
+                                }
                             }
 
                             td {

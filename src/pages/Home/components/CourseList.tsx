@@ -20,7 +20,7 @@ const CourseList = observer(({ courses }: { courses: any }) => {
                                     <img className="ico" src="/sources/icons/fire-ico.svg" />
                                     {c.title}
                                 </div>
-                                <div className="description">{c.description}</div>
+                                <div className="description max-2-lines">{c.description}</div>
                             </div>
                         );
                     })}

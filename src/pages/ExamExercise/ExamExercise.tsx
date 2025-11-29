@@ -1,5 +1,5 @@
 import {
-    AppstoreAddOutlined,
+    HomeOutlined,
     BellOutlined,
     BugOutlined,
     CloudUploadOutlined,
@@ -149,7 +149,7 @@ const ExamExercise = observer(() => {
     const editorLanguage = selectedLang?.editorValue || 'javascript';
 
     useEffect(() => {
-        if (!examId || !groupExamId ) {
+        if (!examId || !groupExamId) {
             return;
         }
         const userId = authentication.account?.data?.id;
@@ -661,10 +661,10 @@ const ExamExercise = observer(() => {
                     </div>
                     <div className="right">
                         <div className="group-btn">
-                            <SettingOutlined className="icon" />
+                            {/* <SettingOutlined className="icon" />
                             <BellOutlined className="icon" />
-                            <WechatOutlined className="icon" />
-                            <AppstoreAddOutlined className="icon" />
+                            <WechatOutlined className="icon" /> */}
+                            <HomeOutlined className="icon" onClick={() => navigate(`/${routesConfig.home}`)} />
                         </div>
                     </div>
                 </div>

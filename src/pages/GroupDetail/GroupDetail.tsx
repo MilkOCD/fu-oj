@@ -15,6 +15,7 @@ import ExamFormModal from '../Exams/components/ExamFormModal';
 import type { SelectOption } from '../Exams/types';
 import AddExerciseModal from './components/AddExerciseModal';
 import AddMemberModal from './components/AddMemberModal';
+import authentication from '../../shared/auth/authentication';
 
 interface DashboardData {
     totalStudents: number;
@@ -320,12 +321,12 @@ const GroupDetail = observer(() => {
                         navigate(`/group/${id}/${key}`);
                     }}
                 />
-                {activeTab == 'members' && (
+                {/* {activeTab == 'members' && (
                     <div className="trong-2111">
                         <Button onClick={() => setAddMemberDialogOpen(true)}>Thêm thành viên</Button>
                     </div>
-                )}
-                {activeTab == 'exams' && (
+                )} */}
+                {activeTab == 'exams' && authentication.isInstructor && (
                     <div className="trong-2111">
                         <div className="trong-2111">
                             <Button type="primary" onClick={handleCreateGroupExam}>
@@ -334,7 +335,7 @@ const GroupDetail = observer(() => {
                         </div>
                     </div>
                 )}
-                {activeTab == 'exercises' && (
+                {activeTab == 'exercises' && authentication.isInstructor && (
                     <div className="trong-2111">
                         <div className="trong-2111">
                             <div className="trong-2111">

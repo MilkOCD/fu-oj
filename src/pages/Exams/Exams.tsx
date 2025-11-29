@@ -138,12 +138,14 @@ const Exams = observer(() => {
                 render: (title: string) => {
                     return (
                         <div className="cell">
-                            <Highlighter
-                                highlightClassName="highlight"
-                                searchWords={[search]}
-                                autoEscape={true}
-                                textToHighlight={title || ''}
-                            />
+                            <TooltipWrapper tooltipText={title} position="right">
+                                <Highlighter
+                                    highlightClassName="highlight"
+                                    searchWords={[search]}
+                                    autoEscape={true}
+                                    textToHighlight={title || ''}
+                                />
+                            </TooltipWrapper>
                         </div>
                     );
                 }
@@ -232,7 +234,7 @@ const Exams = observer(() => {
 
     const getExams = () => {
         setLoading(true);
-        http.get('/exams')
+        http.get('/exams?pageSize=9999999')
             .then((res) => {
                 setDatas(res.data || []);
                 setDisplayDatas(res.data || []);
@@ -303,7 +305,7 @@ const Exams = observer(() => {
 
     const handleCopy = (record: ExamData) => {
         form.setFieldsValue({
-            title: `${record.title} (Copy)`,
+            title: `${record.title}`,
             description: record.description,
             startTime: null,
             endTime: null,

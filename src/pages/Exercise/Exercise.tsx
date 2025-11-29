@@ -1,5 +1,5 @@
 import {
-    AppstoreAddOutlined,
+    HomeOutlined,
     BellOutlined,
     BugOutlined,
     CloudUploadOutlined,
@@ -348,7 +348,7 @@ const Exercise = observer(() => {
                                 <div className="group-testcases">
                                     <div className="btns">
                                         {response?.data?.results?.map((item: any, index: any) => {
-                                            return (
+                                            return item.isPublic ? (
                                                 <div
                                                     key={`test-case-result-item-${index}`}
                                                     className={classnames('btn', {
@@ -365,6 +365,8 @@ const Exercise = observer(() => {
                                                     />
                                                     {`Case ${index + 1}`}
                                                 </div>
+                                            ) : (
+                                                <></>
                                             );
                                         })}
                                     </div>
@@ -834,10 +836,10 @@ const Exercise = observer(() => {
                     </div>
                     <div className="right">
                         <div className="group-btn">
-                            <SettingOutlined className="icon" />
+                            {/* <SettingOutlined className="icon" />
                             <BellOutlined className="icon" />
-                            <WechatOutlined className="icon" />
-                            <AppstoreAddOutlined className="icon" />
+                            <WechatOutlined className="icon" /> */}
+                            <HomeOutlined className="icon" onClick={() => navigate(`/${routesConfig.home}`)} />
                         </div>
                     </div>
                 </div>

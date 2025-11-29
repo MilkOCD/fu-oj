@@ -1,4 +1,4 @@
-@use "sass:color";
+@use 'sass:color';
 
 .exercises {
     // padding: var(--base-size-24);
@@ -42,6 +42,7 @@
 
         .slider-body {
             position: relative;
+            margin-left: -6px;
         }
 
         .slider-window {
@@ -51,7 +52,7 @@
 
         .slider-track {
             display: flex;
-            gap: var(--base-size-16);
+            gap: var(--base-size-4);
             // padding-bottom: var(--base-size-8);
             // padding-right: var(--base-size-8);
             padding-bottom: var(--base-size-8);
@@ -67,7 +68,9 @@
             flex-direction: column;
             justify-content: space-between;
             scroll-snap-align: start;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+            // box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 1px 2px var(--color-text-secondary);
+            margin: var(--base-size-4);
 
             .course-card-title {
                 font-size: var(--base-size-18);
@@ -92,6 +95,11 @@
                     letter-spacing: 0.05em;
                     opacity: 0.8;
                 }
+            }
+
+            &:hover {
+                cursor: pointer;
+                transform: scale(1.01);
             }
         }
 
@@ -131,7 +139,11 @@
 
         @for $i from 1 through 6 {
             .theme-#{$i} {
-                background: linear-gradient(135deg, color.adjust(#5c6ac4, $hue: $i * 15deg), color.adjust(#9c6ade, $hue: $i * 20deg));
+                background: linear-gradient(
+                    135deg,
+                    color.adjust(#5c6ac4, $hue: $i * 15deg),
+                    color.adjust(#9c6ade, $hue: $i * 20deg)
+                );
             }
         }
     }

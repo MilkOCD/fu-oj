@@ -327,10 +327,11 @@ const ExamFormModal = observer(
                                         >
                                             <span>{item.label}</span>
                                         </Tooltip>
-                                    )
+                                    ),
+                                    searchText: `${item.label} ${item.description} ${item.difficulty}`
                                 }))}
-                                filterOption={(input, option: any) =>
-                                    (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                                filterOption={(input, option) =>
+                                    option?.searchText?.toLowerCase().includes(input.toLowerCase())
                                 }
                             />
                         </Form.Item>
