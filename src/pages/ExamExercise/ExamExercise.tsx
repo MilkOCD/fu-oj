@@ -1,32 +1,29 @@
 import {
-    HomeOutlined,
-    BellOutlined,
     BugOutlined,
     CloudUploadOutlined,
+    ExclamationCircleOutlined,
     GithubOutlined,
+    HomeOutlined,
     LeftOutlined,
     LoadingOutlined,
-    RightOutlined,
-    SettingOutlined,
-    WechatOutlined
+    RightOutlined
 } from '@ant-design/icons';
 import Editor from '@monaco-editor/react';
-import { Select, Skeleton, Modal, Button } from 'antd';
-import { ExclamationCircleOutlined } from '@ant-design/icons';
-import AIAssistant from '../../components/AIAssistant/AIAssistant';
-import ProtectedElement from '../../components/ProtectedElement/ProtectedElement';
+import { Button, Modal, Select, Skeleton } from 'antd';
 import classnames from 'classnames';
 import * as FlexLayout from 'flexlayout-react';
 import 'flexlayout-react/style/light.css';
 import { observer } from 'mobx-react-lite';
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import AIAssistant from '../../components/AIAssistant/AIAssistant';
 import globalStore from '../../components/GlobalComponent/globalStore';
+import ProtectedElement from '../../components/ProtectedElement/ProtectedElement';
 import { programmingLanguages } from '../../constants/languages';
 import * as http from '../../lib/httpRequest';
 import routesConfig from '../../routes/routesConfig';
-import utils from '../../utils/utils';
 import authentication from '../../shared/auth/authentication';
+import utils from '../../utils/utils';
 import ExamCountdownTimer from '../ExamDetail/components/ExamCountdownTimer';
 
 const json = {
