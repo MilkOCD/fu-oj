@@ -5,8 +5,8 @@
 
 .tooltip-box {
     position: absolute;
-    background-color: var(--color-tooltip-bg);
-    color: var(--color-primary);
+    background-color: var(--color-fpt);
+    color: var(--color-bg) !important;
     padding: 5px 10px;
     border-radius: 4px;
     font-size: 12px;

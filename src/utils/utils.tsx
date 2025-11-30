@@ -133,13 +133,41 @@ class Utils {
         }
 
         if (globalDataStore.exams) {
-            dates = globalDataStore.exams.map((exam: any) => {
-                return this.formatDate(exam.createdTimestamp, 'YYYY/MM/DD');
+            let from = new Date().getTime();
+            let to = new Date().getTime();
+
+            globalDataStore.exams.map((exam: any) => {
+                const startTime = new Date(exam.startTime).getTime();
+                const endTime = new Date(exam.endTime).getTime();
+                if (startTime < from) from = startTime;
+                if (endTime > to) to = endTime;
             });
+
+            dates = this.getDatesBetween(from, to).map((db: any) => this.formatDate(db, 'YYYY/MM/DD')) || [];
         }
 
         return dates;
     };
+
+    getDatesBetween(startMs: number, endMs: number) {
+        const dates = [];
+
+        // Chuyển thành Date
+        const start = new Date(startMs);
+        const end = new Date(endMs);
+
+        // Đưa thời gian về 00:00 để dễ xử lý
+        let current = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+
+        const last = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+
+        while (current <= last) {
+            dates.push(new Date(current));
+            current.setDate(current.getDate() + 1);
+        }
+
+        return dates;
+    }
 
     getDateTheWeekBefore(date: Date = new Date(), weeks: number = 1) {
         date.setDate(date.getDate() - weeks * 7);

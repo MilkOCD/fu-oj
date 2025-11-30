@@ -7,7 +7,7 @@ import {
     RobotOutlined,
     SearchOutlined,
     SettingOutlined,
-    ThunderboltFilled
+    CheckOutlined
 } from '@ant-design/icons';
 import type { FormProps } from 'antd';
 import { Button, Form, Input, InputNumber, Modal, Popconfirm, Popover, Select, Steps, Table, Tag } from 'antd';
@@ -81,12 +81,14 @@ const Exercises = observer(() => {
             render: (title: string) => {
                 return (
                     <div className="cell">
-                        <Highlighter
-                            highlightClassName="highlight"
-                            searchWords={[search]}
-                            autoEscape={true}
-                            textToHighlight={title}
-                        />
+                        <TooltipWrapper position="right" tooltipText={title}>
+                            <Highlighter
+                                highlightClassName="highlight"
+                                searchWords={[search]}
+                                autoEscape={true}
+                                textToHighlight={title}
+                            />
+                        </TooltipWrapper>
                     </div>
                 );
             }
@@ -234,7 +236,7 @@ const Exercises = observer(() => {
                             position="right"
                         >
                             <div className={classnames({ solved: record.solved, unsolved: !record.solved })}>
-                                {record.solved ? <ThunderboltFilled /> : <LineOutlined />}
+                                {record.solved ? <CheckOutlined /> : <LineOutlined />}
                             </div>
                         </TooltipWrapper>
                         <Highlighter
@@ -256,12 +258,14 @@ const Exercises = observer(() => {
             render: (title: string) => {
                 return (
                     <div className="cell">
-                        <Highlighter
-                            highlightClassName="highlight"
-                            searchWords={[search]}
-                            autoEscape={true}
-                            textToHighlight={title}
-                        />
+                        <TooltipWrapper position="right" tooltipText={title}>
+                            <Highlighter
+                                highlightClassName="highlight"
+                                searchWords={[search]}
+                                autoEscape={true}
+                                textToHighlight={title}
+                            />
+                        </TooltipWrapper>
                     </div>
                 );
             }

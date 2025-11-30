@@ -9,6 +9,7 @@ import globalStore from '../../../components/GlobalComponent/globalStore';
 import * as http from '../../../lib/httpRequest';
 import type { ExamData } from '../types';
 import classnames from 'classnames';
+import authentication from '../../../shared/auth/authentication';
 
 interface ExamTableProps {
     columns: any[];
@@ -100,6 +101,7 @@ const ExamTable = observer(
 
                         return {
                             onClick: (e) => {
+                                if (!authentication.isStudent) return;
                                 // Ngăn chặn event nếu click vào các action buttons hoặc các phần tử con của chúng
                                 const target = e.target as HTMLElement;
                                 if (

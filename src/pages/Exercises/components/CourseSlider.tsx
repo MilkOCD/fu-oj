@@ -81,11 +81,11 @@ const CourseSlider = ({ courses, loading, onManageClick, onExploreCourse }: Cour
                     >
                         <LeftOutlined />
                     </button> */}
-                    <div className="slider-window overflow overflow-visible">
+                    <div className="slider-window overflow ">
                         <div className="slider-track" ref={trackRef}>
                             {courses.map((course, index) => (
                                 <div
-                                    className={`course-card hover-scale theme-${(index % 6) + 1}`}
+                                    className={`course-card theme-${(index % 6) + 1}`}
                                     key={course.id}
                                     onClick={() => onExploreCourse(course.id)}
                                 >
