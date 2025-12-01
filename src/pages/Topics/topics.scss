@@ -18,66 +18,52 @@
     }
 
     .wrapper {
+        display: flex;
+        flex-direction: column;
         gap: var(--base-size-16);
 
-        .search {
-            width: 25%;
-            border: 1px solid var(--color-border);
-            border-radius: var(--borderRadius-medium);
-            padding: var(--base-size-16);
+        .filter-row {
             display: flex;
-            flex-direction: column;
+            align-items: center;
+            gap: var(--base-size-12);
+            max-width: 720px;
+            padding: var(--base-size-8) var(--base-size-12);
+            border-radius: 999px;
+            background: var(--bg-subtle);
+        }
+
+        .search {
+            flex: 1;
+            display: flex;
+            align-items: center;
             gap: var(--base-size-8);
 
             .title {
                 display: flex;
+                align-items: center;
                 gap: var(--base-size-4);
-                font-size: var(--base-size-16);
+                font-size: var(--base-size-14);
                 font-weight: var(--base-text-weight-medium);
-            }
-
-            .line {
-                margin: var(--base-size-4) 0;
-
-                div {
-                    font-size: var(--base-size-14) !important;
-                    font-weight: var(--base-text-weight-medium) !important;
-                    color: var(--color-text-primary);
-                }
-            }
-
-            .sub-title {
-                text-align: center;
+                white-space: nowrap;
+                color: var(--color-text-secondary);
             }
 
             input {
                 border-radius: var(--borderRadius-medium);
             }
-
-            & > button {
-                background: var(--color-text-primary);
-                border: none;
-                color: #fff !important;
-                height: var(--base-size-40);
-
-                &:hover {
-                    transform: scale(0.98);
-                    background: var(--color-text-primary);
-                }
-            }
         }
 
         .body {
             flex: 1;
+            min-width: 0;
         }
     }
 
     .wrapper.wrapper-responsive {
-        .search {
-            width: 100%;
-        }
-
-        .body {
+        .filter-row {
+            flex-direction: column;
+            align-items: stretch;
+            border-radius: var(--borderRadius-large);
         }
     }
 }

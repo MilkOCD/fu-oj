@@ -7,7 +7,7 @@ import type { FormProps } from 'antd';
 import Line from '../../components/Line/Line';
 import globalStore from '../../components/GlobalComponent/globalStore';
 import classnames from 'classnames';
-import { SearchOutlined } from '@ant-design/icons';
+import { EditOutlined, SearchOutlined } from '@ant-design/icons';
 import Highlighter from 'react-highlight-words';
 import LoadingOverlay from '../../components/LoadingOverlay/LoadingOverlay';
 
@@ -36,6 +36,7 @@ const Topics = observer(() => {
     });
 
     const [form] = Form.useForm();
+    const [updateId, setUpdateId]: any = useState();
 
     const onFinish: FormProps['onFinish'] = (values) => {
         const payload = {
@@ -43,16 +44,29 @@ const Topics = observer(() => {
             description: values.description
         };
 
-        http.post('/topics', payload)
-            .then((res) => {
-                globalStore.triggerNotification('success', res.message || 'Tạo topic thành công!', '');
-                getTopics(pagination.current, pagination.pageSize);
-                globalStore.setOpenDetailPopup(false);
-                form.resetFields();
-            })
-            .catch((error) => {
-                globalStore.triggerNotification('error', error.response?.data?.message || 'Có lỗi xảy ra!', '');
-            });
+        if (updateId) {
+            // Call PATCH /topics/{id} to update topic
+            http.patch(updateId, '/topics', payload)
+                .then((res) => {
+                    globalStore.triggerNotification('success', res.message || 'Cập nhật topic thành công!', '');
+                    getTopics(pagination.current, pagination.pageSize);
+                    globalStore.setOpenDetailPopup(false);
+                })
+                .catch((error) => {
+                    globalStore.triggerNotification('error', error.response?.data?.message || 'Có lỗi xảy ra!', '');
+                });
+        } else {
+            http.post('/topics', payload)
+                .then((res) => {
+                    globalStore.triggerNotification('success', res.message || 'Tạo topic thành công!', '');
+                    getTopics(pagination.current, pagination.pageSize);
+                    globalStore.setOpenDetailPopup(false);
+                    form.resetFields();
+                })
+                .catch((error) => {
+                    globalStore.triggerNotification('error', error.response?.data?.message || 'Có lỗi xảy ra!', '');
+                });
+        }
     };
 
     const onFinishFailed: FormProps['onFinishFailed'] = (errorInfo) => {
@@ -90,6 +104,28 @@ const Topics = observer(() => {
                     />
                 );
             }
+        },
+        {
+            title: 'Hành động',
+            key: 'action',
+            render: (_: any, record: TopicData) => (
+                <ProtectedElement acceptRoles={['ADMIN']}>
+                    <Button
+                        type="link"
+                        icon={<EditOutlined />}
+                        onClick={() => {
+                            form.setFieldsValue({
+                                name: record.name,
+                                description: record.description
+                            });
+                            setUpdateId(record.id);
+                            globalStore.setOpenDetailPopup(true);
+                        }}
+                    >
+                        Sửa
+                    </Button>
+                </ProtectedElement>
+            )
         }
     ];
 
@@ -142,6 +178,7 @@ const Topics = observer(() => {
     useEffect(() => {
         if (!globalStore.isDetailPopupOpen) {
             form.resetFields();
+            setUpdateId(null);
         }
     }, [globalStore.isDetailPopupOpen, form]);
 
@@ -155,34 +192,39 @@ const Topics = observer(() => {
                 <div className="header">
                     <div className="title">
                         Quản lý Topics
-                        <ProtectedElement acceptRoles={['ADMIN']}>
-                            <Button type="primary" onClick={() => globalStore.setOpenDetailPopup(true)}>
-                                Tạo topic
-                            </Button>
-                        </ProtectedElement>
                     </div>
                     <div className="description">
                         Quản lý các chủ đề (topics) trong hệ thống. Chỉ admin mới có quyền truy cập trang này.
                     </div>
                 </div>
                 <div
-                    className={classnames('wrapper flex', {
-                        'flex-col wrapper-responsive': globalStore.windowSize.width < 1300
+                    className={classnames('wrapper', {
+                        'wrapper-responsive': globalStore.windowSize.width < 1300
                     })}
                 >
-                    <div className="search">
-                        <div className="title">
-                            <SearchOutlined />
-                            Bộ lọc
+                    <div className="filter-row">
+                        <div className="search">
+                            <div className="title">
+                                <SearchOutlined />
+                                Bộ lọc
+                            </div>
+                            <Input
+                                value={search}
+                                placeholder="Tìm kiếm theo Tên, Mô tả"
+                                onChange={(e) => setSearch(e.target.value)}
+                            />
                         </div>
-                        <Input
-                            value={search}
-                            placeholder="Tìm kiếm theo Tên, Mô tả"
-                            onChange={(e) => setSearch(e.target.value)}
-                        />
                         <ProtectedElement acceptRoles={['ADMIN']}>
-                            <Line width={0} height={0} text="Quản lý" center />
-                            <Button onClick={() => globalStore.setOpenDetailPopup(true)}>Tạo mới</Button>
+                            <Button
+                                type="primary"
+                                onClick={() => {
+                                    setUpdateId(null);
+                                    form.resetFields();
+                                    globalStore.setOpenDetailPopup(true);
+                                }}
+                            >
+                                Tạo mới
+                            </Button>
                         </ProtectedElement>
                     </div>
                     <div className="body">
@@ -206,7 +248,7 @@ const Topics = observer(() => {
                     </div>
                 </div>
                 <Modal
-                    title="Tạo topic mới"
+                    title={updateId ? 'Cập nhật topic' : 'Tạo topic mới'}
                     className="detail-modal"
                     open={globalStore.isDetailPopupOpen}
                     onCancel={() => globalStore.setOpenDetailPopup(false)}
@@ -243,7 +285,7 @@ const Topics = observer(() => {
 
                             <Form.Item label={null}>
                                 <Button type="primary" htmlType="submit">
-                                    Tạo mới
+                                    {updateId ? 'Cập nhật' : 'Tạo mới'}
                                 </Button>
                             </Form.Item>
                         </Form>
