@@ -1,4 +1,4 @@
-import { LogoutOutlined, RocketOutlined } from '@ant-design/icons';
+import { RocketOutlined } from '@ant-design/icons';
 import { observer } from 'mobx-react-lite';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -66,7 +66,7 @@ const QuickAction = observer(() => {
                         </div>
                     </li>
                 </ProtectedElement>
-                <li
+                {/* <li
                     onClick={() => {
                         globalStore.setWindowLoading(true);
                         authentication.logout();
@@ -110,7 +110,7 @@ const QuickAction = observer(() => {
                         <LogoutOutlined className="ico" />
                         {'->'} Student
                     </div>
-                </li>
+                </li> */}
             </ul>
         </div>
     );

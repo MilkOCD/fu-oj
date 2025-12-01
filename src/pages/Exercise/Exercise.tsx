@@ -1,14 +1,11 @@
 import {
-    HomeOutlined,
-    BellOutlined,
     BugOutlined,
     CloudUploadOutlined,
+    HomeOutlined,
     LeftOutlined,
     LoadingOutlined,
-    SettingOutlined,
-    UnorderedListOutlined,
-    WechatOutlined,
-    PlayCircleOutlined
+    PlayCircleOutlined,
+    UnorderedListOutlined
 } from '@ant-design/icons';
 import Editor from '@monaco-editor/react';
 import { Select, Skeleton } from 'antd';
@@ -18,8 +15,8 @@ import 'flexlayout-react/style/light.css';
 import { observer } from 'mobx-react-lite';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import Shepherd from 'shepherd.js';
 import type { StepOptions } from 'shepherd.js';
+import Shepherd from 'shepherd.js';
 import 'shepherd.js/dist/css/shepherd.css';
 import globalStore from '../../components/GlobalComponent/globalStore';
 import TooltipWrapper from '../../components/TooltipWrapper/TooltipWrapperComponent';
@@ -29,9 +26,9 @@ import stompClientLib from '../../lib/stomp-client.lib';
 import routesConfig from '../../routes/routesConfig';
 import authentication from '../../shared/auth/authentication';
 import utils from '../../utils/utils';
-import Submissions from './components/Submissions';
 import AIAssistant from './components/AIAssistant';
 import Comments from './components/Comments';
+import Submissions from './components/Submissions';
 
 const json = {
     global: { tabSetEnableClose: false },
