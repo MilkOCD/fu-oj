@@ -1,15 +1,16 @@
-import { DeleteOutlined, EditOutlined, LinkOutlined } from '@ant-design/icons';
-import { Button, Form, Tag } from 'antd';
+import { AppstoreAddOutlined, DeleteOutlined, EditOutlined, LinkOutlined, SearchOutlined } from '@ant-design/icons';
+import { Form, Input, Popconfirm } from 'antd';
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import classnames from 'classnames';
-import { useEffect, useMemo, useState } from 'react';
-import CustomCalendar from '../../components/CustomCalendar/CustomCalendar';
+import { observer } from 'mobx-react-lite';
+import { useEffect, useState } from 'react';
+import Highlighter from 'react-highlight-words';
 import globalStore from '../../components/GlobalComponent/globalStore';
+import TooltipWrapper from '../../components/TooltipWrapper/TooltipWrapperComponent';
 import * as http from '../../lib/httpRequest';
+import utils from '../../utils/utils';
 import AssignExercisesModal from './components/AssignExercisesModal';
-import CoursesActions from './components/CoursesActions';
 import CoursesHeader from './components/CoursesHeader';
-import CoursesStats, { type CourseStat } from './components/CoursesStats';
 import CoursesTableSection from './components/CoursesTableSection';
 import CreateCourseModal from './components/CreateCourseModal';
 import UpdateCourseModal from './components/UpdateCourseModal';
@@ -60,9 +61,11 @@ const parseExerciseIds = (value: string): string[] => {
         .filter((id) => id.length > 0);
 };
 
-const Courses = () => {
+const Courses = observer(() => {
     const [courses, setCourses] = useState<Course[]>([]);
+    const [displayCourses, setDisplayCourses] = useState<Course[]>([]);
     const [loading, setLoading] = useState(false);
+    const [search, setSearch] = useState('');
     const [createModalOpen, setCreateModalOpen] = useState(false);
     const [assignModalOpen, setAssignModalOpen] = useState(false);
     const [updateModalOpen, setUpdateModalOpen] = useState(false);
@@ -94,10 +97,11 @@ const Courses = () => {
                 size
             };
             const response = await http.get('/courses', { params });
-            const apiData: Course[] = response?.data ?? [];
+            const apiData: Course[] = response?.data?.filter((d: any) => !d.deletedTimestamp) ?? [];
             const paginationMeta = response?.metadata?.pagination;
 
             setCourses(apiData);
+            setDisplayCourses(apiData);
             setPagination({
                 current: paginationMeta?.currentPage ?? page,
                 pageSize: paginationMeta?.pageSize ?? size,
@@ -316,99 +320,171 @@ const Courses = () => {
             });
     };
 
-    const stats: CourseStat[] = useMemo(() => {
-        return [
-            {
-                label: 'Tổng khóa học',
-                value: pagination.total
-            }
-        ];
-    }, [pagination]);
+    // const stats: CourseStat[] = useMemo(() => {
+    //     return [
+    //         {
+    //             label: 'Tổng khóa học',
+    //             value: pagination.total
+    //         }
+    //     ];
+    // }, [pagination]);
 
-    const tablePagination: TablePaginationConfig = {
-        current: pagination.current,
-        pageSize: pagination.pageSize,
-        total: pagination.total
-    };
+    // const tablePagination: TablePaginationConfig = {
+    //     current: pagination.current,
+    //     pageSize: pagination.pageSize,
+    //     total: pagination.total
+    // };
 
     const columns: ColumnsType<Course> = [
         {
             title: 'Tên khóa học',
+            width: 200,
             dataIndex: 'title',
             key: 'title',
-            render: (text: string, record) => (
-                <div className="course-title-cell">
-                    <div className="title">{text}</div>
-                    <Tag color="gold">{record.id.slice(0, 8)}</Tag>
+            render: (text: string) => (
+                <div className="cell">
+                    <TooltipWrapper tooltipText={text} position="right">
+                        <Highlighter
+                            className="highlight-container"
+                            highlightClassName="highlight"
+                            searchWords={[search]}
+                            autoEscape={true}
+                            textToHighlight={text}
+                        />
+                    </TooltipWrapper>
                 </div>
             )
         },
         {
             title: 'Mô tả',
+            width: 250,
             dataIndex: 'description',
             key: 'description',
-            ellipsis: true,
-            render: (text: string) => <div className="course-description">{text || '-'}</div>
+            render: (text: string) => (
+                <div className="cell">
+                    <TooltipWrapper tooltipText={text} position="right">
+                        <Highlighter
+                            className="highlight-container"
+                            highlightClassName="highlight"
+                            searchWords={[search]}
+                            autoEscape={true}
+                            textToHighlight={text}
+                        />
+                    </TooltipWrapper>
+                </div>
+            )
         },
         {
             title: 'Ngày tạo',
+            width: 150,
             dataIndex: 'createdTimestamp',
             key: 'createdTimestamp',
-            render: (value: string) => formatDateTime(value)
+            render: (value: string) => <div className="cell">{utils.formatDate(value, 'DD/MM/YYYY HH:mm')}</div>
         },
         {
             title: 'Cập nhật cuối',
+            width: 150,
             dataIndex: 'updatedTimestamp',
             key: 'updatedTimestamp',
-            render: (value: string) => formatDateTime(value)
+            render: (value: string) => <div className="cell">{utils.formatDate(value, 'DD/MM/YYYY HH:mm')}</div>
         },
         {
-            title: 'Thao tác',
+            title: <div className="text-align-right">Hành động</div>,
             key: 'actions',
-            width: 180,
+            width: 100,
             render: (_, record) => (
-                <div className="course-actions">
-                    <Button type="link" icon={<EditOutlined />} onClick={() => openUpdateModal(record)}>
-                        Cập nhật
-                    </Button>
-                    <Button type="link" icon={<LinkOutlined />} onClick={() => openAssignModal(record)}>
-                        Gán bài tập
-                    </Button>
-                    <Button type="link" icon={<DeleteOutlined />} onClick={() => deleteCourse(record)}>
-                        Xóa khóa học
-                    </Button>
+                <div className="actions-row cell" onClick={(e) => e.stopPropagation()} data-tourid="table-actions">
+                    {/* <TooltipWrapper tooltipText="Thêm vào yêu thích" position="left">
+                            <HeartOutlined className="action-row-btn" />
+                        </TooltipWrapper> */}
+
+                    <TooltipWrapper tooltipText="Chỉnh sửa" position="left">
+                        <EditOutlined
+                            className="action-row-btn"
+                            onClick={() => {
+                                openUpdateModal(record);
+                            }}
+                        />
+                    </TooltipWrapper>
+                    <TooltipWrapper tooltipText="Thêm bài tập cho khóa" position="left">
+                        <LinkOutlined
+                            className="action-row-btn"
+                            onClick={() => {
+                                openUpdateModal(record);
+                            }}
+                        />
+                    </TooltipWrapper>
+                    <TooltipWrapper tooltipText="Xóa" position="left">
+                        <Popconfirm
+                            // title="Are you sure you want to delete this exercise?"
+                            title="Bạn có chắc chắn muốn xóa lộ trình học tập này?"
+                            okText="Có"
+                            cancelText="Không"
+                            onConfirm={() => {
+                                deleteCourse(record);
+                            }}
+                        >
+                            <DeleteOutlined className="action-row-btn" />
+                        </Popconfirm>
+                    </TooltipWrapper>
                 </div>
             )
         }
     ];
 
+    useEffect(() => {
+        const searchLowerCase = search.toLowerCase();
+
+        const filtered = courses.filter(
+            (d: any) =>
+                d.title.toLowerCase().includes(searchLowerCase) || d.description.toLowerCase().includes(searchLowerCase)
+        );
+        setDisplayCourses(filtered);
+    }, [search]);
+
     return (
         <div className={classnames('leetcode', globalStore.isBelow1300 ? 'col' : 'row')}>
-            <div className={classnames('courses left', { 'p-24': globalStore.isBelow1300 })}>
+            <div className={classnames('exercises courses left', { 'p-24': globalStore.isBelow1300 })}>
                 <CoursesHeader
                     title="Quản lý khóa học"
                     description="Theo dõi danh sách khóa học và quản lý bài tập thuộc từng khóa dành cho quản trị viên."
                 />
 
-                <CoursesActions
-                    onRefresh={() => fetchCourses(pagination.current, pagination.pageSize)}
-                    onOpenCreate={openCreateModal}
-                />
+                {/* <CoursesStats stats={stats} /> */}
 
-                <CoursesStats stats={stats} />
+                <div
+                    className={classnames('wrapper flex', {
+                        'flex-col wrapper-responsive': globalStore.windowSize.width < 1300
+                    })}
+                >
+                    <div className="filters">
+                        <Input
+                            placeholder="Tìm kiếm bài tập"
+                            onChange={(e) => setSearch(e.target.value)}
+                            data-tourid="search-input"
+                            prefix={<SearchOutlined />}
+                        />
 
-                <CoursesTableSection
-                    data={courses}
-                    columns={columns}
-                    pagination={tablePagination}
-                    loading={loading}
-                    onChange={handleTableChange}
-                />
+                        <div className="group-create">
+                            <div className="custom-btn-ico" onClick={openCreateModal} data-tourid="create-btn">
+                                <AppstoreAddOutlined className="custom-ant-ico color-cyan" />
+                                Tạo mới
+                            </div>
+                        </div>
+                    </div>
+
+                    <CoursesTableSection
+                        data={displayCourses}
+                        columns={columns}
+                        loading={loading}
+                        onChange={handleTableChange}
+                    />
+                </div>
             </div>
 
-            <div className="right">
+            {/* <div className="right">
                 <CustomCalendar />
-            </div>
+            </div> */}
 
             <CreateCourseModal
                 open={createModalOpen}
@@ -444,6 +520,6 @@ const Courses = () => {
             />
         </div>
     );
-};
+});
 
 export default Courses;

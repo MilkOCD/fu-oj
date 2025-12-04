@@ -22,10 +22,20 @@ const CreateCourseModal = ({ open, form, confirmLoading, onOk, onCancel, exercis
             okText="Tạo khóa học"
             cancelText="Hủy"
             onCancel={onCancel}
-            destroyOnClose
         >
             <div className="exercise-form">
-                <Form form={form} layout="vertical">
+                <Form form={form} labelCol={{ span: 24 }} wrapperCol={{ span: 24 }}>
+                    <Form.Item
+                        label="Ảnh khóa học"
+                        name="file"
+                        valuePropName="fileList"
+                        getValueFromEvent={(e) => (Array.isArray(e) ? e : e?.fileList)}
+                    >
+                        <Upload beforeUpload={() => false} maxCount={1} listType="picture">
+                            <Button icon={<UploadOutlined />}>Chọn ảnh</Button>
+                        </Upload>
+                    </Form.Item>
+
                     <Form.Item
                         label="Tên khóa học"
                         name="title"
@@ -54,17 +64,6 @@ const CreateCourseModal = ({ open, form, confirmLoading, onOk, onCancel, exercis
                         ]}
                     >
                         <Input.TextArea rows={4} placeholder="Mô tả ngắn gọn về khóa học" />
-                    </Form.Item>
-
-                    <Form.Item
-                        label="Ảnh khóa học"
-                        name="file"
-                        valuePropName="fileList"
-                        getValueFromEvent={(e) => (Array.isArray(e) ? e : e?.fileList)}
-                    >
-                        <Upload beforeUpload={() => false} maxCount={1} listType="picture">
-                            <Button icon={<UploadOutlined />}>Chọn ảnh</Button>
-                        </Upload>
                     </Form.Item>
 
                     <Form.Item label="Bài tập trong khóa" name="exerciseIds">

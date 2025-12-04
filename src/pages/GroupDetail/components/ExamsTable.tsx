@@ -1,8 +1,11 @@
-import { Table, Tag, Button } from 'antd';
+import { Table, Tag, Button, Popconfirm } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import { BarChartOutlined } from '@ant-design/icons';
+import { BarChartOutlined, HighlightOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { useNavigate, useParams } from 'react-router-dom';
+import Highlighter from 'react-highlight-words';
+import TooltipWrapper from '../../../components/TooltipWrapper/TooltipWrapperComponent';
+import authentication from '../../../shared/auth/authentication';
 
 interface Exam {
     id: string;
@@ -77,19 +80,55 @@ const ExamsTable = ({
     const currentGroupId = groupId || params.id || params.groupId;
 
     const columns: ColumnsType<Exam> = [
-        { title: 'Tiêu đề', dataIndex: 'title', key: 'title' },
-        { title: 'Mô tả', dataIndex: 'description', key: 'description' },
+        {
+            title: 'Tiêu đề',
+            dataIndex: 'title',
+            key: 'title',
+            render: (title: string) => {
+                return (
+                    <div className="cell">
+                        <Highlighter
+                            highlightClassName="highlight"
+                            searchWords={[]}
+                            autoEscape={true}
+                            textToHighlight={title}
+                        />
+                    </div>
+                );
+            }
+        },
+        {
+            title: 'Mô tả',
+            dataIndex: 'description',
+            key: 'description',
+            render: (description: string) => {
+                return (
+                    <div className="cell">
+                        <Highlighter
+                            highlightClassName="highlight"
+                            searchWords={[]}
+                            autoEscape={true}
+                            textToHighlight={description}
+                        />
+                    </div>
+                );
+            }
+        },
         {
             title: 'Thời gian bắt đầu',
             dataIndex: 'startTime',
             key: 'startTime',
-            render: (time: string | null | undefined) => (time ? dayjs(time).format('DD/MM/YYYY HH:mm') : '-')
+            render: (time: string | null | undefined) => (
+                <div className="cell">{time ? dayjs(time).format('DD/MM/YYYY HH:mm') : '-'}</div>
+            )
         },
         {
             title: 'Thời gian kết thúc',
             dataIndex: 'endTime',
             key: 'endTime',
-            render: (time: string | null | undefined) => (time ? dayjs(time).format('DD/MM/YYYY HH:mm') : '-')
+            render: (time: string | null | undefined) => (
+                <div className="cell">{time ? dayjs(time).format('DD/MM/YYYY HH:mm') : '-'}</div>
+            )
         },
         {
             title: 'Trạng thái',
@@ -97,7 +136,11 @@ const ExamsTable = ({
             key: 'status',
             render: (_: unknown, record: Exam) => {
                 const statusInfo = getExamStatus(record.startTime, record.endTime);
-                return <Tag color={statusInfo.color}>{statusInfo.label}</Tag>;
+                return (
+                    <div className="cell">
+                        <Tag color={statusInfo.color}>{statusInfo.label}</Tag>
+                    </div>
+                );
             }
         }
     ];
@@ -109,7 +152,9 @@ const ExamsTable = ({
             title: 'Trạng thái làm bài',
             key: 'studentStatus',
             width: 160,
-            render: (_: unknown, record: Exam) => getStudentStatusTag(studentStatusMap.get(record.id))
+            render: (_: unknown, record: Exam) => (
+                <div className="cell">{getStudentStatusTag(studentStatusMap.get(record.id))}</div>
+            )
         });
     }
 
@@ -117,38 +162,43 @@ const ExamsTable = ({
         tableColumns.push({
             title: 'Hành động',
             key: 'studentAction',
-            width: 140,
-            align: 'center' as const,
+            width: 110,
+            align: 'right',
             render: (_: unknown, record: Exam) => (
-                <Button
-                    type="link"
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        onExamClick(record);
-                    }}
-                >
-                    {studentStatusMap.get(record.id) === 'completed' ? 'Xem kết quả' : 'Tham gia'}
-                </Button>
+                <div className="actions-row cell" onClick={(e) => e.stopPropagation()}>
+                    <TooltipWrapper
+                        tooltipText={studentStatusMap.get(record.id) === 'completed' ? 'Xem kết quả' : 'Tham gia'}
+                        position="left"
+                    >
+                        {studentStatusMap.get(record.id) === 'completed' ? (
+                            <BarChartOutlined className="action-row-btn" onClick={() => onExamClick(record)} />
+                        ) : (
+                            <HighlightOutlined className="action-row-btn" onClick={() => onExamClick(record)} />
+                        )}
+                    </TooltipWrapper>
+                </div>
             )
         });
     } else if (showStatisticsAction) {
         tableColumns.push({
             title: 'Hành động',
             key: 'action',
-            width: 100,
-            align: 'center' as const,
+            width: 110,
+            align: 'right',
             render: (_: unknown, record: Exam) => (
-                <Button
-                    type="text"
-                    icon={<BarChartOutlined />}
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        if (currentGroupId) {
-                            navigate(`/group/${currentGroupId}/exams/${record.id}/students-progress`);
-                        }
-                    }}
-                    title="Xem tiến độ"
-                />
+                <div className="actions-row cell" onClick={(e) => e.stopPropagation()}>
+                    <TooltipWrapper tooltipText={'Xem tiến độ'} position="left">
+                        <BarChartOutlined
+                            className="action-row-btn"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                if (currentGroupId) {
+                                    navigate(`/group/${currentGroupId}/exams/${record.id}/students-progress`);
+                                }
+                            }}
+                        />
+                    </TooltipWrapper>
+                </div>
             )
         });
     }
@@ -156,6 +206,8 @@ const ExamsTable = ({
     return (
         <Table
             rowKey="id"
+            key={`exams-table-${authentication.isInstructor ? 'instructor' : 'student'}`}
+            rowClassName={(_record, index) => (index % 2 === 0 ? 'custom-row row-even' : 'custom-row row-odd')}
             dataSource={dataSource}
             pagination={{ pageSize: 10 }}
             columns={tableColumns}

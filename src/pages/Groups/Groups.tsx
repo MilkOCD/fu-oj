@@ -25,7 +25,7 @@ const Groups = observer(() => {
 
     const [updateId, setUpdateId]: any = useState();
     const [loading, setLoading] = useState(false);
-    const [selectedTab, selectTab] = useState<number | string>('public-group');
+    const [selectedTab, selectTab] = useState<number | string>('joined-group');
     const [datas, setDatas] = useState([]);
     const [displayDatas, setDisplayDatas] = useState([]);
     const [search, setSearch] = useState('');
@@ -187,7 +187,6 @@ const Groups = observer(() => {
                                         ]}
                                         onClick={(value) => {
                                             selectTab(value);
-                                            console.log('value:', value);
                                         }}
                                     />
                                 </ProtectedElement>

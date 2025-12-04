@@ -2,6 +2,11 @@
     width: 1000px !important;
     font-family: 'Roboto', sans-serif !important;
 
+    // ==================================
+    .ant-modal-close-x {
+        display: none;
+    }
+
     & > div {
         & > .ant-modal-content {
             border-radius: 5px;
@@ -218,7 +223,7 @@
     right: var(--base-size-4) !important;
 
     .ant-modal-close-x {
-        display: none;
+        // display: none;
     }
 }
 

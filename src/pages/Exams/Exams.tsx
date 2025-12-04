@@ -1,6 +1,6 @@
 import { AppstoreAddOutlined, FilterOutlined } from '@ant-design/icons';
 import type { FormProps } from 'antd';
-import { Button, Form, Input, Popover, Tabs, Tag, Select, DatePicker } from 'antd';
+import { Button, Form, Input, Popover, Tabs, Tag, Select, DatePicker, Switch } from 'antd';
 import classnames from 'classnames';
 import dayjs from 'dayjs';
 import timezone from 'dayjs/plugin/timezone';
@@ -129,7 +129,7 @@ const Exams = observer(() => {
     };
 
     const columns = useMemo(() => {
-        const baseColumns = [
+        const baseColumns: any = [
             {
                 title: 'Tiêu đề',
                 dataIndex: 'title',
@@ -208,26 +208,59 @@ const Exams = observer(() => {
             }
         ];
 
-        // Chỉ hiển thị cột "Số nhóm" cho instructor
-        if (authentication.isInstructor) {
-            baseColumns.push({
-                title: 'Số nhóm',
-                dataIndex: 'groups',
-                key: 'groups',
-                render: (_: unknown, record: ExamData) => {
-                    return <div className="cell">{record.groups ? record.groups.length : 0}</div>;
-                }
-            });
-        }
+        // // Chỉ hiển thị cột "Số nhóm" cho instructor
+        // if (authentication.isInstructor) {
+        //     baseColumns.push({
+        //         title: 'Số nhóm',
+        //         dataIndex: 'groups',
+        //         key: 'groups',
+        //         render: (_: unknown, record: ExamData) => {
+        //             return <div className="cell">{record.groups ? record.groups.length : 0}</div>;
+        //         }
+        //     });
+        // }
 
         baseColumns.push({
-            title: 'Số bài tập',
+            title: <div className="flex flex-end">Số bài tập</div>,
             dataIndex: 'exercises',
             key: 'exercises',
             render: (_: unknown, record: ExamData) => {
-                return <div className="cell">{record.exercises ? record.exercises.length : 0}</div>;
+                return (
+                    <div className="cell flex flex-center pr-16">{record.exercises ? record.exercises.length : 0}</div>
+                );
             }
         });
+
+        if (authentication.isInstructor) {
+            baseColumns.push({
+                title: 'Cho phép làm',
+                dataIndex: 'isExamined',
+                key: 'isExamined',
+                render: (isExamined: boolean, record: ExamData) => {
+                    const statusInfo = getExamStatus(record.startTime, record.endTime);
+
+                    return (
+                        <div className="cell flex flex-end pr-16">
+                            <Switch
+                                disabled={statusInfo.status == 'completed'}
+                                defaultChecked={isExamined}
+                                onChange={(value) => {
+                                    http.patchV2(record.id, `/exams/${record.id}/toggle-examined`, {}).then((res) => {
+                                        globalStore.triggerNotification(
+                                            !value ? 'warning' : 'success',
+                                            `Bài thi "${record?.title?.toUpperCase()}" đang ${
+                                                !value ? 'không diễn ra' : 'diễn ra'
+                                            }`,
+                                            ''
+                                        );
+                                    });
+                                }}
+                            />
+                        </div>
+                    );
+                }
+            });
+        }
 
         return baseColumns;
     }, [search]);

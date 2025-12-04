@@ -6,25 +6,24 @@ import type { Course } from '../Courses';
 interface CoursesTableSectionProps {
     data: Course[];
     columns: ColumnsType<Course>;
-    pagination: TablePaginationConfig & { total?: number };
     loading: boolean;
     onChange: (pagination: TablePaginationConfig) => void;
 }
 
-const CoursesTableSection = ({ data, columns, pagination, loading, onChange }: CoursesTableSectionProps) => {
+const CoursesTableSection = ({ data, columns, loading, onChange }: CoursesTableSectionProps) => {
     return (
-        <div className="courses-table">
+        <div className="body">
             <LoadingOverlay loading={loading}>
                 <Table<Course>
                     rowKey="id"
                     columns={columns}
                     dataSource={data}
                     pagination={{
-                        ...pagination,
-                        showSizeChanger: true,
-                        showTotal: (total = 0) => `${total} khóa học`
+                        pageSize: 20,
+                        showTotal: (total, range) => `${range[0]}-${range[1]} trên ${total} khóa học`
                     }}
                     onChange={onChange}
+                    rowClassName={(_record, index) => (index % 2 === 0 ? 'custom-row row-even' : 'custom-row row-odd')}
                 />
             </LoadingOverlay>
         </div>
@@ -32,4 +31,3 @@ const CoursesTableSection = ({ data, columns, pagination, loading, onChange }: C
 };
 
 export default CoursesTableSection;
-

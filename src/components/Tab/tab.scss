@@ -45,4 +45,16 @@
             transform: scaleX(1);
         }
     }
+
+    .tab-options.fs-14 {
+        font-size: var(--base-size-14);
+    }
+
+    .tab-options.fs-16 {
+        font-size: var(--base-size-16);
+    }
+
+    .tab-options.fs-18 {
+        font-size: var(--base-size-18);
+    }
 }

@@ -86,6 +86,12 @@
     align-items: center;
 }
 
+.flex-end {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
 .gap {
     gap: var(--base-size-8);
 }
@@ -160,6 +166,22 @@
 
 .pl-8 {
     padding-left: var(--base-size-8);
+}
+
+.pt-16 {
+    padding-top: var(--base-size-16);
+}
+
+.pr-16 {
+    padding-right: var(--base-size-16);
+}
+
+.pb-16 {
+    padding-bottom: var(--base-size-16) !important;
+}
+
+.pl-16 {
+    padding-left: var(--base-size-16);
 }
 
 .mt-16 {

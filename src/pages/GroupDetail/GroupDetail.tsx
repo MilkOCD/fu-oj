@@ -1,6 +1,13 @@
-import { BookOutlined, CalendarOutlined, CopyOutlined, UserOutlined } from '@ant-design/icons';
+import {
+    BookOutlined,
+    CalendarOutlined,
+    CopyOutlined,
+    UserOutlined,
+    SearchOutlined,
+    AppstoreAddOutlined
+} from '@ant-design/icons';
 import type { FormProps } from 'antd';
-import { Avatar, Button, Col, Form, Row, Tabs } from 'antd';
+import { Avatar, Button, Col, Form, Row, Tabs, Input } from 'antd';
 import classnames from 'classnames';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react-lite';
@@ -16,6 +23,7 @@ import type { SelectOption } from '../Exams/types';
 import AddExerciseModal from './components/AddExerciseModal';
 import AddMemberModal from './components/AddMemberModal';
 import authentication from '../../shared/auth/authentication';
+import Tab from '../../components/Tab/Tab';
 
 interface DashboardData {
     totalStudents: number;
@@ -124,40 +132,40 @@ const GroupDetail = observer(() => {
 
     const activeTab = getActiveTab();
 
-    const tabItems = [
-        {
-            key: 'members',
-            label: (
-                <NavLink to={`/group/${id}/members`} style={{ textDecoration: 'none' }}>
-                    Thành viên
-                </NavLink>
-            )
-        },
-        {
-            key: 'exams',
-            label: (
-                <NavLink to={`/group/${id}/exams`} style={{ textDecoration: 'none' }}>
-                    Bài kiểm tra
-                </NavLink>
-            )
-        },
-        // {
-        //     key: 'submissions',
-        //     label: (
-        //         <NavLink to={`/group/${id}/submissions`} style={{ textDecoration: 'none' }}>
-        //             Bài nộp
-        //         </NavLink>
-        //     )
-        // },
-        {
-            key: 'exercises',
-            label: (
-                <NavLink to={`/group/${id}/exercises`} style={{ textDecoration: 'none' }}>
-                    Bài tập
-                </NavLink>
-            )
-        }
-    ];
+    // const tabItems = [
+    //     {
+    //         key: 'members',
+    //         label: (
+    //             <NavLink to={`/group/${id}/members`} style={{ textDecoration: 'none' }}>
+    //                 Thành viên
+    //             </NavLink>
+    //         )
+    //     },
+    //     {
+    //         key: 'exams',
+    //         label: (
+    //             <NavLink to={`/group/${id}/exams`} style={{ textDecoration: 'none' }}>
+    //                 Bài kiểm tra
+    //             </NavLink>
+    //         )
+    //     },
+    //     // {
+    //     //     key: 'submissions',
+    //     //     label: (
+    //     //         <NavLink to={`/group/${id}/submissions`} style={{ textDecoration: 'none' }}>
+    //     //             Bài nộp
+    //     //         </NavLink>
+    //     //     )
+    //     // },
+    //     {
+    //         key: 'exercises',
+    //         label: (
+    //             <NavLink to={`/group/${id}/exercises`} style={{ textDecoration: 'none' }}>
+    //                 Bài tập
+    //             </NavLink>
+    //         )
+    //     }
+    // ];
 
     const [groupInfo, setGroupInfo] = useState<any>(null);
 
@@ -229,12 +237,14 @@ const GroupDetail = observer(() => {
     return (
         <div className={classnames('group-detail', { 'p-24': globalStore.isBelow1300 })}>
             <div className="header">
-                <div className="title">Nhóm</div>
+                {/* <div className="title">Nhóm</div> */}
                 <div className="description">
                     <div className="owner">
                         <Avatar src={groupInfo?.owner?.avatar?.url || '/sources/thaydat.jpg'} />
                         <div className="right">
-                            {groupInfo?.name || 'Nhóm thầy Đạt'}
+                            <TooltipWrapper tooltipText={groupInfo?.name} position="right">
+                                <div className="group-name max-2-lines">{groupInfo?.name || 'Nhóm thầy Đạt'}</div>
+                            </TooltipWrapper>
                             <div className="group-code">
                                 Mã nhóm: ******{' '}
                                 <TooltipWrapper tooltipText="Sao chép mã nhóm" position="bottom">
@@ -314,24 +324,55 @@ const GroupDetail = observer(() => {
                 </div>
             </div>
             <div className="body">
-                <Tabs
+                <div className="flex mb-8">
+                    <Tab
+                        value={activeTab}
+                        fontSize={14}
+                        options={[
+                            { label: 'Thành viên', value: 'members' },
+                            { label: 'Bài kiểm tra', value: 'exams' },
+                            { label: 'Bài tập', value: 'exercises' }
+                        ]}
+                        onClick={(value) => {
+                            navigate(`/group/${id}/${value}`);
+                        }}
+                    />
+                </div>
+                {/* <Tabs
                     activeKey={activeTab}
                     items={tabItems}
                     onChange={(key) => {
                         navigate(`/group/${id}/${key}`);
                     }}
-                />
+                /> */}
                 {/* {activeTab == 'members' && (
                     <div className="trong-2111">
                         <Button onClick={() => setAddMemberDialogOpen(true)}>Thêm thành viên</Button>
                     </div>
                 )} */}
-                {activeTab == 'exams' && authentication.isInstructor && (
-                    <div className="trong-2111">
-                        <div className="trong-2111">
-                            <Button type="primary" onClick={handleCreateGroupExam}>
-                                Tạo bài kiểm tra cho nhóm
-                            </Button>
+                {activeTab == 'exams' && (
+                    <div className="leetcode">
+                        <div className="wrapper flex flex-1 pr-16">
+                            <div className="filters">
+                                <Input
+                                    placeholder="Tìm kiếm bài thi"
+                                    // onChange={(e) => setSearch(e.target.value)}
+                                    data-tourid="search-input"
+                                    prefix={<SearchOutlined />}
+                                />
+                                <div className="group-create">
+                                    <ProtectedElement acceptRoles={['INSTRUCTOR']}>
+                                        <div
+                                            className="custom-btn-ico"
+                                            onClick={handleCreateGroupExam}
+                                            data-tourid="create-btn"
+                                        >
+                                            <AppstoreAddOutlined className="custom-ant-ico color-cyan" />
+                                            Tạo bài kiểm tra cho nhóm
+                                        </div>
+                                    </ProtectedElement>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 )}
@@ -344,7 +385,7 @@ const GroupDetail = observer(() => {
                         </div>
                     </div>
                 )}
-                <div style={{ marginTop: 16 }}>
+                <div>
                     <Outlet />
                 </div>
             </div>

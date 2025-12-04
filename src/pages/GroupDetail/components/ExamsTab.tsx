@@ -11,6 +11,8 @@ import SubmissionDetailModal, {
     type SubmissionResult as SubmissionSummary
 } from './GroupExamDetail/SubmissionDetailModal';
 import ExamsTable from './ExamsTable';
+import LoadingOverlay from '../../../components/LoadingOverlay/LoadingOverlay';
+import classnames from 'classnames';
 
 interface Exam {
     id: string;
@@ -216,8 +218,13 @@ const ExamsTab = observer(() => {
                     return;
                 }
 
-                if(rankingRecord?.groupExam?.groupExamId) {
-                    navigate(`/${routesConfig.exam}`.replace(':groupExamId', rankingRecord?.groupExam?.groupExamId || 'hello'));
+                if (rankingRecord?.groupExam?.groupExamId) {
+                    navigate(
+                        `/${routesConfig.exam}`.replace(
+                            ':groupExamId',
+                            rankingRecord?.groupExam?.groupExamId || 'hello'
+                        )
+                    );
                     return;
                 }
 
@@ -250,14 +257,26 @@ const ExamsTab = observer(() => {
 
     return (
         <>
-            <ExamsTable
-                dataSource={exams}
-                loading={loading}
-                groupId={id}
-                showStatisticsAction={isInstructor}
-                onExamClick={!isInstructor ? handleStudentExamClick : undefined}
-                studentStatusMap={studentStatusMap}
-            />
+            <div className="leetcode mt-16">
+                <div
+                    className={classnames('wrapper flex flex-1 pr-16', {
+                        'flex-col wrapper-responsive': globalStore.windowSize.width < 1300
+                    })}
+                >
+                    <div className="body">
+                        <LoadingOverlay loading={loading}>
+                            <ExamsTable
+                                dataSource={exams}
+                                loading={loading}
+                                groupId={id}
+                                showStatisticsAction={isInstructor}
+                                onExamClick={!isInstructor ? handleStudentExamClick : undefined}
+                                studentStatusMap={studentStatusMap}
+                            />
+                        </LoadingOverlay>
+                    </div>
+                </div>
+            </div>
             <ConfirmStartExamModal
                 open={confirmModalOpen}
                 onCancel={() => {
