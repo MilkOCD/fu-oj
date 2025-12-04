@@ -1,5 +1,4 @@
 import {
-    BarChartOutlined,
     BookFilled,
     ContainerFilled,
     FundFilled,
@@ -12,7 +11,7 @@ import {
 } from '@ant-design/icons';
 import classnames from 'classnames';
 import { observer } from 'mobx-react-lite';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import globalStore from '../../../components/GlobalComponent/globalStore';
 import authentication from '../../../shared/auth/authentication';
@@ -51,7 +50,7 @@ const menuItems = [
         name: 'Xếp hạng',
         icon: <TrophyOutlined />,
         to: '/ranking',
-        allowedRoles: ['STUDENT', 'INSTRUCTOR']
+        allowedRoles: ['STUDENT']
     },
     {
         id: 'certificates',
@@ -60,13 +59,13 @@ const menuItems = [
         to: '/certificates',
         allowedRoles: ['STUDENT', 'ADMIN']
     },
-    {
-        id: 'dashboard',
-        name: 'Thống kê',
-        icon: <BarChartOutlined />,
-        to: '/dashboard',
-        allowedRoles: ['INSTRUCTOR']
-    },
+    // {
+    //     id: 'dashboard',
+    //     name: 'Thống kê',
+    //     icon: <BarChartOutlined />,
+    //     to: '/dashboard',
+    //     allowedRoles: ['INSTRUCTOR']
+    // },
     {
         id: 'topics',
         name: 'Topics',

@@ -55,7 +55,10 @@ const ExamTable = observer(
                     return (
                         <div className="actions-row cell" onClick={(e) => e.stopPropagation()}>
                             <ProtectedElement acceptRoles={['INSTRUCTOR']}>
-                                <TooltipWrapper tooltipText="Chỉnh sửa" position="left">
+                                <TooltipWrapper
+                                    tooltipText={isDisabled ? 'Đã quá thời gian chỉnh sửa' : 'Chỉnh sửa'}
+                                    position="left"
+                                >
                                     <EditOutlined
                                         className={classnames('action-row-btn', { disabled: isDisabled })}
                                         onClick={handleEdit}
@@ -65,7 +68,7 @@ const ExamTable = observer(
                                     <CopyOutlined className="action-row-btn" onClick={handleCopy} />
                                 </TooltipWrapper>
                                 <TooltipWrapper
-                                    tooltipText={isDisabled ? 'Xóa' : 'Không thể xóa bài thi lúc này'}
+                                    tooltipText={isDisabled ? 'Đã quá thời gian xóa' : 'Xóa'}
                                     position="left"
                                 >
                                     <Popconfirm
@@ -124,8 +127,8 @@ const ExamTable = observer(
 
                                 onRowClick(record);
                             },
-                            className: isExpired ? 'expired-row' : '',
-                            style: isExpired ? { cursor: 'not-allowed' } : {}
+                            className: isExpired ? 'expired-row' : ''
+                            // style: isExpired ? { cursor: 'not-allowed' } : {}
                         };
                     }}
                     rowClassName={(record, index) => {

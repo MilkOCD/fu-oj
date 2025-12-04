@@ -29,6 +29,7 @@ import utils from '../../utils/utils';
 import AIAssistant from './components/AIAssistant';
 import Comments from './components/Comments';
 import Submissions from './components/Submissions';
+import { toast } from 'react-toastify';
 
 const json = {
     global: { tabSetEnableClose: false },
@@ -114,7 +115,7 @@ const Exercise = observer(() => {
     const navigate = useNavigate();
 
     if (!id && !exerciseId && !submissionId) {
-        globalStore.triggerNotification('error', 'Exercise does not exist!', '');
+        toast.error('Bài tập không tồn tại!');
         navigate(`/${routesConfig.exercises}`);
         return <></>;
     }
@@ -216,6 +217,12 @@ const Exercise = observer(() => {
         setSubmittedId(null);
         setError('');
         setLoading(true);
+
+        if (editorValue == '') {
+            toast.error('Bài nộp không được để trống', { className: 'custom-toast' });
+            setLoading(false);
+            return;
+        }
 
         const payload = { exerciseId: id, languageCode: language, sourceCode: editorValue };
         http.post('/submissions', payload)

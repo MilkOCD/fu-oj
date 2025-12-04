@@ -1252,7 +1252,7 @@ const Exercises = observer(() => {
                                 rowKey="id"
                                 scroll={{ x: 800 }}
                                 pagination={{
-                                    pageSize: 1000,
+                                    pageSize: 20,
                                     showSizeChanger: false,
                                     showTotal: (total, range) => `${range[0]}-${range[1]} trên ${total} bài tập`
                                 }}

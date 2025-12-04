@@ -217,3 +217,11 @@ input {
 .ant-table-cell {
     padding: var(--base-size-8) !important;
 }
+
+.Toastify__toast-container.Toastify__toast-container--top-right {
+    z-index: 999999;
+
+    .custom-toast {
+        z-index: 999999;
+    }
+}

@@ -25,6 +25,7 @@ import routesConfig from '../../routes/routesConfig';
 import authentication from '../../shared/auth/authentication';
 import utils from '../../utils/utils';
 import ExamCountdownTimer from '../ExamDetail/components/ExamCountdownTimer';
+import { toast } from 'react-toastify';
 
 const json = {
     global: { tabSetEnableClose: false },
@@ -90,7 +91,7 @@ const ExamExercise = observer(() => {
     const location = useLocation();
 
     if (!examId || !exerciseId) {
-        globalStore.triggerNotification('error', 'Exam hoặc Exercise không tồn tại!', '');
+        toast.error('Exam hoặc Exercise không tồn tại!');
         navigate(`/${routesConfig.exams}`);
         return <></>;
     }
@@ -187,6 +188,14 @@ const ExamExercise = observer(() => {
         // Clear response và error trước khi mở popup
         setResponse(null);
         setError('');
+
+        // Check nếu bài nộp trống
+        if (editorValue == '') {
+            toast.error('Bài nộp không được để trống', { className: 'custom-toast' });
+            setLoading(false);
+            return;
+        }
+
         // Mở popup xác nhận thay vì nộp trực tiếp
         setShowSubmitConfirm(true);
     };
@@ -201,7 +210,7 @@ const ExamExercise = observer(() => {
         setResponse(null);
 
         if (!groupExamId) {
-            globalStore.triggerNotification('error', 'Không tìm thấy thông tin bài thi trong nhóm!', '');
+            toast.error('Không tìm thấy thông tin bài thi trong nhóm!');
             setLoading(false);
             return;
         }
@@ -232,7 +241,7 @@ const ExamExercise = observer(() => {
             })
             .catch((error) => {
                 setError(error.response?.data?.message || 'Có lỗi xảy ra!');
-                globalStore.triggerNotification('error', error.response?.data?.message || 'Nộp bài thất bại!', '');
+                toast.error(`${error.response?.data?.message || 'Nộp bài thất bại!'}`);
                 // Đảm bảo không hiển thị response khi có lỗi
                 setResponse(null);
                 // Đảm bảo không hiển thị response khi có lỗi
@@ -437,7 +446,7 @@ const ExamExercise = observer(() => {
             })
             .catch((error) => {
                 console.error('Error fetching exercise:', error);
-                globalStore.triggerNotification('error', 'Không thể tải thông tin bài tập!', '');
+                toast.error('Không thể tải thông tin bài tập!');
             });
 
         return () => {

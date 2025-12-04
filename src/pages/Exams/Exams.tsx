@@ -236,8 +236,8 @@ const Exams = observer(() => {
         setLoading(true);
         http.get('/exams?pageSize=9999999')
             .then((res) => {
-                setDatas(res.data || []);
-                setDisplayDatas(res.data || []);
+                setDatas(res.data?.filter((d: any) => !d.deletedTimestamp) || []);
+                setDisplayDatas(res.data?.filter((d: any) => !d.deletedTimestamp) || []);
             })
             .catch((error) => {
                 console.error('Error fetching exams:', error);

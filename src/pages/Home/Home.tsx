@@ -88,8 +88,23 @@ const Home = observer(() => {
     };
 
     const getExams = () => {
+        const startOfToday = new Date();
+        // const endOfToday = new Date();
+
+        startOfToday.setHours(0, 0, 0, 0);
+        // endOfToday.setHours(23, 59, 59, 999);
+
+        const startOfTodayByMil = startOfToday.getTime();
+
         http.get(`/exams`).then((res) => {
-            setUpcomingExams(res.data);
+            setUpcomingExams(
+                res.data?.filter((d: any) => {
+                    const startTime = new Date(d.startTime).getTime();
+                    const endTime = new Date(d.endTime).getTime();
+
+                    return !d.deletedTimestamp && startTime < startOfTodayByMil && endTime > startOfTodayByMil;
+                })
+            );
         });
     };
 
@@ -284,17 +299,19 @@ const InstructorStatistic = observer(
                         </div>
                     </div>
                 </div>
-                <div className={classnames('flex gap-24 container', { 'flex-col': globalStore.isBelow1000 })}>
-                    <div className="news flex-1 child-container">
-                        <div className="header">
-                            <Avatar src={'/sources/icons/fire-ico.svg'} />
-                            Đóng góp nổi bật của tôi
-                        </div>
-                        <div className="content">
-                            <TopBySubmissions topBySubmissions={topBySubmissions} />
+                <ProtectedElement acceptRoles={['INSTRUCTOR']}>
+                    <div className={classnames('flex gap-24 container', { 'flex-col': globalStore.isBelow1000 })}>
+                        <div className="news flex-1 child-container">
+                            <div className="header">
+                                <Avatar src={'/sources/icons/fire-ico.svg'} />
+                                Đóng góp nổi bật của tôi
+                            </div>
+                            <div className="content">
+                                <TopBySubmissions topBySubmissions={topBySubmissions} />
+                            </div>
                         </div>
                     </div>
-                </div>
+                </ProtectedElement>
                 <div className="instructor-statistic"></div>
             </>
         );

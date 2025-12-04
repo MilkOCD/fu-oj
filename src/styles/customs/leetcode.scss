@@ -177,8 +177,33 @@
                         }
 
                         .custom-row.expired-row {
-                            pointer-events: none;
-                            opacity: 0.3;
+                            // pointer-events: none;
+                            // opacity: 0.3;
+                            background: #e0e0e0;
+                            color: var(--color-text-muted) !important;
+
+                            & > .ant-table-cell {
+                                & > .cell {
+                                    color: var(--color-text-muted) !important;
+
+                                    & > .tooltip-wrapper {
+                                        & > .anticon-copy {
+                                            color: var(--color-text-primary);
+                                        }
+                                    }
+                                }
+                            }
+
+                            &:hover {
+                                background: #e0e0e0 !important;
+                                color: var(--color-text-muted) !important;
+
+                                & > .ant-table-cell {
+                                    & > .cell {
+                                        color: var(--color-text-muted) !important;
+                                    }
+                                }
+                            }
                         }
 
                         tr:hover {
@@ -338,8 +363,33 @@
             }
 
             .custom-row.expired-row {
-                pointer-events: none;
-                opacity: 0.3;
+                // pointer-events: none;
+                // opacity: 0.3;
+                background: #e0e0e0;
+                color: var(--color-text-muted) !important;
+
+                & > .ant-table-cell {
+                    & > .cell {
+                        color: var(--color-text-muted) !important;
+
+                        & > .tooltip-wrapper {
+                            & > .anticon-copy {
+                                color: var(--color-text-primary);
+                            }
+                        }
+                    }
+                }
+
+                &:hover {
+                    background: #e0e0e0 !important;
+                    color: var(--color-text-muted) !important;
+
+                    & > .ant-table-cell {
+                        & > .cell {
+                            color: var(--color-text-muted) !important;
+                        }
+                    }
+                }
             }
 
             tr:hover {
