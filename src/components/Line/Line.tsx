@@ -1,4 +1,5 @@
 import classnames from 'classnames';
+import type { CSSProperties } from 'react';
 
 interface ILine {
     width: number;
@@ -6,11 +7,12 @@ interface ILine {
     text?: string;
     lineOnly?: boolean;
     center?: boolean;
+    styles?: CSSProperties;
 }
 
-const Line: React.FC<ILine> = ({ width, height, text, lineOnly, center }) => {
+const Line: React.FC<ILine> = ({ width, height, text, lineOnly, center, styles }) => {
     return (
-        <div className="line">
+        <div className="line" style={styles}>
             {!center && text && <div style={{ fontWeight: 600, fontSize: 16, marginRight: 8 }}>{text}</div>}
             <div className={classnames('left-line', { 'line-only': lineOnly || !center })}></div>
             {lineOnly ? (

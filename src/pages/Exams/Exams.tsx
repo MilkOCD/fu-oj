@@ -197,6 +197,11 @@ const Exams = observer(() => {
                 title: 'Trạng thái',
                 dataIndex: 'status',
                 key: 'status',
+                sorter: (a: ExamData, b: ExamData) => {
+                    const statusA = getExamStatus(a.startTime, a.endTime).label;
+                    const statusB = getExamStatus(b.startTime, b.endTime).label;
+                    return statusA.localeCompare(statusB);
+                },
                 render: (_: unknown, record: ExamData) => {
                     const statusInfo = getExamStatus(record.startTime, record.endTime);
                     return (
@@ -221,9 +226,14 @@ const Exams = observer(() => {
         // }
 
         baseColumns.push({
-            title: <div className="flex flex-end">Số bài tập</div>,
+            title: <div className="flex flex-center">Số bài tập</div>,
             dataIndex: 'exercises',
             key: 'exercises',
+            sorter: (a: ExamData, b: ExamData) => {
+                const countA = a.exercises ? a.exercises.length : 0;
+                const countB = b.exercises ? b.exercises.length : 0;
+                return countA - countB;
+            },
             render: (_: unknown, record: ExamData) => {
                 return (
                     <div className="cell flex flex-center pr-16">{record.exercises ? record.exercises.length : 0}</div>
@@ -231,36 +241,36 @@ const Exams = observer(() => {
             }
         });
 
-        if (authentication.isInstructor) {
-            baseColumns.push({
-                title: 'Cho phép làm',
-                dataIndex: 'isExamined',
-                key: 'isExamined',
-                render: (isExamined: boolean, record: ExamData) => {
-                    const statusInfo = getExamStatus(record.startTime, record.endTime);
+        // if (authentication.isInstructor) {
+        //     baseColumns.push({
+        //         title: 'Cho phép làm',
+        //         dataIndex: 'isExamined',
+        //         key: 'isExamined',
+        //         render: (isExamined: boolean, record: ExamData) => {
+        //             const statusInfo = getExamStatus(record.startTime, record.endTime);
 
-                    return (
-                        <div className="cell flex flex-end pr-16">
-                            <Switch
-                                disabled={statusInfo.status == 'completed'}
-                                defaultChecked={isExamined}
-                                onChange={(value) => {
-                                    http.patchV2(record.id, `/exams/${record.id}/toggle-examined`, {}).then(() => {
-                                        globalStore.triggerNotification(
-                                            !value ? 'warning' : 'success',
-                                            `Bài thi "${record?.title?.toUpperCase()}" đang ${
-                                                !value ? 'không diễn ra' : 'diễn ra'
-                                            }`,
-                                            ''
-                                        );
-                                    });
-                                }}
-                            />
-                        </div>
-                    );
-                }
-            });
-        }
+        //             return (
+        //                 <div className="cell flex flex-end pr-16">
+        //                     <Switch
+        //                         disabled={statusInfo.status == 'completed'}
+        //                         defaultChecked={isExamined}
+        //                         onChange={(value) => {
+        //                             http.patchV2(record.id, `/exams/${record.id}/toggle-examined`, {}).then(() => {
+        //                                 globalStore.triggerNotification(
+        //                                     !value ? 'warning' : 'success',
+        //                                     `Bài thi "${record?.title?.toUpperCase()}" đang ${
+        //                                         !value ? 'không diễn ra' : 'diễn ra'
+        //                                     }`,
+        //                                     ''
+        //                                 );
+        //                             });
+        //                         }}
+        //                     />
+        //                 </div>
+        //             );
+        //         }
+        //     });
+        // }
 
         return baseColumns;
     }, [search]);

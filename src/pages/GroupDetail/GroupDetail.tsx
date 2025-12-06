@@ -18,7 +18,7 @@ import ProtectedElement from '../../components/ProtectedElement/ProtectedElement
 import Tab from '../../components/Tab/Tab';
 import TooltipWrapper from '../../components/TooltipWrapper/TooltipWrapperComponent';
 import * as http from '../../lib/httpRequest';
-import authentication from '../../shared/auth/authentication';
+// import authentication from '../../shared/auth/authentication';
 import utils from '../../utils/utils';
 import ExamFormModal from '../Exams/components/ExamFormModal';
 import type { SelectOption } from '../Exams/types';
@@ -325,7 +325,11 @@ const GroupDetail = observer(() => {
                 </div>
             </div>
             <div className="body">
-                <div className="flex flex-space-beetween mb-8 pr-16">
+                <div
+                    className={classnames('flex flex-space-beetween mb-8', {
+                        'pr-16': globalStore.windowSize.width > 1300
+                    })}
+                >
                     <Tab
                         value={activeTab}
                         fontSize={14}
@@ -376,7 +380,14 @@ const GroupDetail = observer(() => {
                 )} */}
                 {activeTab == 'exams' && (
                     <div className="leetcode">
-                        <div className="wrapper flex flex-1 pr-16">
+                        <div
+                            className={classnames('wrapper flex flex-1', {
+                                'pr-16': globalStore.windowSize.width > 1300,
+                                hide:
+                                    location.pathname.includes('students-progress') ||
+                                    /\/exams\/[^/]+/.test(location.pathname)
+                            })}
+                        >
                             <div className="filters">
                                 <Input
                                     placeholder="Tìm kiếm bài thi"
@@ -400,7 +411,7 @@ const GroupDetail = observer(() => {
                         </div>
                     </div>
                 )}
-                {activeTab == 'exercises' && authentication.isInstructor && (
+                {/* {activeTab == 'exercises' && authentication.isInstructor && (
                     <div className="trong-2111">
                         <div className="trong-2111">
                             <div className="trong-2111">
@@ -408,7 +419,7 @@ const GroupDetail = observer(() => {
                             </div>
                         </div>
                     </div>
-                )}
+                )} */}
                 <div>
                     <Outlet />
                 </div>

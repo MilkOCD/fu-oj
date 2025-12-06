@@ -1,10 +1,13 @@
 import { BarChartOutlined, HighlightOutlined } from '@ant-design/icons';
-import { Table, Tag } from 'antd';
+import { Switch, Table, Tag } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
+import classnames from 'classnames';
 import dayjs from 'dayjs';
 import Highlighter from 'react-highlight-words';
 import { useNavigate, useParams } from 'react-router-dom';
+import globalStore from '../../../components/GlobalComponent/globalStore';
 import TooltipWrapper from '../../../components/TooltipWrapper/TooltipWrapperComponent';
+import * as http from '../../../lib/httpRequest';
 import authentication from '../../../shared/auth/authentication';
 
 interface Exam {
@@ -84,6 +87,7 @@ const ExamsTable = ({
             title: 'Tiêu đề',
             dataIndex: 'title',
             key: 'title',
+            sorter: (a: Exam, b: Exam) => a.title.localeCompare(b.title),
             render: (title: string) => {
                 return (
                     <div className="cell">
@@ -118,6 +122,7 @@ const ExamsTable = ({
             title: 'Thời gian bắt đầu',
             dataIndex: 'startTime',
             key: 'startTime',
+            sorter: (a: Exam, b: Exam) => dayjs(a.startTime).valueOf() - dayjs(b.startTime).valueOf(),
             render: (time: string | null | undefined) => (
                 <div className="cell">{time ? dayjs(time).format('DD/MM/YYYY HH:mm') : '-'}</div>
             )
@@ -126,6 +131,7 @@ const ExamsTable = ({
             title: 'Thời gian kết thúc',
             dataIndex: 'endTime',
             key: 'endTime',
+            sorter: (a: Exam, b: Exam) => dayjs(a.endTime).valueOf() - dayjs(b.endTime).valueOf(),
             render: (time: string | null | undefined) => (
                 <div className="cell">{time ? dayjs(time).format('DD/MM/YYYY HH:mm') : '-'}</div>
             )
@@ -134,6 +140,11 @@ const ExamsTable = ({
             title: 'Trạng thái',
             dataIndex: 'status',
             key: 'status',
+            sorter: (a: Exam, b: Exam) => {
+                const statusA = getExamStatus(a.startTime, a.endTime).label;
+                const statusB = getExamStatus(b.startTime, b.endTime).label;
+                return statusA.localeCompare(statusB);
+            },
             render: (_: unknown, record: Exam) => {
                 const statusInfo = getExamStatus(record.startTime, record.endTime);
                 return (
@@ -152,9 +163,57 @@ const ExamsTable = ({
             title: 'Trạng thái làm bài',
             key: 'studentStatus',
             width: 160,
+            sorter: (a: Exam, b: Exam) => {
+                const statusA = studentStatusMap.get(a.id) ?? '';
+                const statusB = studentStatusMap.get(b.id) ?? '';
+
+                // Nếu là string
+                if (typeof statusA === 'string' && typeof statusB === 'string') {
+                    return statusA.localeCompare(statusB);
+                }
+
+                // Nếu là số
+                return Number(statusA) - Number(statusB);
+            },
             render: (_: unknown, record: Exam) => (
                 <div className="cell">{getStudentStatusTag(studentStatusMap.get(record.id))}</div>
             )
+        });
+    }
+
+    if (authentication.isInstructor) {
+        tableColumns.push({
+            title: <div style={{ textAlign: 'right' }}>Cho phép làm</div>,
+            dataIndex: 'isExamined',
+            key: 'isExamined',
+            width: 120,
+            render: (isExamined: boolean, record: any) => {
+                const statusInfo = getExamStatus(record.startTime, record.endTime);
+
+                return (
+                    <div className="cell flex flex-end pr-16">
+                        <Switch
+                            disabled={statusInfo.status == 'completed'}
+                            defaultChecked={isExamined}
+                            onChange={(value) => {
+                                http.patchV2(
+                                    record.groupExamId,
+                                    `/group-exams/${record.groupExamId}/toggle-examined`,
+                                    {}
+                                ).then(() => {
+                                    globalStore.triggerNotification(
+                                        !value ? 'warning' : 'success',
+                                        `Bài thi "${record?.title?.toUpperCase()}" đang ${
+                                            !value ? 'không diễn ra' : 'diễn ra'
+                                        }`,
+                                        ''
+                                    );
+                                });
+                            }}
+                        />
+                    </div>
+                );
+            }
         });
     }
 
@@ -164,16 +223,25 @@ const ExamsTable = ({
             key: 'studentAction',
             width: 110,
             align: 'right',
-            render: (_: unknown, record: Exam) => (
+            render: (_: unknown, record: any) => (
                 <div className="actions-row cell" onClick={(e) => e.stopPropagation()}>
                     <TooltipWrapper
-                        tooltipText={studentStatusMap.get(record.id) === 'completed' ? 'Xem kết quả' : 'Tham gia'}
+                        tooltipText={
+                            studentStatusMap.get(record.id) === 'completed'
+                                ? 'Xem kết quả'
+                                : !record?.isExamined
+                                ? 'Giảng viên chưa bắt đầu'
+                                : 'Tham gia'
+                        }
                         position="left"
                     >
                         {studentStatusMap.get(record.id) === 'completed' ? (
                             <BarChartOutlined className="action-row-btn" onClick={() => onExamClick(record)} />
                         ) : (
-                            <HighlightOutlined className="action-row-btn" onClick={() => onExamClick(record)} />
+                            <HighlightOutlined
+                                className={classnames('action-row-btn', { disabled: !record?.isExamined })}
+                                onClick={() => onExamClick(record)}
+                            />
                         )}
                     </TooltipWrapper>
                 </div>
@@ -207,6 +275,7 @@ const ExamsTable = ({
         <Table
             rowKey="id"
             key={`exams-table-${authentication.isInstructor ? 'instructor' : 'student'}`}
+            scroll={{ x: 1000 }}
             rowClassName={(_record, index) => (index % 2 === 0 ? 'custom-row row-even' : 'custom-row row-odd')}
             dataSource={dataSource}
             pagination={{ pageSize: 10 }}

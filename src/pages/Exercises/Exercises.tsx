@@ -104,9 +104,13 @@ const Exercises = observer(() => {
         // },
         {
             title: 'Độ khó',
-            width: 70,
+            width: 80,
             dataIndex: 'difficulty',
             key: 'difficulty',
+            sorter: (a: any, b: any) => {
+                const order: any = { EASY: 1, MEDIUM: 2, HARD: 3 };
+                return (order[a.difficulty] || 0) - (order[b.difficulty] || 0);
+            },
             render: (difficulty: string) => {
                 return <div className="cell">{utils.getDifficultyClass(difficulty)}</div>;
             }
@@ -116,15 +120,21 @@ const Exercises = observer(() => {
             width: 100,
             dataIndex: 'visibility',
             key: 'visibility',
+            sorter: (a: any, b: any) => a.visibility.localeCompare(b.visibility),
             render: (visibility: string) => {
                 return <div className="cell">{utils.getVisibilityClass(visibility)}</div>;
             }
         },
         {
             title: 'Chủ đề',
-            width: 100,
+            width: 180,
             dataIndex: 'topics',
             key: 'topics',
+            sorter: (a: any, b: any) => {
+                const lenA = a.topics ? a.topics.length : 0;
+                const lenB = b.topics ? b.topics.length : 0;
+                return lenA - lenB;
+            },
             render: (topics: any[]) => {
                 if (!topics) return null;
 
@@ -282,18 +292,27 @@ const Exercises = observer(() => {
         // },
         {
             title: 'Độ khó',
-            width: 50,
+            width: 80,
             dataIndex: 'difficulty',
             key: 'difficulty',
+            sorter: (a: any, b: any) => {
+                const order: any = { EASY: 1, MEDIUM: 2, HARD: 3 };
+                return (order[a.difficulty] || 0) - (order[b.difficulty] || 0);
+            },
             render: (difficulty: string) => {
                 return <div className="cell">{utils.getDifficultyClass(difficulty)}</div>;
             }
         },
         {
             title: 'Chủ đề',
-            width: 100,
+            width: 180,
             dataIndex: 'topics',
             key: 'topics',
+            sorter: (a: any, b: any) => {
+                const lenA = a.topics ? a.topics.length : 0;
+                const lenB = b.topics ? b.topics.length : 0;
+                return lenA - lenB;
+            },
             render: (topics: any[]) => {
                 if (!topics) return null;
 
@@ -1291,7 +1310,7 @@ const Exercises = observer(() => {
     );
 });
 
-const TestCases = ({ updateId, testCases, setTestCases }: any) => {
+export const TestCases = ({ updateId, testCases, setTestCases }: any) => {
     const [form] = Form.useForm();
     const [error, setError] = useState('');
 

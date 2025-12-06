@@ -9,6 +9,7 @@ import type { ExamData, SelectOption } from '../types';
 import type { FormProps } from 'antd';
 import * as http from '../../../lib/httpRequest';
 import classnames from 'classnames';
+import Line from '../../../components/Line/Line';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -173,6 +174,50 @@ const ExamFormModal = observer(
                                     format="YYYY-MM-DD HH:mm"
                                     style={{ width: '100%' }}
                                     placeholder="Chọn thời gian bắt đầu"
+                                    disabledDate={(current) => {
+                                        const minTime = dayjs().add(5, 'minute');
+                                        return current && current < minTime.startOf('day');
+                                    }}
+                                    disabledTime={(date) => {
+                                        const minTime = dayjs().add(5, 'minute');
+                                        if (!date) return {};
+
+                                        // Nếu user chọn ngày trước ngày minTime → disable toàn bộ giờ
+                                        if (date.isBefore(minTime, 'day')) {
+                                            return {
+                                                disabledHours: () => Array.from({ length: 24 }, (_, i) => i),
+                                                disabledMinutes: () => Array.from({ length: 60 }, (_, i) => i),
+                                                disabledSeconds: () => Array.from({ length: 60 }, (_, i) => i)
+                                            };
+                                        }
+
+                                        // Nếu cùng ngày → disable giờ/phút/giây trước minTime
+                                        if (date.isSame(minTime, 'day')) {
+                                            return {
+                                                disabledHours: () =>
+                                                    Array.from({ length: 24 }, (_, i) => i).filter(
+                                                        (h) => h < minTime.hour()
+                                                    ),
+
+                                                disabledMinutes: () =>
+                                                    date.hour() === minTime.hour()
+                                                        ? Array.from({ length: 60 }, (_, i) => i).filter(
+                                                              (m) => m < minTime.minute()
+                                                          )
+                                                        : [],
+
+                                                disabledSeconds: () =>
+                                                    date.hour() === minTime.hour() && date.minute() === minTime.minute()
+                                                        ? Array.from({ length: 60 }, (_, i) => i).filter(
+                                                              (s) => s < minTime.second()
+                                                          )
+                                                        : []
+                                            };
+                                        }
+
+                                        // Ngày sau minTime → không disable gì
+                                        return {};
+                                    }}
                                 />
                             </Form.Item>
 
@@ -187,6 +232,50 @@ const ExamFormModal = observer(
                                     format="YYYY-MM-DD HH:mm"
                                     style={{ width: '100%' }}
                                     placeholder="Chọn thời gian kết thúc"
+                                    disabledDate={(current) => {
+                                        const minTime = dayjs().add(5, 'minute');
+                                        return current && current < minTime.startOf('day');
+                                    }}
+                                    disabledTime={(date) => {
+                                        const minTime = dayjs().add(5, 'minute');
+                                        if (!date) return {};
+
+                                        // Nếu user chọn ngày trước ngày minTime → disable toàn bộ giờ
+                                        if (date.isBefore(minTime, 'day')) {
+                                            return {
+                                                disabledHours: () => Array.from({ length: 24 }, (_, i) => i),
+                                                disabledMinutes: () => Array.from({ length: 60 }, (_, i) => i),
+                                                disabledSeconds: () => Array.from({ length: 60 }, (_, i) => i)
+                                            };
+                                        }
+
+                                        // Nếu cùng ngày → disable giờ/phút/giây trước minTime
+                                        if (date.isSame(minTime, 'day')) {
+                                            return {
+                                                disabledHours: () =>
+                                                    Array.from({ length: 24 }, (_, i) => i).filter(
+                                                        (h) => h < minTime.hour()
+                                                    ),
+
+                                                disabledMinutes: () =>
+                                                    date.hour() === minTime.hour()
+                                                        ? Array.from({ length: 60 }, (_, i) => i).filter(
+                                                              (m) => m < minTime.minute()
+                                                          )
+                                                        : [],
+
+                                                disabledSeconds: () =>
+                                                    date.hour() === minTime.hour() && date.minute() === minTime.minute()
+                                                        ? Array.from({ length: 60 }, (_, i) => i).filter(
+                                                              (s) => s < minTime.second()
+                                                          )
+                                                        : []
+                                            };
+                                        }
+
+                                        // Ngày sau minTime → không disable gì
+                                        return {};
+                                    }}
                                 />
                             </Form.Item>
                         </div>
@@ -244,6 +333,14 @@ const ExamFormModal = observer(
                                 }
                             />
                         </Form.Item>
+
+                        <Line
+                            width={40}
+                            height={40}
+                            text="Chọn bài tập để thêm"
+                            lineOnly
+                            styles={{ marginBottom: 4 }}
+                        />
 
                         <Form.Item label="Lọc bài tập theo độ khó" name="difficulty">
                             <Select

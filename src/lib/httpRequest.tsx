@@ -149,4 +149,10 @@ export const deleteById = async (path: string, id: number) => {
     return res.data;
 };
 
+// ??????? :D ???????
+export const deleteCc = async (path: string, exerciseIds: string[]) => {
+    const res = await httpRequest.delete(`${path}`, { data: { exerciseIds } });
+    return res.data;
+};
+
 export default httpRequest;

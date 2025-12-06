@@ -38,8 +38,9 @@ const MembersTab = observer(() => {
     return (
         <div className="leetcode">
             <div
-                className={classnames('wrapper flex flex-1 pr-16', {
-                    'flex-col wrapper-responsive': globalStore.windowSize.width < 1300
+                className={classnames('wrapper max-width flex flex-1', {
+                    'flex-col wrapper-responsive': globalStore.windowSize.width < 1300,
+                    'pr-16': globalStore.windowSize.width > 1300
                 })}
             >
                 <div className="filters">

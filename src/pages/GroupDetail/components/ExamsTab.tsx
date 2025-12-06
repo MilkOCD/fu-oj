@@ -25,20 +25,20 @@ interface Exam {
     timeLimit?: number | null;
 }
 
-interface GroupExamItem {
-    id: string;
-    groupExamId: string;
-    status?: string;
-    exam?: {
-        id: string;
-        code?: string;
-        title?: string;
-        description?: string;
-        startTime?: string;
-        endTime?: string;
-        timeLimit?: number | null;
-    };
-}
+// interface GroupExamItem {
+//     id: string;
+//     groupExamId: string;
+//     status?: string;
+//     exam?: {
+//         id: string;
+//         code?: string;
+//         title?: string;
+//         description?: string;
+//         startTime?: string;
+//         endTime?: string;
+//         timeLimit?: number | null;
+//     };
+// }
 
 interface ExamRankingItem {
     completed: boolean;
@@ -48,7 +48,7 @@ interface ExamRankingItem {
     };
 }
 
-const normalizeGroupExamData = (data: GroupExamItem[] = []): Exam[] =>
+const normalizeGroupExamData = (data: any[] = []): Exam[] =>
     data.map((item) => ({
         id: item.exam?.id || item.groupExamId || item.id,
         groupExamId: item.groupExamId || item.id,
@@ -57,7 +57,8 @@ const normalizeGroupExamData = (data: GroupExamItem[] = []): Exam[] =>
         startTime: item.exam?.startTime || null,
         endTime: item.exam?.endTime || null,
         status: item.status || undefined,
-        timeLimit: item.exam?.timeLimit ?? null
+        timeLimit: item.exam?.timeLimit ?? null,
+        isExamined: item?.isExamined ?? null
     }));
 
 const ExamsTab = observer(() => {
@@ -86,7 +87,7 @@ const ExamsTab = observer(() => {
         setLoading(true);
         http.get(url)
             .then((res) => {
-                const data = res.data || [];
+                const data = res.data?.filter((d: any) => !d.deletedTimestamp) || [];
                 setExams(normalizeGroupExamData(data));
             })
             .catch((error) => {
@@ -259,8 +260,9 @@ const ExamsTab = observer(() => {
         <>
             <div className="leetcode mt-16">
                 <div
-                    className={classnames('wrapper flex flex-1 pr-16', {
-                        'flex-col wrapper-responsive': globalStore.windowSize.width < 1300
+                    className={classnames('wrapper max-width flex flex-1', {
+                        'flex-col wrapper-responsive': globalStore.windowSize.width < 1300,
+                        'pr-16': globalStore.windowSize.width > 1300
                     })}
                 >
                     <div className="body">
