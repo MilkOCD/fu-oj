@@ -5,6 +5,9 @@ import moment from 'moment';
 import globalDataStore from '../components/GlobalComponent/globalDataStore';
 import numeral from 'numeral';
 
+const reEmail =
+    /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+
 class Utils {
     capitalizeFirstLetter(word: string): string {
         if (!word) return '';
@@ -195,6 +198,10 @@ class Utils {
             this.s4() +
             this.s4()
         );
+    };
+
+    isEmail = (email: string) => {
+        return reEmail.test(email);
     };
 }
 
