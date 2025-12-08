@@ -116,42 +116,44 @@ const LRComponent = observer(() => {
                     <div className="blue" />
                 </div>
                 <div className="inner">
-                    <div className="left">
-                        <div className="hello">
-                            <div className="hello-1">Chào mừng</div>
-                            <div className="hello-2">FU-OJ,</div>
-                            <div className="hello-3">Đăng nhập để bắt đầu Luyện tập</div>
-                        </div>
-                        <div className="carousel">
-                            {flexSliderItems.map((i) => {
-                                return (
-                                    <div
-                                        key={`flex-slider-item-${i.id}`}
-                                        className={classnames('carousel-item', { active: i.id == activeIndex })}
-                                        style={{ backgroundImage: `url("${i.imgUrl}")` }}
-                                    />
-                                );
-                            })}
-                            <div className="dots">
+                    {!globalStore.isBelow1000 && (
+                        <div className="left">
+                            <div className="hello">
+                                <div className="hello-1">Chào mừng</div>
+                                <div className="hello-2">FU-OJ,</div>
+                                <div className="hello-3">Đăng nhập để bắt đầu Luyện tập</div>
+                            </div>
+                            <div className="carousel">
                                 {flexSliderItems.map((i) => {
                                     return (
                                         <div
-                                            key={`flex-slider-item-dot-${i.id}`}
-                                            className={classnames('dot', { active: i.id == activeIndex })}
-                                            onClick={() => setActiveIndex(i.id)}
+                                            key={`flex-slider-item-${i.id}`}
+                                            className={classnames('carousel-item', { active: i.id == activeIndex })}
+                                            style={{ backgroundImage: `url("${i.imgUrl}")` }}
                                         />
                                     );
                                 })}
+                                <div className="dots">
+                                    {flexSliderItems.map((i) => {
+                                        return (
+                                            <div
+                                                key={`flex-slider-item-dot-${i.id}`}
+                                                className={classnames('dot', { active: i.id == activeIndex })}
+                                                onClick={() => setActiveIndex(i.id)}
+                                            />
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                            <div className="byebye">
+                                <div className="byebye-1">Liên hệ với chúng tôi</div>
+                                <div className="social flex gap">
+                                    <FacebookOutlined className="ico" />
+                                    <InstagramOutlined className="ico" />
+                                </div>
                             </div>
                         </div>
-                        <div className="byebye">
-                            <div className="byebye-1">Liên hệ với chúng tôi</div>
-                            <div className="social flex gap">
-                                <FacebookOutlined className="ico" />
-                                <InstagramOutlined className="ico" />
-                            </div>
-                        </div>
-                    </div>
+                    )}
                     <div className="right">
                         {step == 0 && (
                             <div className="login right-content">
