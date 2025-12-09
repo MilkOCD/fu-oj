@@ -83,7 +83,7 @@ const SubmissionDetailModal = ({ open, onCancel, submissionResult, loading }: Su
 
     const handleExpand = (expanded: boolean, record: SubmissionDetail) => {
         const submissionId = record.submissionId;
-        
+
         if (expanded) {
             const newExpanded = new Set(expandedRows);
             newExpanded.add(submissionId);
@@ -134,12 +134,12 @@ const SubmissionDetailModal = ({ open, onCancel, submissionResult, loading }: Su
 
     const getVerdictLabel = (verdict: string) => {
         const verdictMap: { [key: string]: string } = {
-            'ACCEPTED': 'AC',
-            'WRONG_ANSWER': 'WA',
-            'TIME_LIMIT_EXCEEDED': 'TLE',
-            'MEMORY_LIMIT_EXCEEDED': 'MLE',
-            'RUNTIME_ERROR': 'RE',
-            'COMPILATION_ERROR': 'CE'
+            ACCEPTED: 'AC',
+            WRONG_ANSWER: 'WA',
+            TIME_LIMIT_EXCEEDED: 'TLE',
+            MEMORY_LIMIT_EXCEEDED: 'MLE',
+            RUNTIME_ERROR: 'RE',
+            COMPILATION_ERROR: 'CE'
         };
         return verdictMap[verdict] || verdict;
     };
@@ -164,7 +164,7 @@ const SubmissionDetailModal = ({ open, onCancel, submissionResult, loading }: Su
                             <Descriptions.Item label="Tên bài thi">{submissionResult.examTitle}</Descriptions.Item>
                             <Descriptions.Item label="Học sinh">{submissionResult.userName}</Descriptions.Item>
                             <Descriptions.Item label="Tổng điểm">
-                                <strong>{submissionResult.totalScore.toFixed(1)}</strong>
+                                <strong>{submissionResult.totalScore?.toFixed(1)}</strong>
                             </Descriptions.Item>
                             <Descriptions.Item label="Số bài tập đã hoàn thành">
                                 {submissionResult.completedExercises} / {submissionResult.totalExercises}
@@ -200,35 +200,54 @@ const SubmissionDetailModal = ({ open, onCancel, submissionResult, loading }: Su
 
                                         return (
                                             <div style={{ padding: '16px' }}>
-                                                <Descriptions bordered column={2} size="small" style={{ marginBottom: '16px' }}>
-                                                    <Descriptions.Item label="Ngôn ngữ">{data.languageCode}</Descriptions.Item>
+                                                <Descriptions
+                                                    bordered
+                                                    column={2}
+                                                    size="small"
+                                                    style={{ marginBottom: '16px' }}
+                                                >
+                                                    <Descriptions.Item label="Ngôn ngữ">
+                                                        {data.languageCode}
+                                                    </Descriptions.Item>
                                                     <Descriptions.Item label="Trạng thái">
-                                                        <Tag 
+                                                        <Tag
                                                             color={getVerdictColor(data.verdict)}
-                                                            icon={data.isAccepted ? <CheckCircleOutlined /> : <CloseCircleOutlined />}
+                                                            icon={
+                                                                data.isAccepted ? (
+                                                                    <CheckCircleOutlined />
+                                                                ) : (
+                                                                    <CloseCircleOutlined />
+                                                                )
+                                                            }
                                                         >
                                                             {getVerdictLabel(data.verdict)}
                                                         </Tag>
                                                     </Descriptions.Item>
-                                                    <Descriptions.Item label="Thời gian">{data.time} giây</Descriptions.Item>
-                                                    <Descriptions.Item label="Bộ nhớ">{parseFloat(data.memory).toFixed(2)} MB</Descriptions.Item>
+                                                    <Descriptions.Item label="Thời gian">
+                                                        {data.time} giây
+                                                    </Descriptions.Item>
+                                                    <Descriptions.Item label="Bộ nhớ">
+                                                        {parseFloat(data.memory).toFixed(2)} MB
+                                                    </Descriptions.Item>
                                                 </Descriptions>
 
                                                 <Card title="Source Code" size="small" style={{ marginBottom: '16px' }}>
-                                                    <pre style={{ 
-                                                        background: '#0f0f0f', 
-                                                        color: '#ffffff',
-                                                        padding: '12px', 
-                                                        borderRadius: '4px',
-                                                        overflow: 'auto',
-                                                        maxHeight: '300px',
-                                                        margin: 0,
-                                                        fontSize: '12px',
-                                                        fontFamily: 'Menlo, Monaco, Consolas, monospace',
-                                                        border: '1px solid #1f1f1f',
-                                                        whiteSpace: 'pre-wrap',
-                                                        wordBreak: 'break-word'
-                                                    }}>
+                                                    <pre
+                                                        style={{
+                                                            background: '#0f0f0f',
+                                                            color: '#ffffff',
+                                                            padding: '12px',
+                                                            borderRadius: '4px',
+                                                            overflow: 'auto',
+                                                            maxHeight: '300px',
+                                                            margin: 0,
+                                                            fontSize: '12px',
+                                                            fontFamily: 'Menlo, Monaco, Consolas, monospace',
+                                                            border: '1px solid #1f1f1f',
+                                                            whiteSpace: 'pre-wrap',
+                                                            wordBreak: 'break-word'
+                                                        }}
+                                                    >
                                                         <code>{data.sourceCode}</code>
                                                     </pre>
                                                 </Card>
@@ -245,7 +264,8 @@ const SubmissionDetailModal = ({ open, onCancel, submissionResult, loading }: Su
                                                                 key: 'index',
                                                                 width: 100,
                                                                 align: 'center' as const,
-                                                                render: (_: unknown, __: unknown, index: number) => `Test ${index + 1}`
+                                                                render: (_: unknown, __: unknown, index: number) =>
+                                                                    `Test ${index + 1}`
                                                             },
                                                             {
                                                                 title: 'Input',
@@ -253,8 +273,18 @@ const SubmissionDetailModal = ({ open, onCancel, submissionResult, loading }: Su
                                                                 render: (_: unknown, __: unknown, index: number) => {
                                                                     const testCase = data.exercise.testCases[index];
                                                                     return testCase ? (
-                                                                        <pre style={{ margin: 0, whiteSpace: 'pre-wrap', fontSize: '12px' }}>{testCase.input}</pre>
-                                                                    ) : '-';
+                                                                        <pre
+                                                                            style={{
+                                                                                margin: 0,
+                                                                                whiteSpace: 'pre-wrap',
+                                                                                fontSize: '12px'
+                                                                            }}
+                                                                        >
+                                                                            {testCase.input}
+                                                                        </pre>
+                                                                    ) : (
+                                                                        '-'
+                                                                    );
                                                                 }
                                                             },
                                                             {
@@ -263,15 +293,31 @@ const SubmissionDetailModal = ({ open, onCancel, submissionResult, loading }: Su
                                                                 render: (_: unknown, __: unknown, index: number) => {
                                                                     const testCase = data.exercise.testCases[index];
                                                                     return testCase ? (
-                                                                        <pre style={{ margin: 0, whiteSpace: 'pre-wrap', fontSize: '12px' }}>{testCase.output}</pre>
-                                                                    ) : '-';
+                                                                        <pre
+                                                                            style={{
+                                                                                margin: 0,
+                                                                                whiteSpace: 'pre-wrap',
+                                                                                fontSize: '12px'
+                                                                            }}
+                                                                        >
+                                                                            {testCase.output}
+                                                                        </pre>
+                                                                    ) : (
+                                                                        '-'
+                                                                    );
                                                                 }
                                                             },
                                                             {
                                                                 title: 'Actual',
                                                                 key: 'actual',
                                                                 render: (_: unknown, record) => (
-                                                                    <pre style={{ margin: 0, whiteSpace: 'pre-wrap', fontSize: '12px' }}>
+                                                                    <pre
+                                                                        style={{
+                                                                            margin: 0,
+                                                                            whiteSpace: 'pre-wrap',
+                                                                            fontSize: '12px'
+                                                                        }}
+                                                                    >
                                                                         {record.actualOutput || '-'}
                                                                     </pre>
                                                                 )
@@ -341,9 +387,15 @@ const SubmissionDetailModal = ({ open, onCancel, submissionResult, loading }: Su
                                         width: 120,
                                         align: 'center' as const,
                                         render: (_: unknown, record: SubmissionDetail) => (
-                                            <Tag 
+                                            <Tag
                                                 color={record.isAccepted ? 'green' : 'red'}
-                                                icon={record.isAccepted ? <CheckCircleOutlined /> : <CloseCircleOutlined />}
+                                                icon={
+                                                    record.isAccepted ? (
+                                                        <CheckCircleOutlined />
+                                                    ) : (
+                                                        <CloseCircleOutlined />
+                                                    )
+                                                }
                                             >
                                                 {record.isAccepted ? 'AC' : 'WA'}
                                             </Tag>
@@ -353,7 +405,7 @@ const SubmissionDetailModal = ({ open, onCancel, submissionResult, loading }: Su
                                         title: 'Thời gian nộp',
                                         key: 'submittedAt',
                                         width: 180,
-                                        render: (_: unknown, record: SubmissionDetail) => 
+                                        render: (_: unknown, record: SubmissionDetail) =>
                                             dayjs.unix(record.submittedAt).format('DD/MM/YYYY HH:mm:ss')
                                     },
                                     {
@@ -385,4 +437,3 @@ const SubmissionDetailModal = ({ open, onCancel, submissionResult, loading }: Su
 
 export default SubmissionDetailModal;
 export type { SubmissionResult, SubmissionDetail };
-

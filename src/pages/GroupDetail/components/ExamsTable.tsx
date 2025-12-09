@@ -223,29 +223,39 @@ const ExamsTable = ({
             key: 'studentAction',
             width: 110,
             align: 'right',
-            render: (_: unknown, record: any) => (
-                <div className="actions-row cell" onClick={(e) => e.stopPropagation()}>
-                    <TooltipWrapper
-                        tooltipText={
-                            studentStatusMap.get(record.id) === 'completed'
-                                ? 'Xem kết quả'
-                                : !record?.isExamined
-                                ? 'Giảng viên chưa bắt đầu'
-                                : 'Tham gia'
-                        }
-                        position="left"
-                    >
-                        {studentStatusMap.get(record.id) === 'completed' ? (
-                            <BarChartOutlined className="action-row-btn" onClick={() => onExamClick(record)} />
-                        ) : (
-                            <HighlightOutlined
-                                className={classnames('action-row-btn', { disabled: !record?.isExamined })}
-                                onClick={() => onExamClick(record)}
-                            />
-                        )}
-                    </TooltipWrapper>
-                </div>
-            )
+            render: (_: unknown, record: any) => {
+                const now = new Date().getTime();
+                const onTestingTime: boolean =
+                    new Date(record.startTime).getTime() < now && new Date(record.endTime).getTime() > now;
+
+                return (
+                    <div className="actions-row cell" onClick={(e) => e.stopPropagation()}>
+                        <TooltipWrapper
+                            tooltipText={
+                                studentStatusMap.get(record.id) === 'completed'
+                                    ? 'Xem kết quả'
+                                    : !record?.isExamined
+                                    ? 'Giảng viên chưa bắt đầu'
+                                    : !onTestingTime
+                                    ? 'Hiện không phải thời gian làm bài'
+                                    : 'Tham gia'
+                            }
+                            position="left"
+                        >
+                            {studentStatusMap.get(record.id) === 'completed' ? (
+                                <BarChartOutlined className="action-row-btn" onClick={() => onExamClick(record)} />
+                            ) : (
+                                <HighlightOutlined
+                                    className={classnames('action-row-btn', {
+                                        disabled: !record?.isExamined || !onTestingTime
+                                    })}
+                                    onClick={() => onExamClick(record)}
+                                />
+                            )}
+                        </TooltipWrapper>
+                    </div>
+                );
+            }
         });
     } else if (showStatisticsAction) {
         tableColumns.push({

@@ -179,7 +179,7 @@ const ExamFormModal = observer(
                                         return current && current < minTime.startOf('day');
                                     }}
                                     disabledTime={(date) => {
-                                        const minTime = dayjs().add(5, 'minute');
+                                        const minTime = dayjs().add(1, 'minute');
                                         if (!date) return {};
 
                                         // Nếu user chọn ngày trước ngày minTime → disable toàn bộ giờ
