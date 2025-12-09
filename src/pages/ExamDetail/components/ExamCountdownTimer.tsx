@@ -53,19 +53,19 @@ const ExamCountdownTimer = observer(({ examId, compact = false, onTimeExpired }:
 
                 const examRanking = data[0];
                 const timeLimit = examRanking.groupExam?.timeLimit ?? 90; // Mặc định 90 phút nếu null hoặc undefined
-                
+
                 // Lấy thời điểm bắt đầu làm bài từ createdTimestamp (UTC ISO string)
                 // createdTimestamp là thời điểm user bắt đầu làm bài, không phải thời điểm exam bắt đầu
                 const startTimeDate = new Date(examRanking.createdTimestamp);
                 const startTimeMs = startTimeDate.getTime(); // UTC milliseconds
-                
+
                 // Tính thời gian kết thúc: startTime + timeLimit (phút)
                 const timeLimitMs = timeLimit * 60 * 1000; // Chuyển phút sang milliseconds
                 const endTimeMs = startTimeMs + timeLimitMs;
-                
+
                 // Lấy thời gian hiện tại (UTC milliseconds)
                 const now = Date.now();
-                
+
                 // Tính thời gian còn lại (milliseconds)
                 const remaining = Math.max(0, endTimeMs - now);
                 setTimeRemaining(remaining);
@@ -117,7 +117,10 @@ const ExamCountdownTimer = observer(({ examId, compact = false, onTimeExpired }:
         const minutes = Math.floor((totalSeconds % 3600) / 60);
         const seconds = totalSeconds % 60;
 
-        return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(
+            2,
+            '0'
+        )}`;
     };
 
     const isWarning = timeRemaining !== null && timeRemaining > 0 && timeRemaining < 5 * 60 * 1000; // Cảnh báo khi còn dưới 5 phút
@@ -134,28 +137,32 @@ const ExamCountdownTimer = observer(({ examId, compact = false, onTimeExpired }:
 
         if (timeRemaining === null || timeRemaining <= 0) {
             return (
-                <div style={{ 
-                    color: '#ff4d4f', 
-                    fontSize: '14px',
-                    fontWeight: 'bold',
-                    fontFamily: 'monospace'
-                }}>
+                <div
+                    style={{
+                        color: '#ff4d4f',
+                        fontSize: '14px',
+                        fontWeight: 'bold',
+                        fontFamily: 'monospace'
+                    }}
+                >
                     00:00:00
                 </div>
             );
         }
 
         return (
-            <div style={{
-                padding: '4px 12px',
-                backgroundColor: isWarning ? '#ff4d4f' : '#52c41a',
-                borderRadius: '4px',
-                color: '#fff',
-                fontSize: '14px',
-                fontWeight: 'bold',
-                fontFamily: 'monospace',
-                whiteSpace: 'nowrap'
-            }}>
+            <div
+                style={{
+                    padding: '4px 12px',
+                    backgroundColor: isWarning ? '#ff4d4f' : '#52c41a',
+                    borderRadius: '4px',
+                    color: '#fff',
+                    fontSize: '14px',
+                    fontWeight: 'bold',
+                    fontFamily: 'monospace',
+                    whiteSpace: 'nowrap'
+                }}
+            >
                 {formatTime(timeRemaining)}
             </div>
         );
@@ -181,9 +188,7 @@ const ExamCountdownTimer = observer(({ examId, compact = false, onTimeExpired }:
     if (timeRemaining === null || timeRemaining <= 0) {
         return (
             <Card style={{ marginBottom: 16, backgroundColor: '#fff2e8' }}>
-                <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#ff4d4f' }}>
-                    Hết thời gian làm bài
-                </div>
+                <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#ff4d4f' }}>Hết thời gian làm bài</div>
             </Card>
         );
     }
@@ -198,9 +203,7 @@ const ExamCountdownTimer = observer(({ examId, compact = false, onTimeExpired }:
         >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div>
-                    <div style={{ fontSize: '14px', color: '#666', marginBottom: 4 }}>
-                        Thời gian còn lại
-                    </div>
+                    <div style={{ fontSize: '14px', color: '#666', marginBottom: 4 }}>Thời gian còn lại</div>
                     <div
                         style={{
                             fontSize: '24px',
@@ -212,15 +215,10 @@ const ExamCountdownTimer = observer(({ examId, compact = false, onTimeExpired }:
                         {formatTime(timeRemaining)}
                     </div>
                 </div>
-                {isWarning && (
-                    <div style={{ fontSize: '14px', color: '#ff4d4f' }}>
-                        ⚠️ Sắp hết thời gian!
-                    </div>
-                )}
+                {isWarning && <div style={{ fontSize: '14px', color: '#ff4d4f' }}>⚠️ Sắp hết thời gian!</div>}
             </div>
         </Card>
     );
 });
 
 export default ExamCountdownTimer;
-

@@ -2,11 +2,9 @@ import {
     BugOutlined,
     CloudUploadOutlined,
     ExclamationCircleOutlined,
-    GithubOutlined,
     HomeOutlined,
     LeftOutlined,
-    LoadingOutlined,
-    RightOutlined
+    LoadingOutlined
 } from '@ant-design/icons';
 import Editor from '@monaco-editor/react';
 import { Button, Modal, Select, Skeleton } from 'antd';
@@ -19,6 +17,7 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import AIAssistant from '../../components/AIAssistant/AIAssistant';
 import ProtectedElement from '../../components/ProtectedElement/ProtectedElement';
+import TooltipWrapper from '../../components/TooltipWrapper/TooltipWrapperComponent';
 import { programmingLanguages } from '../../constants/languages';
 import * as http from '../../lib/httpRequest';
 import routesConfig from '../../routes/routesConfig';
@@ -497,10 +496,10 @@ const ExamExercise = observer(() => {
         };
     }, [location.pathname, examId]);
 
-    const handleNavigate = (path: string) => {
-        setPendingPath(path);
-        setShowExitConfirm(true);
-    };
+    // const handleNavigate = (path: string) => {
+    //     setPendingPath(path);
+    //     setShowExitConfirm(true);
+    // };
 
     const handleConfirmExit = () => {
         if (pendingPath) {
@@ -619,12 +618,14 @@ const ExamExercise = observer(() => {
                 <div className="header">
                     <div className="left">
                         <div className="group-btn">
-                            <GithubOutlined className="icon" />
-                            <LeftOutlined
-                                className="icon"
-                                onClick={() => handleNavigate(`/${routesConfig.exam}`.replace(':id', examId || ''))}
-                            />
-                            <RightOutlined className="icon" />
+                            <TooltipWrapper tooltipText="Trở lại" position="right">
+                                <LeftOutlined
+                                    className="icon"
+                                    onClick={() => {
+                                        navigate(`/${routesConfig.exam.replace(':groupExamId', groupExamId || '')}`);
+                                    }}
+                                />
+                            </TooltipWrapper>
                         </div>
                     </div>
                     <div className="center">
@@ -651,14 +652,14 @@ const ExamExercise = observer(() => {
                                 Nộp bài
                             </div>
                         </div>
-                        {examId && !authentication.isInstructor && (
+                        {groupExamId && !authentication.isInstructor && (
                             <div style={{ marginLeft: '8px', display: 'flex', alignItems: 'center' }}>
                                 <ExamCountdownTimer
-                                    examId={examId}
+                                    examId={groupExamId}
                                     compact={true}
                                     onTimeExpired={() => {
                                         // Tự động quay về trang danh sách bài tập khi hết thời gian
-                                        navigate(`/${routesConfig.exam}`.replace(':id', examId));
+                                        navigate(`/${routesConfig.exam}`.replace(':groupExamId', groupExamId));
                                     }}
                                 />
                             </div>

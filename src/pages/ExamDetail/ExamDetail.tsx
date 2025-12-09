@@ -1,14 +1,14 @@
-import { observer } from 'mobx-react-lite';
-import { useEffect, useState, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import * as http from '../../lib/httpRequest';
-import { Card, Tag, Button } from 'antd';
-import { LeftOutlined, FileTextOutlined } from '@ant-design/icons';
-import LoadingOverlay from '../../components/LoadingOverlay/LoadingOverlay';
-import globalStore from '../../components/GlobalComponent/globalStore';
+import { FileTextOutlined } from '@ant-design/icons';
+import { Button, Card, Tag } from 'antd';
 import classnames from 'classnames';
+import { observer } from 'mobx-react-lite';
+import { useEffect, useRef, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import AIAssistant from '../../components/AIAssistant/AIAssistant';
+import globalStore from '../../components/GlobalComponent/globalStore';
+import LoadingOverlay from '../../components/LoadingOverlay/LoadingOverlay';
 import ProtectedElement from '../../components/ProtectedElement/ProtectedElement';
+import * as http from '../../lib/httpRequest';
 import routesConfig from '../../routes/routesConfig';
 import authentication from '../../shared/auth/authentication';
 import ExamCountdownTimer from './components/ExamCountdownTimer';
@@ -127,7 +127,7 @@ const ExamDetail = observer(() => {
         http.get(`/group-exams?groupExamId=${groupExamId}`)
             .then((res) => {
                 const payload = res?.data;
-                console.log(res)
+                console.log(res);
                 console.log('payload', payload);
                 const groupExam = Array.isArray(payload) ? payload[0] : payload;
                 const derivedExamId = groupExam?.exam?.id || null;
@@ -161,7 +161,9 @@ const ExamDetail = observer(() => {
                 const userId = authentication.account?.data?.id;
                 if (!userId) return;
 
-                const response = await http.get(`/exams/submissions/results?userId=${userId}&groupExamId=${groupExamId}`);
+                const response = await http.get(
+                    `/exams/submissions/results?userId=${userId}&groupExamId=${groupExamId}`
+                );
                 const data: ExamResultData = response.data;
 
                 if (data && data.submissions) {
@@ -274,7 +276,7 @@ const ExamDetail = observer(() => {
                     } catch (error: unknown) {
                         const statusCode =
                             typeof error === 'object' && error !== null && 'response' in error
-                                ? ((error as { response?: { status?: number } }).response?.status ?? undefined)
+                                ? (error as { response?: { status?: number } }).response?.status ?? undefined
                                 : undefined;
                         const isServerError =
                             typeof statusCode === 'number' &&
@@ -363,7 +365,10 @@ const ExamDetail = observer(() => {
         // LINK TO EXAM EXERCISE PAGE
         if (selectedExercise && examId && groupExamId) {
             navigate(
-                `/${routesConfig.examExercise}`.replace(':examId', examId).replace(':exerciseId', selectedExercise.id).replace(':groupExamId', groupExamId)
+                `/${routesConfig.examExercise}`
+                    .replace(':examId', examId)
+                    .replace(':exerciseId', selectedExercise.id)
+                    .replace(':groupExamId', groupExamId)
             );
         }
     };
@@ -384,14 +389,17 @@ const ExamDetail = observer(() => {
                     <div className="exam-detail-wrapper">
                         <div className="sidebar">
                             <div className="sidebar-header">
-                                <Button
+                                {/* CHỖ NÀY SAI LÒI LE */}
+                                {/* <Button
                                     icon={<LeftOutlined />}
-                                    onClick={() => navigate(`/${routesConfig.exams}`)}
+                                    onClick={() =>
+                                        navigate(`/${routesConfig.groupExams.replace(':id', groupExamId || '')}`)
+                                    }
                                     type="text"
                                     style={{ color: '#1890ff' }}
                                 >
                                     Bài thi
-                                </Button>
+                                </Button> */}
                             </div>
                             <div className="sidebar-title">
                                 <FileTextOutlined style={{ marginRight: 8 }} />
@@ -413,10 +421,10 @@ const ExamDetail = observer(() => {
                                             style={
                                                 isCompleted
                                                     ? {
-                                                        color: '#999',
-                                                        opacity: 0.7,
-                                                        cursor: 'default'
-                                                    }
+                                                          color: '#999',
+                                                          opacity: 0.7,
+                                                          cursor: 'default'
+                                                      }
                                                     : {}
                                             }
                                         >

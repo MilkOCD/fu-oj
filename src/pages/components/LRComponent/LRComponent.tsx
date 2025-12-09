@@ -1,16 +1,14 @@
-import { LoadingOutlined, MailOutlined, FacebookOutlined, InstagramOutlined } from '@ant-design/icons';
-import type { FormProps } from 'antd';
-import { Button, Checkbox, Form, Input, Modal } from 'antd';
+import { FacebookOutlined, InstagramOutlined, LoadingOutlined, MailOutlined } from '@ant-design/icons';
+import { Button, Checkbox, Input } from 'antd';
 import classnames from 'classnames';
 import { observer } from 'mobx-react-lite';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import globalStore from '../../../components/GlobalComponent/globalStore';
-import authentication from '../../../shared/auth/authentication';
 import * as http from '../../../lib/httpRequest';
-import './lr-component.scss';
-import Line from '../../../components/Line/Line';
+import authentication from '../../../shared/auth/authentication';
 import utils from '../../../utils/utils';
+import './lr-component.scss';
 
 const flexSliderItems = [
     {
@@ -47,7 +45,7 @@ const LRComponent = observer(() => {
     // LOGIN
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    const [remember, setRemember] = useState(false);
+    const [remember, setRemember] = useState(true);
     const [email, setEmail] = useState('');
 
     const login = () => {
