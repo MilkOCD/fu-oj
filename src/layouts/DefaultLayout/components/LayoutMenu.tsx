@@ -57,7 +57,7 @@ const menuItems = [
         name: 'Chứng chỉ',
         icon: <SafetyCertificateOutlined />,
         to: '/certificates',
-        allowedRoles: ['STUDENT', 'ADMIN']
+        allowedRoles: ['STUDENT']
     },
     // {
     //     id: 'dashboard',
