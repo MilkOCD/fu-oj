@@ -98,7 +98,7 @@ const UserDrawer = observer(() => {
                     <div className="level">
                         Vai trò:{' '}
                         <div className="data">
-                            {authentication.isAuthenticated
+                            {authentication.isInstructor
                                 ? 'Giảng viên'
                                 : authentication.isStudent
                                 ? 'Sinh viên'
