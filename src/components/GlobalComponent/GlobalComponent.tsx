@@ -8,6 +8,7 @@ import { useWindowSize } from '../../hooks';
 import authentication from '../../shared/auth/authentication';
 import globalStore from './globalStore';
 import ProtectedElement from '../ProtectedElement/ProtectedElement';
+import utils from '../../utils/utils';
 
 type NotificationType = 'success' | 'info' | 'warning' | 'error';
 
@@ -95,10 +96,17 @@ const UserDrawer = observer(() => {
             <div className="rank">
                 <div className="container">
                     <div className="level">
-                        Xếp hạng: <div className="data">Thách đấu</div>
+                        Vai trò:{' '}
+                        <div className="data">
+                            {authentication.isAuthenticated
+                                ? 'Giảng viên'
+                                : authentication.isStudent
+                                ? 'Sinh viên'
+                                : 'Admin'}
+                        </div>
                     </div>
-                    <div className="created-date">Ngày tạo: 25/10/2025</div>
-                    <div className="updated-date">Ngày cập nhật: 25/10/2025</div>
+                    {/* <div className="created-date">Ngày tạo: 25/10/2025</div> */}
+                    <div className="updated-date">Hôm nay: {utils.formatDate(new Date(), 'DD/MM/YYYY HH:mm')}</div>
                 </div>
             </div>
             <div className="actions">
