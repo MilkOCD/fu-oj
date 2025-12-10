@@ -56,7 +56,11 @@ const Certificates = observer(() => {
                 setDisplayCertificates(res.data || []);
             })
             .catch((error) => {
-                globalStore.triggerNotification('error', error.response?.data?.message || 'Lỗi khi tải danh sách chứng chỉ', '');
+                globalStore.triggerNotification(
+                    'error',
+                    error.response?.data?.message || 'Lỗi khi tải danh sách chứng chỉ',
+                    ''
+                );
             })
             .finally(() => {
                 setLoading(false);
@@ -105,7 +109,7 @@ const Certificates = observer(() => {
 
     return (
         <div className={classnames('leetcode', globalStore.isBelow1300 ? 'col' : 'row')}>
-            <div className={classnames('certificates left', { 'p-24': globalStore.isBelow1300 })}>
+            <div className={classnames('certificates left overflow-visible', { 'p-24': globalStore.isBelow1300 })}>
                 <div className="header">
                     <div className="title">Chứng chỉ</div>
                     <div className="description">
@@ -127,14 +131,7 @@ const Certificates = observer(() => {
                                 <Row gutter={[16, 16]}>
                                     {displayCertificates.length ? (
                                         displayCertificates.map((cert) => (
-                                            <Col
-                                                key={cert.id}
-                                                xs={24}
-                                                sm={12}
-                                                md={12}
-                                                lg={8}
-                                                xl={8}
-                                            >
+                                            <Col key={cert.id} xs={24} sm={12} md={12} lg={8} xl={8}>
                                                 <Card
                                                     onClick={() => handleCertificateClick(cert)}
                                                     style={{ cursor: 'pointer' }}
@@ -146,7 +143,9 @@ const Certificates = observer(() => {
                                                                     highlightClassName="highlight"
                                                                     searchWords={[search]}
                                                                     autoEscape={true}
-                                                                    textToHighlight={cert.course?.title || 'Không có tiêu đề'}
+                                                                    textToHighlight={
+                                                                        cert.course?.title || 'Không có tiêu đề'
+                                                                    }
                                                                 />
                                                             </div>
                                                         </div>
@@ -154,10 +153,7 @@ const Certificates = observer(() => {
                                                 >
                                                     <Meta
                                                         avatar={
-                                                            <Avatar
-                                                                src={cert.user?.avatar?.url}
-                                                                size={40}
-                                                            >
+                                                            <Avatar src={cert.user?.avatar?.url} size={40}>
                                                                 {getUserDisplayName(cert.user).charAt(0).toUpperCase()}
                                                             </Avatar>
                                                         }
@@ -210,7 +206,7 @@ const Certificates = observer(() => {
                                                         {cert.user?.rollNumber && (
                                                             <div className="roll-number">
                                                                 <Text type="secondary">
-                                                                    Mã số: {cert.user.rollNumber}
+                                                                    Mã số sinh viên: {cert.user.rollNumber}
                                                                 </Text>
                                                             </div>
                                                         )}
@@ -260,18 +256,21 @@ const Certificates = observer(() => {
                                 </div>
 
                                 <div className="certificate-body">
-                                    <div className="certificate-intro">
-                                        Chứng chỉ này được trao cho
-                                    </div>
+                                    <div className="certificate-intro">Chứng chỉ này được trao cho</div>
                                     <div className="certificate-name">
                                         {getUserDisplayName(selectedCertificate.user)}
                                     </div>
                                     <div className="certificate-description">
                                         <p>
-                                            Đã hoàn thành xuất sắc khóa học <strong>{selectedCertificate.course?.title || 'Khóa học'}</strong> và
-                                            thể hiện sự tận tâm, kiên trì và nắm vững kiến thức trong lĩnh vực này.
+                                            Đã hoàn thành xuất sắc khóa học{' '}
+                                            <strong>{selectedCertificate.course?.title || 'Khóa học'}</strong> và thể
+                                            hiện sự tận tâm, kiên trì và nắm vững kiến thức trong lĩnh vực này.
                                             {selectedCertificate.reason && (
-                                                <> Thành tích này phản ánh: <strong>{selectedCertificate.reason}</strong>.</>
+                                                <>
+                                                    {' '}
+                                                    Thành tích này phản ánh:{' '}
+                                                    <strong>{selectedCertificate.reason}</strong>.
+                                                </>
                                             )}
                                         </p>
                                     </div>
@@ -303,5 +302,3 @@ const Certificates = observer(() => {
 });
 
 export default Certificates;
-
-
