@@ -1129,8 +1129,8 @@ const Exercises = observer(() => {
                     </div>
                 </Modal>
                 <div className="header">
-                    <div className="title" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <span>{authentication.isStudent ? 'Danh sách bài tập' : 'Quản lý danh sách bài tập'}</span>
+                    <div className="title">
+                        {authentication.isStudent ? 'Danh sách bài tập' : 'Quản lý danh sách bài tập'}
                     </div>
                     <div className="description">
                         Để bắt đầu một cách thuận lợi, bạn nên tập trung vào một lộ trình học. Ví dụ: Để đi làm với vị
@@ -1332,13 +1332,8 @@ const Exercises = observer(() => {
             <div className="right">
                 <CustomCalendar dateArr={utils.getDates()} />
 
-                <Button
-                    type="primary"
-                    icon={<ReloadOutlined />}
-                    onClick={resetTour}
-                    className="tour-guide-button"
-                >
-                    Xem hướng dẫn
+                <Button type="primary" icon={<ReloadOutlined />} onClick={resetTour} className="tour-guide-button">
+                    Xem lại hướng dẫn
                 </Button>
             </div>
         </div>

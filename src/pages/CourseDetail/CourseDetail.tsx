@@ -4,17 +4,28 @@ import {
     FileTextOutlined,
     LeftOutlined,
     ReloadOutlined,
-    ShareAltOutlined
+    ShareAltOutlined,
+    CheckOutlined,
+    FireOutlined
 } from '@ant-design/icons';
+import type { ProgressProps } from 'antd';
 import { Button, Card, Empty, Progress, Typography } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import globalStore from '../../components/GlobalComponent/globalStore';
 import LoadingOverlay from '../../components/LoadingOverlay/LoadingOverlay';
+import * as http from '../../lib/httpRequest';
 import routesConfig from '../../routes/routesConfig';
 import utils from '../../utils/utils';
-import * as http from '../../lib/httpRequest';
 import './course-detail.scss';
+import classnames from 'classnames';
+import { observer } from 'mobx-react-lite';
+
+const conicColors: ProgressProps['strokeColor'] = {
+    '0%': '#87d068',
+    '50%': '#ffe58f',
+    '100%': '#ffccc7'
+};
 
 interface CourseProgress {
     solvedCount: number;
@@ -46,7 +57,7 @@ interface CourseExercise {
     topics?: { name: string; id: string }[];
 }
 
-const CourseDetail = () => {
+const CourseDetail = observer(() => {
     const { courseId } = useParams();
     const navigate = useNavigate();
 
@@ -159,29 +170,93 @@ const CourseDetail = () => {
     };
 
     return (
-        <div className="course-detail-page">
-            <div className="course-detail-content">
-                <div className="course-main">
-                    <div
-                        className="course-header"
-                        style={
-                            course?.image?.url
-                                ? {
-                                      backgroundImage: `url(${course.image.url})`
-                                  }
-                                : undefined
-                        }
-                    >
-                        <Button className="header-icon-button header-icon-button--back" onClick={() => navigate(-1)}>
+        <div className={classnames('course-detail-page', { 'p-24': globalStore.isBelow1300 })}>
+            <LoadingOverlay loading={exerciseLoading || courseLoading}>
+                <div className="course-detail-content">
+                    <div className="course-main">
+                        <div
+                            className="course-header good-bg"
+                            // style={
+                            //     course?.image?.url
+                            //         ? {
+                            //               backgroundImage: `url(${course.image.url})`
+                            //           }
+                            //         : undefined
+                            // }
+                        >
+                            {/* <Button className="header-icon-button header-icon-button--back" onClick={() => navigate(-1)}>
                             <LeftOutlined />
                         </Button>
-                        <Button
-                            className="header-icon-button header-icon-button--share"
-                            onClick={handleShareCourse}
-                        >
+                        <Button className="header-icon-button header-icon-button--share" onClick={handleShareCourse}>
                             <ShareAltOutlined />
-                        </Button>
-                        <div className="header-left">
+                        </Button> */}
+                            <div className="left">
+                                <div className="course-info">
+                                    <div className="course-logo">
+                                        <BookOutlined />
+                                        <span className="course-count">{exercises.length}</span>
+                                    </div>
+                                    <div className="header-info">
+                                        <div className="course-subtitle">Học với {exercises.length} bài tập</div>
+                                        <Typography.Title level={1} className="course-title">
+                                            {course?.title || 'Khóa học'}
+                                        </Typography.Title>
+                                    </div>
+                                </div>
+                                <div className="description">
+                                    <b>Bạn sẽ học được gì?</b>
+                                    <div className="desc-text">
+                                        <CheckOutlined className="ico" />
+                                        <div className="text max-2-lines">
+                                            {course?.description || 'Khóa học tự do'}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="actions">
+                                    {!course?.progress && (
+                                        <div className="ico-btn btn-join" onClick={handleEnroll}>
+                                            <FireOutlined className="ico" />
+                                            Tham gia khóa học
+                                        </div>
+                                    )}
+                                    <div className="ico-btn" onClick={handleShareCourse}>
+                                        <ShareAltOutlined className="ico" />
+                                        Sao chép liên kết
+                                    </div>
+                                </div>
+                            </div>
+                            <div className={classnames('right', { hide: globalStore.isBelow1000 })}>
+                                <div className="progress">
+                                    <Progress
+                                        type="dashboard"
+                                        percent={
+                                            !course?.progress
+                                                ? 0
+                                                : (course?.progress?.solvedCount / course?.progress?.totalCount) * 100
+                                        }
+                                        strokeColor={conicColors}
+                                    />
+                                    <img
+                                        className="course-img"
+                                        src={!!course?.progress ? '/sources/student-1.png' : '/sources/dev.png'}
+                                        alt=""
+                                    />
+                                </div>
+                                {!course?.progress ? (
+                                    <>
+                                        <div className="progress-note">Chưa tham gia</div>
+                                    </>
+                                ) : (
+                                    <>
+                                        <div className="progress-note">
+                                            Đã hoàn thành:&nbsp;{' '}
+                                            <b className="color-cyan">{course?.progress?.solvedCount}</b> /{' '}
+                                            {course?.progress?.totalCount}{' '}
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                            {/* <div className="header-left">
                             <div className="course-logo">
                                 <BookOutlined />
                                 <span className="course-count">{exercises.length}</span>
@@ -194,6 +269,12 @@ const CourseDetail = () => {
                             </div>
                         </div>
                         <div className="header-right">
+                            <div className="progress">
+                                <Progress type="dashboard" percent={100} strokeColor={conicColors} />
+                                <img className="course-img" src="/sources/student-1.png" alt="" />
+                            </div>
+                        </div> */}
+                            {/* <div className="header-right">
                             {course?.progress ? (
                                 <div className="header-progress">
                                     <div className="header-progress-text">
@@ -233,16 +314,18 @@ const CourseDetail = () => {
                                 }}
                                 type="text"
                             />
+                        </div> */}
                         </div>
-                    </div>
 
-                    <div className="course-layout">
-                        <div className="course-problems">
-                            <LoadingOverlay loading={exerciseLoading || courseLoading}>
+                        <div className="course-layout">
+                            <div className="course-problems max-width">
+                                {/* <LoadingOverlay loading={exerciseLoading || courseLoading}> */}
                                 {exercises.length === 0 ? (
                                     <Empty
+                                        className="flex flex-center"
                                         description="Khóa học chưa có bài tập nào."
                                         image={Empty.PRESENTED_IMAGE_SIMPLE}
+                                        style={{ minHeight: 200 }}
                                     />
                                 ) : (
                                     Object.entries(groupedExercises).map(([topicName, topicExercises]) => (
@@ -270,70 +353,98 @@ const CourseDetail = () => {
                                                                 }
                                                             }}
                                                         >
-                                                        <div className="problem-content">
-                                                            <div className="problem-title">{exercise.title}</div>
-                                                            {exercise.description && (
-                                                                <div className="problem-description">
-                                                                    {exercise.description}
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                        <div className="problem-actions">
-                                                            <Button
-                                                                type="link"
-                                                                icon={<FileTextOutlined />}
-                                                                disabled={isCompleted}
+                                                            <div className="problem-content">
+                                                                <div className="problem-title">{exercise.title}</div>
+                                                                {exercise.description && (
+                                                                    <div className="problem-description">
+                                                                        {exercise.description}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                            <div className="problem-actions">
+                                                                <Button
+                                                                    type="link"
+                                                                    icon={<FileTextOutlined />}
+                                                                    disabled={isCompleted}
                                                                     onClick={(e) => {
                                                                         e.stopPropagation();
                                                                         if (!isCompleted) {
                                                                             goToExercise();
                                                                         }
                                                                     }}
-                                                            >
-                                                                Làm bài
-                                                            </Button>
-                                                            <div className="problem-difficulty">
-                                                                {utils.getDifficultyClass(exercise.difficulty)}
+                                                                >
+                                                                    Làm bài
+                                                                </Button>
+                                                                <div className="problem-difficulty">
+                                                                    {utils.getDifficultyClass(exercise.difficulty)}
+                                                                </div>
                                                             </div>
                                                         </div>
-                                                    </div>
                                                     );
                                                 })}
                                             </div>
                                         </div>
                                     ))
                                 )}
-                            </LoadingOverlay>
-                        </div>
+                                {/* </LoadingOverlay> */}
+                            </div>
 
-                        <div className="course-sidebar">
-                            <Card className="sidebar-card" title="Tóm tắt">
+                            <div className="course-sidebar">
+                                {/* <Card className="sidebar-card" title="Tóm tắt">
                                 {course?.description ? (
                                     <p>{course?.description}</p>
                                 ) : (
                                     <Empty description="Không có tóm tắt" image={Empty.PRESENTED_IMAGE_SIMPLE} />
                                 )}
-                            </Card>
+                            </Card> */}
 
-                            <Card className="sidebar-card" title="Phần thưởng">
-                                <div className="award-content">
-                                    <div className="award-badge">
-                                        <BookOutlined />
-                                    </div>
-                                    <div className="award-text">
-                                        <div className="award-title">{course?.title || 'Khóa học'}</div>
-                                        <div className="award-desc">
-                                            Khi bạn hoàn thành, bạn sẽ có được một <strong>chứng chỉ</strong>.
+                                <Card
+                                    className={classnames('sidebar-card', {
+                                        achieved:
+                                            course?.progress?.totalCount &&
+                                            course?.progress?.solvedCount &&
+                                            course?.progress?.totalCount == course?.progress?.solvedCount
+                                    })}
+                                    title="Phần thưởng"
+                                >
+                                    <>
+                                        {course?.progress?.totalCount &&
+                                        course?.progress?.solvedCount &&
+                                        course?.progress?.totalCount == course?.progress?.solvedCount ? (
+                                            <div className="achieved-mark">
+                                                <img src="/sources/achieved.png" alt="" />
+                                                <div className="text">Đã hoàn thành</div>
+                                            </div>
+                                        ) : (
+                                            <></>
+                                        )}
+                                        <div
+                                            className={classnames('award-content', {
+                                                'achieved-content':
+                                                    course?.progress?.totalCount &&
+                                                    course?.progress?.solvedCount &&
+                                                    course?.progress?.totalCount == course?.progress?.solvedCount
+                                            })}
+                                        >
+                                            <div className="award-badge">
+                                                <BookOutlined />
+                                            </div>
+                                            <div className="award-text">
+                                                <div className="award-title">{course?.title || 'Khóa học'}</div>
+                                                <div className="award-desc">
+                                                    Khi bạn hoàn thành, bạn sẽ có được một <strong>chứng chỉ</strong>.
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                </div>
-                            </Card>
+                                    </>
+                                </Card>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </LoadingOverlay>
         </div>
     );
-};
+});
 
 export default CourseDetail;
