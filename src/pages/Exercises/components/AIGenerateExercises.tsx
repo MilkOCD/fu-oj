@@ -85,6 +85,7 @@ const AIGenerateExercises = observer(() => {
     const [runResults, setRunResults] = useState<RunResult[]>([]);
     const [runError, setRunError] = useState('');
     const [singleCreateLoading, setSingleCreateLoading] = useState(false);
+    const [exerciseErrors, setExerciseErrors] = useState<Map<number, string>>(new Map());
 
     const handleAIGenerate = async () => {
         try {
@@ -164,19 +165,57 @@ const AIGenerateExercises = observer(() => {
         if (aiPreviewExercises.length === 0) return;
 
         setAILoading(true);
-        try {
-            let successCount = 0;
-            for (const exerciseData of aiPreviewExercises) {
+        setExerciseErrors(new Map());
+        
+        const exercisesToRemove: number[] = [];
+        const tempErrors = new Map<number, string>();
+        let successCount = 0;
+        
+        for (let i = aiPreviewExercises.length - 1; i >= 0; i--) {
+            const exerciseData = aiPreviewExercises[i];
+            try {
                 await http.post('/exercises', buildExercisePayload(exerciseData));
                 successCount++;
+                exercisesToRemove.push(i);
+            } catch (error: unknown) {
+                const err = error as { response?: { data?: { message?: string } } };
+                const errorMessage = err.response?.data?.message || 'Có lỗi xảy ra khi tạo bài tập!';
+                tempErrors.set(i, errorMessage);
             }
+        }
 
+        // Xóa các bài đã tạo thành công
+        const newExercises = aiPreviewExercises.filter((_, index) => !exercisesToRemove.includes(index));
+        setAIPreviewExercises(newExercises);
+
+        // Cập nhật lại index của các lỗi sau khi xóa các bài thành công
+        if (tempErrors.size > 0) {
+            const updatedErrors = new Map<number, string>();
+            tempErrors.forEach((error, oldIndex) => {
+                // Tính số lượng bài đã xóa trước index này
+                const removedBefore = exercisesToRemove.filter((removedIndex) => removedIndex < oldIndex).length;
+                const newIndex = oldIndex - removedBefore;
+                updatedErrors.set(newIndex, error);
+            });
+            setExerciseErrors(updatedErrors);
+        }
+
+        // Hiển thị thông báo kết quả
+        if (exercisesToRemove.length === aiPreviewExercises.length) {
+            // Tất cả đều thành công
             globalStore.triggerNotification('success', `Đã tạo ${successCount} bài tập thành công!`, '');
-            handleBackToExercises();
-        } catch (error: unknown) {
-            const err = error as { response?: { data?: { message?: string } } };
-            globalStore.triggerNotification('error', err.response?.data?.message || 'Có lỗi xảy ra!', '');
-        } finally {
+            setAILoading(false);
+            // Đợi một chút để thông báo hiển thị trước khi navigate
+            setTimeout(() => {
+                handleBackToExercises();
+            }, 1000);
+        } else if (successCount > 0) {
+            // Có một số thành công, một số lỗi
+            globalStore.triggerNotification('warning', `Đã tạo ${successCount} bài tập thành công, ${tempErrors.size} bài lỗi!`, '');
+            setAILoading(false);
+        } else {
+            // Tất cả đều lỗi
+            globalStore.triggerNotification('error', 'Tất cả bài tập đều tạo thất bại!', '');
             setAILoading(false);
         }
     };
@@ -191,14 +230,49 @@ const AIGenerateExercises = observer(() => {
         setSingleCreateLoading(true);
         try {
             await http.post('/exercises', buildExercisePayload(exercise));
-            message.success(`Đã tạo bài tập "${exercise.title}" thành công!`);
+            globalStore.triggerNotification('success', `Đã tạo bài tập "${exercise.title}" thành công!`, '');
+            
+            // Xóa bài tập khỏi danh sách khi thành công
+            const newExercises = aiPreviewExercises.filter((_, index) => index !== activeExerciseIndex);
+            setAIPreviewExercises(newExercises);
+            
+            // Xóa lỗi nếu có
+            setExerciseErrors((prev) => {
+                const newMap = new Map(prev);
+                newMap.delete(activeExerciseIndex);
+                // Cập nhật lại index của các lỗi sau khi xóa
+                const updatedMap = new Map<number, string>();
+                newMap.forEach((error, oldIndex) => {
+                    if (oldIndex > activeExerciseIndex) {
+                        updatedMap.set(oldIndex - 1, error);
+                    } else if (oldIndex < activeExerciseIndex) {
+                        updatedMap.set(oldIndex, error);
+                    }
+                });
+                return updatedMap;
+            });
+            
+            // Điều chỉnh activeExerciseIndex nếu cần
+            if (newExercises.length > 0) {
+                if (activeExerciseIndex >= newExercises.length) {
+                    setActiveExerciseIndex(newExercises.length - 1);
+                }
+            } else {
+                // Không còn bài nào, quay lại danh sách
+                handleBackToExercises();
+            }
         } catch (error: unknown) {
             const err = error as { response?: { data?: { message?: string } } };
-            globalStore.triggerNotification(
-                'error',
-                err.response?.data?.message || 'Có lỗi xảy ra khi tạo bài tập!',
-                ''
-            );
+            const errorMessage = err.response?.data?.message || 'Có lỗi xảy ra khi tạo bài tập!';
+            
+            // Lưu lỗi vào state
+            setExerciseErrors((prev) => {
+                const newMap = new Map(prev);
+                newMap.set(activeExerciseIndex, errorMessage);
+                return newMap;
+            });
+            
+            globalStore.triggerNotification('error', errorMessage, '');
         } finally {
             setSingleCreateLoading(false);
         }
@@ -223,6 +297,7 @@ const AIGenerateExercises = observer(() => {
         setRunError('');
         setSingleCreateLoading(false);
         setActiveExerciseIndex(0);
+        setExerciseErrors(new Map());
         form.resetFields();
     };
 
@@ -254,6 +329,19 @@ const AIGenerateExercises = observer(() => {
         const exercise = aiPreviewExercises[index];
         const newExercises = aiPreviewExercises.filter((_, i) => i !== index);
         setAIPreviewExercises(newExercises);
+
+        // Xóa lỗi nếu có
+        setExerciseErrors((prev) => {
+            const newMap = new Map<number, string>();
+            prev.forEach((error, oldIndex) => {
+                if (oldIndex < index) {
+                    newMap.set(oldIndex, error);
+                } else if (oldIndex > index) {
+                    newMap.set(oldIndex - 1, error);
+                }
+            });
+            return newMap;
+        });
 
         // Lưu bài tập đã xóa để có thể undo
         setDeletedExercises((prev) => [...prev, { exercise, index }]);
@@ -705,6 +793,7 @@ const AIGenerateExercises = observer(() => {
                                 index={activeExerciseIndex}
                                 isEditing={editingIndex === activeExerciseIndex}
                                 topics={topics}
+                                error={exerciseErrors.get(activeExerciseIndex)}
                                 onStartEdit={() => setEditingIndex(activeExerciseIndex)}
                                 onStopEdit={() => setEditingIndex(null)}
                                 onDelete={() => handleDeleteExercise(activeExerciseIndex)}
