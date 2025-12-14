@@ -160,27 +160,6 @@ const AIGenerateExercises = observer(() => {
         testCases: exercise.testCases || []
     });
 
-    const handleAICreateExercises = async () => {
-        if (aiPreviewExercises.length === 0) return;
-
-        setAILoading(true);
-        try {
-            let successCount = 0;
-            for (const exerciseData of aiPreviewExercises) {
-                await http.post('/exercises', buildExercisePayload(exerciseData));
-                successCount++;
-            }
-
-            globalStore.triggerNotification('success', `Đã tạo ${successCount} bài tập thành công!`, '');
-            handleBackToExercises();
-        } catch (error: unknown) {
-            const err = error as { response?: { data?: { message?: string } } };
-            globalStore.triggerNotification('error', err.response?.data?.message || 'Có lỗi xảy ra!', '');
-        } finally {
-            setAILoading(false);
-        }
-    };
-
     const handleCreateSingleExercise = async () => {
         const exercise = aiPreviewExercises[activeExerciseIndex];
         if (!exercise) {
@@ -376,9 +355,6 @@ const AIGenerateExercises = observer(() => {
                 <Button onClick={handleBackToExercises}>Hủy</Button>
                 <Button type="default" loading={singleCreateLoading} onClick={handleCreateSingleExercise}>
                     Tạo bài tập hiện tại
-                </Button>
-                <Button type="primary" loading={aiLoading} onClick={handleAICreateExercises}>
-                    Tạo {aiPreviewExercises.length} bài tập
                 </Button>
             </div>
         );
