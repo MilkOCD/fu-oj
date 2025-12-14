@@ -26,6 +26,7 @@ import LoadingOverlay from '../../components/LoadingOverlay/LoadingOverlay';
 import ProtectedElement from '../../components/ProtectedElement/ProtectedElement';
 import TooltipWrapper from '../../components/TooltipWrapper/TooltipWrapperComponent';
 import * as http from '../../lib/httpRequest';
+import httpRequest from '../../lib/httpRequest';
 import routesConfig from '../../routes/routesConfig';
 import authentication from '../../shared/auth/authentication';
 import utils from '../../utils/utils';
@@ -53,6 +54,9 @@ const Exercises = observer(() => {
     const [coursesLoading, setCoursesLoading] = useState(false);
     const [form] = Form.useForm();
     const tourRef = useRef<InstanceType<typeof Shepherd.Tour> | null>(null);
+    const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+    const [isUpdateVisibilityModalOpen, setIsUpdateVisibilityModalOpen] = useState(false);
+    const [updateVisibilityForm] = Form.useForm();
 
     const columns = [
         {
@@ -470,6 +474,44 @@ const Exercises = observer(() => {
                 setLoading(false);
             }, 1000);
         });
+    };
+
+    const handleUpdateVisibility = () => {
+        if (selectedRowKeys.length === 0) {
+            globalStore.triggerNotification('warning', 'Vui lòng chọn ít nhất một bài tập!', '');
+            return;
+        }
+        setIsUpdateVisibilityModalOpen(true);
+    };
+
+    const onUpdateVisibilityFinish = (values: any) => {
+        const payload = {
+            exerciseIds: selectedRowKeys,
+            visibility: values.visibility
+        };
+
+        httpRequest
+            .patch('/exercises/visibility', payload)
+            .then((res: any) => {
+                globalStore.triggerNotification('success', res.data?.message || 'Cập nhật thành công!', '');
+                setIsUpdateVisibilityModalOpen(false);
+                setSelectedRowKeys([]);
+                updateVisibilityForm.resetFields();
+                getExercises();
+            })
+            .catch((error: any) => {
+                globalStore.triggerNotification('error', error.response?.data?.message || 'Cập nhật thất bại!', '');
+            });
+    };
+
+    const rowSelection = {
+        selectedRowKeys,
+        onChange: (selectedKeys: React.Key[]) => {
+            setSelectedRowKeys(selectedKeys);
+        },
+        getCheckboxProps: () => ({
+            disabled: !authentication.isInstructor
+        })
     };
 
     const getCourses = async () => {
@@ -1128,6 +1170,55 @@ const Exercises = observer(() => {
                         </Form>
                     </div>
                 </Modal>
+                <Modal
+                    title="Cập nhật trạng thái bài tập"
+                    open={isUpdateVisibilityModalOpen}
+                    onCancel={() => {
+                        setIsUpdateVisibilityModalOpen(false);
+                        updateVisibilityForm.resetFields();
+                    }}
+                    footer={null}
+                    width={400}
+                >
+                    <Form
+                        form={updateVisibilityForm}
+                        name="updateVisibilityForm"
+                        labelCol={{ span: 24 }}
+                        wrapperCol={{ span: 24 }}
+                        labelAlign="left"
+                        onFinish={onUpdateVisibilityFinish}
+                        autoComplete="off"
+                    >
+                        <Form.Item
+                            label="Trạng thái"
+                            name="visibility"
+                            rules={[{ required: true, message: 'Vui lòng chọn trạng thái!' }]}
+                        >
+                            <Select
+                                style={{ width: '100%' }}
+                                placeholder="Chọn trạng thái"
+                                options={[
+                                    { value: 'DRAFT', label: 'DRAFT' },
+                                    { value: 'PUBLIC', label: 'PUBLIC' },
+                                    { value: 'PRIVATE', label: 'PRIVATE' }
+                                ]}
+                            />
+                        </Form.Item>
+                        <Form.Item>
+                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+                                <Button onClick={() => {
+                                    setIsUpdateVisibilityModalOpen(false);
+                                    updateVisibilityForm.resetFields();
+                                }}>
+                                    Hủy
+                                </Button>
+                                <Button type="primary" htmlType="submit">
+                                    Cập nhật
+                                </Button>
+                            </div>
+                        </Form.Item>
+                    </Form>
+                </Modal>
                 <div className="header">
                     <div className="title">
                         {authentication.isStudent ? 'Danh sách bài tập' : 'Quản lý danh sách bài tập'}
@@ -1273,6 +1364,12 @@ const Exercises = observer(() => {
 
                         <div className="group-create">
                             <ProtectedElement acceptRoles={['INSTRUCTOR']}>
+                                {selectedRowKeys.length > 0 && (
+                                    <div className="custom-btn-ico" onClick={handleUpdateVisibility}>
+                                        <SettingOutlined className="custom-ant-ico" />
+                                        Cập nhật trạng thái ({selectedRowKeys.length})
+                                    </div>
+                                )}
                                 <div
                                     className="custom-btn-ico custom-btn-ico-hot"
                                     onClick={() => navigate(`/${routesConfig.aiExercises}`)}
@@ -1313,6 +1410,7 @@ const Exercises = observer(() => {
                                 }}
                                 dataSource={displayDatas}
                                 columns={authentication?.account?.data?.role == 'INSTRUCTOR' ? columns : studentCols}
+                                rowSelection={authentication?.account?.data?.role == 'INSTRUCTOR' ? rowSelection : undefined}
                                 rowClassName={(_record, index) =>
                                     index % 2 === 0 ? 'custom-row row-even' : 'custom-row row-odd'
                                 }
