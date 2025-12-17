@@ -8,7 +8,7 @@ import globalStore from '../../components/GlobalComponent/globalStore';
 import * as http from '../../lib/httpRequest';
 import authentication from '../../shared/auth/authentication';
 import utils from '../../utils/utils';
-import './FPComponent.scss';
+import './fp-component.scss';
 
 const flexSliderItems = [
     {
@@ -28,7 +28,6 @@ const flexSliderItems = [
         imgUrl: 'https://scontent.cdninstagram.com/v/t51.82787-15/547587128_18295404880270902_7111032811508598037_n.jpg?stp=dst-jpg_e35_tt6&_nc_cat=102&ig_cache_key=MzcyMDU3NzUyMjk5NzY0MDE3MA%3D%3D.3-ccb7-5&ccb=7-5&_nc_sid=58cdad&efg=eyJ2ZW5jb2RlX3RhZyI6InhwaWRzLjE0Mzl4MTc5OS5zZHIuQzMifQ%3D%3D&_nc_ohc=llCWpr1z4GYQ7kNvwHM_cd2&_nc_oc=AdnZDVk5eeYYhY-rKqja-_qjOMCM7oVACIWaSE2gyFH5RH6Xo3swoa4xNGyUXlFHHtM&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&_nc_ht=scontent.cdninstagram.com&_nc_gid=4Au4OaNnIaS7uMcUHGhnxg&oh=00_AfniC9F1407olPaX0oqnvn6hyPbZkW8LRQ-ai8KqmYwLgA&oe=693D0472'
     }
 ];
-
 
 const LRComponent = observer(() => {
     const navigate = useNavigate();
@@ -77,17 +76,13 @@ const LRComponent = observer(() => {
 
         setLoading(true);
         try {
-            await http.post(
-                `/auth/password/otp?email=${encodeURIComponent(email)}`,
-                {}
-            );
+            await http.post(`/auth/password/otp?email=${encodeURIComponent(email)}`, {});
             globalStore.triggerNotification('success', 'Mã OTP đã được gửi về email.', '');
             localStorage.setItem('forgotPasswordEmail', email);
             setEmail('');
             navigate('/confirm-otp');
         } catch (error: any) {
-            const message =
-                error?.response?.data?.message || 'Có lỗi xảy ra khi gửi email. Vui lòng thử lại sau!';
+            const message = error?.response?.data?.message || 'Có lỗi xảy ra khi gửi email. Vui lòng thử lại sau!';
             globalStore.triggerNotification('error', message, '');
         } finally {
             setLoading(false);
