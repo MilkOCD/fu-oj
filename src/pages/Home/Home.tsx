@@ -63,8 +63,8 @@ const Home = observer(() => {
     };
 
     const getTops = () => {
-        http.get('/scores?page=1&pageSize=5').then((res) => {
-            setTops(res.data);
+        http.get('/scores?page=1&pageSize=10').then((res) => {
+            setTops(res.data.slice(0, 4));
         });
     };
 
