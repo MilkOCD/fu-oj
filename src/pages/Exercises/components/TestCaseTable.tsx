@@ -36,7 +36,7 @@ const TestCaseTable = ({ testCases, isEditing, onUpdateTestCase, onDeleteTestCas
                                 value={text}
                                 onChange={(e) => onUpdateTestCase(testCaseIndex, 'input', e.target.value)}
                                 rows={2}
-                                style={{ fontFamily: 'monospace', fontSize: 12 }}
+                                style={{ fontFamily: 'monospace', fontSize: 12, resize: 'none' }}
                             />
                         ) : (
                             <div style={{ fontFamily: 'monospace', whiteSpace: 'pre-wrap' }}>{text}</div>
@@ -54,7 +54,7 @@ const TestCaseTable = ({ testCases, isEditing, onUpdateTestCase, onDeleteTestCas
                                 value={text}
                                 onChange={(e) => onUpdateTestCase(testCaseIndex, 'output', e.target.value)}
                                 rows={2}
-                                style={{ fontFamily: 'monospace', fontSize: 12 }}
+                                style={{ fontFamily: 'monospace', fontSize: 12, resize: 'none' }}
                             />
                         ) : (
                             <div style={{ fontFamily: 'monospace', whiteSpace: 'pre-wrap' }}>{text}</div>
@@ -68,9 +68,11 @@ const TestCaseTable = ({ testCases, isEditing, onUpdateTestCase, onDeleteTestCas
                     render: (text: string, record: any) => {
                         const testCaseIndex = record.key as number;
                         return isEditing ? (
-                            <Input
+                            <Input.TextArea
                                 value={text || ''}
+                                rows={2}
                                 onChange={(e) => onUpdateTestCase(testCaseIndex, 'note', e.target.value)}
+                                style={{ resize: 'none' }}
                             />
                         ) : (
                             text || '-'

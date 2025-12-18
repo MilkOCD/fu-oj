@@ -67,7 +67,7 @@ const ExerciseForm = ({
                 <Form.Item name="topic" label="Chủ đề" rules={[{ required: true, message: 'Vui lòng chọn topic!' }]}>
                     <Select
                         style={{ width: '100%' }}
-                        placeholder="Chọn topic"
+                        placeholder="Chọn một chủ đề"
                         value={selectedTopic || undefined}
                         onChange={(value) => {
                             setSelectedTopic(value);
@@ -107,7 +107,7 @@ const ExerciseForm = ({
                     <Select
                         mode="multiple"
                         style={{ width: '100%' }}
-                        placeholder="Chọn độ khó"
+                        placeholder="Chọn một hoặc nhiều độ khó"
                         value={selectedLevels}
                         onChange={(value) => {
                             setSelectedLevels(value);
