@@ -390,6 +390,17 @@ const Exercise = observer(() => {
                                                     })}
                                                 >
                                                     <div className="input wrapper">
+                                                        <div className="label">Kết quả</div>
+                                                        <div
+                                                            className={classnames('content', {
+                                                                'color-red': !item.passed,
+                                                                'color-cyan': !!item.passed
+                                                            })}
+                                                        >
+                                                            {item.verdict}
+                                                        </div>
+                                                    </div>
+                                                    <div className="input wrapper">
                                                         <div className="label">Input</div>
                                                         <div className="content">{item.input}</div>
                                                     </div>
@@ -480,6 +491,17 @@ const Exercise = observer(() => {
                                                         hide: index + 1 != selectedCaseResult
                                                     })}
                                                 >
+                                                    <div className="input wrapper">
+                                                        <div className="label">Kết quả</div>
+                                                        <div
+                                                            className={classnames('content', {
+                                                                'color-red': item.verdict != 'ACCEPTED',
+                                                                'color-cyan': item.verdict == 'ACCEPTED'
+                                                            })}
+                                                        >
+                                                            {item.verdict}
+                                                        </div>
+                                                    </div>
                                                     <div className="input wrapper">
                                                         <div className="label">Input</div>
                                                         <div className="content">{item.testCase?.input}</div>
