@@ -27,6 +27,7 @@ interface ExercisePreviewCardProps {
     index: number;
     isEditing: boolean;
     topics: Array<{ value: string; label: string }>;
+    error?: string;
     onStartEdit: () => void;
     onStopEdit: () => void;
     onDelete: () => void;
@@ -48,6 +49,7 @@ const ExercisePreviewCard = ({
     index,
     isEditing,
     topics,
+    error,
     onStartEdit,
     onStopEdit,
     onDelete,
@@ -63,9 +65,23 @@ const ExercisePreviewCard = ({
                 marginBottom: 24,
                 padding: 16,
                 borderRadius: 8,
-                border: '1px solid #d9d9d9'
+                border: error ? '1px solid #ff4d4f' : '1px solid #d9d9d9'
             }}
         >
+            {error && (
+                <div
+                    style={{
+                        marginBottom: 12,
+                        padding: 12,
+                        borderRadius: 4,
+                        backgroundColor: '#fff2f0',
+                        border: '1px solid #ffccc7',
+                        color: '#ff4d4f'
+                    }}
+                >
+                    <strong>Lỗi khi tạo bài tập:</strong> {error}
+                </div>
+            )}
             <div style={{ marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div style={{ fontSize: 16, fontWeight: 600 }}>
                     Bài tập {index + 1}:{' '}
@@ -196,13 +212,7 @@ const ExercisePreviewCard = ({
                         ]}
                     />
                 ) : (
-                    <Tag
-                        color={
-                            exercise.visibility === 'PRIVATE'
-                                ? 'red'
-                                : 'orange'
-                        }
-                    >
+                    <Tag color={exercise.visibility === 'PRIVATE' ? 'red' : 'orange'}>
                         {exercise.visibility || 'DRAFT'}
                     </Tag>
                 )}
@@ -250,14 +260,14 @@ const ExercisePreviewCard = ({
             )}
             {exercise.solution && (
                 <div style={{ marginBottom: 12 }}>
-                    <strong>Solution:</strong>
+                    <strong>Code giải mẫu:</strong>
                     {isEditing ? (
                         <Input.TextArea
                             value={exercise.solution}
                             onChange={(e) => onUpdateExercise('solution', e.target.value)}
                             rows={8}
                             style={{ marginTop: 4, fontFamily: 'monospace', fontSize: 12 }}
-                            placeholder="Nhập solution code..."
+                            placeholder="Nhập code giải mẫu..."
                         />
                     ) : (
                         <div
@@ -280,13 +290,13 @@ const ExercisePreviewCard = ({
             )}
             {isEditing && !exercise.solution && (
                 <div style={{ marginBottom: 8 }}>
-                    <strong>Solution:</strong>
+                    <strong>Code giải mẫu:</strong>
                     <Input.TextArea
                         value={exercise.solution || ''}
                         onChange={(e) => onUpdateExercise('solution', e.target.value)}
                         rows={8}
                         style={{ marginTop: 4, fontFamily: 'monospace', fontSize: 12 }}
-                        placeholder="Nhập solution code..."
+                        placeholder="Nhập code giải mẫu..."
                     />
                 </div>
             )}
@@ -332,4 +342,3 @@ const ExercisePreviewCard = ({
 };
 
 export default ExercisePreviewCard;
-
