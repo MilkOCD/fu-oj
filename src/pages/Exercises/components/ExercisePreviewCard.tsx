@@ -1,6 +1,8 @@
 import { Button, Input, InputNumber, Popconfirm, Select, Tag } from 'antd';
-import utils from '../../../utils/utils';
 import TestCaseTable from './TestCaseTable';
+import { visbilities, type Visibility } from '../../../constants/visibility';
+import { difficulties, type Difficulty } from '../../../constants/difficulty';
+import { useState } from 'react';
 
 export interface ExercisePreview {
     code: string;
@@ -31,17 +33,7 @@ interface ExercisePreviewCardProps {
     onStartEdit: () => void;
     onStopEdit: () => void;
     onDelete: () => void;
-    onUpdateExercise: (
-        field: keyof ExercisePreview,
-        value: string | number | boolean | string[] | null | undefined
-    ) => void;
-    onUpdateTestCase: (
-        testCaseIndex: number,
-        field: keyof ExercisePreview['testCases'][number],
-        value: string | boolean | undefined
-    ) => void;
-    onDeleteTestCase: (testCaseIndex: number) => void;
-    onAddTestCase: () => void;
+    onUpdateExercise: (exercisePreviewData: ExercisePreview) => void;
 }
 
 const ExercisePreviewCard = ({
@@ -53,11 +45,53 @@ const ExercisePreviewCard = ({
     onStartEdit,
     onStopEdit,
     onDelete,
-    onUpdateExercise,
-    onUpdateTestCase,
-    onDeleteTestCase,
-    onAddTestCase
+    onUpdateExercise
 }: ExercisePreviewCardProps) => {
+    const [exercisePreviewData, setExercisePreviewData] = useState(exercise);
+
+    const handleUpdateTestCase = (
+        testCaseIndex: number,
+        field: keyof ExercisePreview['testCases'][number],
+        value: string | boolean | undefined
+    ) => {
+        setExercisePreviewData((prev) => ({
+            ...prev,
+            testCases: prev.testCases.map((tc, index) => (index === testCaseIndex ? { ...tc, [field]: value } : tc))
+        }));
+    };
+
+    const handleDeleteTestCase = (testCaseIndex: number) => {
+        setExercisePreviewData((prev) => ({
+            ...prev,
+            testCases: prev.testCases.filter((_, i) => i !== testCaseIndex)
+        }));
+    };
+
+    const handleAddTestCase = () => {
+        setExercisePreviewData((prev) => {
+            const newTestCase = {
+                input: '',
+                output: '',
+                note: '',
+                isPublic: true
+            };
+            return {
+                ...prev,
+                testCases: [...prev.testCases, newTestCase]
+            };
+        });
+    };
+
+    const handleSaveExercise = () => {
+        onStopEdit();
+        onUpdateExercise(exercisePreviewData);
+    };
+
+    const handleCancelEditingExercise = () => {
+        onStopEdit();
+        setExercisePreviewData(exercise);
+    };
+
     return (
         <div
             className="ai-exercise-preview-card"
@@ -87,62 +121,69 @@ const ExercisePreviewCard = ({
                     Bài tập {index + 1}:{' '}
                     {isEditing ? (
                         <Input
-                            value={exercise.title}
-                            onChange={(e) => onUpdateExercise('title', e.target.value)}
+                            value={exercisePreviewData.title}
+                            onChange={(e) => setExercisePreviewData((prev) => ({ ...prev, title: e.target.value }))}
                             style={{ width: '60%', marginLeft: 8 }}
                         />
                     ) : (
-                        exercise.title
+                        exercisePreviewData.title
                     )}
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
                     {isEditing ? (
-                        <Button size="small" type="primary" onClick={onStopEdit}>
-                            Lưu
-                        </Button>
+                        <>
+                            <Button size="small" type="primary" onClick={handleSaveExercise}>
+                                Lưu
+                            </Button>
+                            <Button size="small" danger onClick={handleCancelEditingExercise}>
+                                Hủy
+                            </Button>
+                        </>
                     ) : (
-                        <Button size="small" onClick={onStartEdit}>
-                            Sửa
-                        </Button>
+                        <>
+                            <Button size="small" onClick={onStartEdit}>
+                                Sửa
+                            </Button>
+                            <Popconfirm
+                                title="Xóa bài tập"
+                                description="Bạn có chắc chắn muốn xóa bài tập này?"
+                                onConfirm={onDelete}
+                                okText="Xóa"
+                                cancelText="Hủy"
+                            >
+                                <Button size="small" danger>
+                                    Xóa
+                                </Button>
+                            </Popconfirm>
+                        </>
                     )}
-                    <Popconfirm
-                        title="Xóa bài tập"
-                        description="Bạn có chắc chắn muốn xóa bài tập này?"
-                        onConfirm={onDelete}
-                        okText="Xóa"
-                        cancelText="Hủy"
-                    >
-                        <Button size="small" danger>
-                            Xóa
-                        </Button>
-                    </Popconfirm>
                 </div>
             </div>
             <div style={{ marginBottom: 8 }}>
                 <strong>Mã bài tập:</strong>{' '}
                 {isEditing ? (
                     <Input
-                        value={exercise.code}
-                        onChange={(e) => onUpdateExercise('code', e.target.value)}
+                        value={exercisePreviewData.code}
+                        onChange={(e) => setExercisePreviewData((prev) => ({ ...prev, code: e.target.value }))}
                         style={{ width: '200px', marginLeft: 8 }}
                     />
                 ) : (
-                    exercise.code
+                    exercisePreviewData.code
                 )}
             </div>
-            {exercise.topicIds && exercise.topicIds.length > 0 && (
+            {exercisePreviewData.topicIds && exercisePreviewData.topicIds.length > 0 && (
                 <div style={{ marginBottom: 8 }}>
-                    <strong>Topics:</strong>{' '}
+                    <strong>Chủ đề:</strong>{' '}
                     {isEditing ? (
                         <Select
                             mode="multiple"
-                            value={exercise.topicIds}
-                            onChange={(value) => onUpdateExercise('topicIds', value)}
+                            value={exercisePreviewData.topicIds}
+                            onChange={(value) => setExercisePreviewData((prev) => ({ ...prev, topicIds: value }))}
                             style={{ width: '300px', marginLeft: 8 }}
                             options={topics}
                         />
                     ) : (
-                        exercise.topicIds.map((topicId: string) => {
+                        exercisePreviewData.topicIds.map((topicId: string) => {
                             const topic = topics.find((t) => t.value === topicId);
                             return (
                                 <Tag key={topicId} color="blue" style={{ marginRight: 4 }}>
@@ -157,146 +198,85 @@ const ExercisePreviewCard = ({
                 <strong>Độ khó:</strong>{' '}
                 {isEditing ? (
                     <Select
-                        value={exercise.difficulty}
-                        onChange={(value) => onUpdateExercise('difficulty', value)}
+                        value={exercisePreviewData.difficulty}
+                        onChange={(value) => setExercisePreviewData((prev) => ({ ...prev, difficulty: value }))}
                         style={{ width: '150px', marginLeft: 8 }}
-                        options={[
-                            { value: 'EASY', label: 'EASY' },
-                            { value: 'MEDIUM', label: 'MEDIUM' },
-                            { value: 'HARD', label: 'HARD' }
-                        ]}
+                        options={Object.entries(difficulties).map(([value, { text: label }]) => ({
+                            value,
+                            label
+                        }))}
                     />
                 ) : (
-                    utils.getDifficultyClass(exercise.difficulty)
+                    <Tag color={difficulties[exercisePreviewData.difficulty as Difficulty].color}>
+                        {difficulties[exercisePreviewData.difficulty as Difficulty].text}
+                    </Tag>
                 )}
             </div>
             <div style={{ marginBottom: 8 }}>
                 <strong>Giới hạn thời gian:</strong>{' '}
                 {isEditing ? (
                     <InputNumber
-                        value={exercise.timeLimit}
-                        onChange={(value) => onUpdateExercise('timeLimit', value)}
+                        value={exercisePreviewData.timeLimit}
+                        onChange={(value) => setExercisePreviewData((prev) => ({ ...prev, timeLimit: value ?? 0 }))}
                         min={0}
                         step={0.1}
                         style={{ width: '150px', marginLeft: 8 }}
                         addonAfter="s"
                     />
                 ) : (
-                    `${exercise.timeLimit}s`
+                    `${exercisePreviewData.timeLimit}s`
                 )}
             </div>
             <div style={{ marginBottom: 8 }}>
                 <strong>Bộ nhớ:</strong>{' '}
                 {isEditing ? (
                     <InputNumber
-                        value={exercise.memory}
-                        onChange={(value) => onUpdateExercise('memory', value)}
+                        value={exercisePreviewData.memory}
+                        onChange={(value) => setExercisePreviewData((prev) => ({ ...prev, timeLimit: value ?? 0 }))}
                         min={0}
                         style={{ width: '150px', marginLeft: 8 }}
                         addonAfter="bytes"
                     />
                 ) : (
-                    `${exercise.memory} bytes`
+                    `${exercisePreviewData.memory} bytes`
                 )}
             </div>
             <div style={{ marginBottom: 8 }}>
-                <strong>Khả năng hiển thị:</strong>{' '}
+                <strong>Hiển thị:</strong>{' '}
                 {isEditing ? (
                     <Select
-                        value={exercise.visibility}
-                        onChange={(value) => onUpdateExercise('visibility', value)}
+                        value={exercisePreviewData.visibility}
+                        onChange={(value) => setExercisePreviewData((prev) => ({ ...prev, visibility: value }))}
                         style={{ width: '150px', marginLeft: 8 }}
-                        options={[
-                            { value: 'DRAFT', label: 'DRAFT' },
-                            { value: 'PRIVATE', label: 'PRIVATE' }
-                        ]}
+                        options={Object.entries(visbilities)
+                            .filter(([visbility]) => visbility !== 'PUBLIC')
+                            .map(([value, { text: label }]) => ({
+                                value,
+                                label
+                            }))}
                     />
                 ) : (
-                    <Tag color={exercise.visibility === 'PRIVATE' ? 'red' : 'orange'}>
-                        {exercise.visibility || 'DRAFT'}
+                    <Tag color={exercisePreviewData.visibility === 'PRIVATE' ? 'red' : 'orange'}>
+                        {visbilities[(exercisePreviewData.visibility as Visibility) || 'DRAFT'].text}
                     </Tag>
                 )}
             </div>
-            {exercise.prompt && (
-                <div style={{ marginBottom: 12 }}>
-                    <strong>Prompt:</strong>
-                    {isEditing ? (
-                        <Input.TextArea
-                            value={exercise.prompt}
-                            onChange={(e) => onUpdateExercise('prompt', e.target.value)}
-                            rows={4}
-                            style={{ marginTop: 4, fontFamily: 'monospace', fontSize: 12 }}
-                            placeholder="Nhập prompt..."
-                        />
-                    ) : (
-                        <div
-                            style={{
-                                marginTop: 4,
-                                padding: 12,
-                                borderRadius: 4,
-                                border: '1px solid #d9d9d9',
-                                fontFamily: 'monospace',
-                                fontSize: 12,
-                                whiteSpace: 'pre-wrap',
-                                backgroundColor: '#fafafa'
-                            }}
-                        >
-                            {exercise.prompt}
-                        </div>
-                    )}
-                </div>
-            )}
-            {/* {isEditing && !exercise.prompt && (
-                <div style={{ marginBottom: 8 }}>
-                    <strong>Prompt:</strong>
-                    <Input.TextArea
-                        value={exercise.prompt || ''}
-                        onChange={(e) => onUpdateExercise('prompt', e.target.value)}
-                        rows={4}
-                        style={{ marginTop: 4, fontFamily: 'monospace', fontSize: 12 }}
-                        placeholder="Nhập prompt (tùy chọn)..."
-                    />
-                </div>
-            )} */}
-            {exercise.solution && (
+            {exercisePreviewData.solution && (
                 <div style={{ marginBottom: 12 }}>
                     <strong>Code giải mẫu:</strong>
-                    {isEditing ? (
-                        <Input.TextArea
-                            value={exercise.solution}
-                            onChange={(e) => onUpdateExercise('solution', e.target.value)}
-                            rows={8}
-                            style={{ marginTop: 4, fontFamily: 'monospace', fontSize: 12 }}
-                            placeholder="Nhập code giải mẫu..."
-                        />
-                    ) : (
-                        <div
-                            style={{
-                                marginTop: 4,
-                                padding: 12,
-                                borderRadius: 4,
-                                border: '1px solid #d9d9d9',
-                                fontFamily: 'monospace',
-                                fontSize: 12,
-                                whiteSpace: 'pre-wrap',
-                                maxHeight: '400px',
-                                overflowY: 'auto'
-                            }}
-                        >
-                            {exercise.solution}
-                        </div>
-                    )}
-                </div>
-            )}
-            {isEditing && !exercise.solution && (
-                <div style={{ marginBottom: 8 }}>
-                    <strong>Code giải mẫu:</strong>
                     <Input.TextArea
-                        value={exercise.solution || ''}
-                        onChange={(e) => onUpdateExercise('solution', e.target.value)}
+                        value={exercisePreviewData.solution}
+                        onChange={(e) => setExercisePreviewData((prev) => ({ ...prev, solution: e.target.value }))}
                         rows={8}
-                        style={{ marginTop: 4, fontFamily: 'monospace', fontSize: 12 }}
+                        style={{
+                            marginTop: 4,
+                            fontFamily: 'monospace',
+                            fontSize: 12,
+                            height: '400px',
+                            resize: 'none'
+                        }}
                         placeholder="Nhập code giải mẫu..."
+                        readOnly={!isEditing}
                     />
                 </div>
             )}
@@ -304,10 +284,10 @@ const ExercisePreviewCard = ({
                 <strong>Mô tả:</strong>
                 {isEditing ? (
                     <Input.TextArea
-                        value={exercise.description}
-                        onChange={(e) => onUpdateExercise('description', e.target.value)}
+                        value={exercisePreviewData.description}
+                        onChange={(e) => setExercisePreviewData((prev) => ({ ...prev, description: e.target.value }))}
                         rows={6}
-                        style={{ marginTop: 4 }}
+                        style={{ marginTop: 4, resize: 'none' }}
                     />
                 ) : (
                     <div
@@ -319,23 +299,23 @@ const ExercisePreviewCard = ({
                             whiteSpace: 'pre-wrap'
                         }}
                     >
-                        {exercise.description}
+                        {exercisePreviewData.description}
                     </div>
                 )}
             </div>
             <div style={{ marginBottom: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <strong>Test Cases ({exercise.testCases.length}):</strong>
+                <strong>Test Cases ({exercisePreviewData.testCases.length}):</strong>
                 {isEditing && (
-                    <Button size="small" type="dashed" onClick={onAddTestCase} style={{ marginBottom: 8 }}>
+                    <Button size="small" type="dashed" onClick={handleAddTestCase} style={{ marginBottom: 8 }}>
                         + Thêm test case
                     </Button>
                 )}
             </div>
             <TestCaseTable
-                testCases={exercise.testCases}
+                testCases={exercisePreviewData.testCases}
                 isEditing={isEditing}
-                onUpdateTestCase={onUpdateTestCase}
-                onDeleteTestCase={onDeleteTestCase}
+                onUpdateTestCase={handleUpdateTestCase}
+                onDeleteTestCase={handleDeleteTestCase}
             />
         </div>
     );

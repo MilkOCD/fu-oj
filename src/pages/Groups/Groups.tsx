@@ -303,7 +303,6 @@ const Groups = observer(() => {
                                                                           onClick={(e) => e.stopPropagation()}
                                                                       />
                                                                   </Popconfirm>
-                                                                  //   <SettingOutlined key="setting" />
                                                               ]
                                                             : [
                                                                   <div className="max-width pl-8 pr-8">

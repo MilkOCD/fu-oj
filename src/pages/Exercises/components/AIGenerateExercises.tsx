@@ -10,6 +10,8 @@ import ExerciseForm from './ExerciseForm';
 import type { ExercisePreview } from './ExercisePreviewCard';
 import ExercisePreviewCard from './ExercisePreviewCard';
 import { SettingOutlined } from '@ant-design/icons';
+import { visbilities, type Visibility } from '../../../constants/visibility';
+import { difficulties, type Difficulty } from '../../../constants/difficulty';
 
 type GeneratedTestCase = ExercisePreview['testCases'][number] & { id?: string | null };
 
@@ -394,50 +396,9 @@ const AIGenerateExercises = observer(() => {
         message.success('Đã khôi phục bài tập');
     };
 
-    const handleUpdateExercise = (
-        index: number,
-        field: keyof ExercisePreview,
-        value: string | number | boolean | string[] | null | undefined
-    ) => {
+    const handleUpdateExercise = (index: number, exercisePreviewData: ExercisePreview) => {
         const newExercises = [...aiPreviewExercises];
-        newExercises[index] = {
-            ...newExercises[index],
-            [field]: value
-        };
-        setAIPreviewExercises(newExercises);
-    };
-
-    const handleUpdateTestCase = (
-        exerciseIndex: number,
-        testCaseIndex: number,
-        field: keyof ExercisePreview['testCases'][number],
-        value: string | boolean | undefined
-    ) => {
-        const newExercises = [...aiPreviewExercises];
-        newExercises[exerciseIndex].testCases[testCaseIndex] = {
-            ...newExercises[exerciseIndex].testCases[testCaseIndex],
-            [field]: value
-        };
-        setAIPreviewExercises(newExercises);
-    };
-
-    const handleDeleteTestCase = (exerciseIndex: number, testCaseIndex: number) => {
-        const newExercises = [...aiPreviewExercises];
-        newExercises[exerciseIndex].testCases = newExercises[exerciseIndex].testCases.filter(
-            (_: unknown, i: number) => i !== testCaseIndex
-        );
-        setAIPreviewExercises(newExercises);
-    };
-
-    const handleAddTestCase = (exerciseIndex: number) => {
-        const newExercises = [...aiPreviewExercises];
-        const newTestCase = {
-            input: '',
-            output: '',
-            note: '',
-            isPublic: true
-        };
-        newExercises[exerciseIndex].testCases = [...newExercises[exerciseIndex].testCases, newTestCase];
+        newExercises[index] = exercisePreviewData;
         setAIPreviewExercises(newExercises);
     };
 
@@ -743,7 +704,8 @@ const AIGenerateExercises = observer(() => {
                                         {index + 1}. {exercise.title || 'Untitled'}
                                     </div>
                                     <div style={{ fontSize: 12, color: '#6b7280' }}>
-                                        Độ khó: {exercise.difficulty} • Test case: {exercise.testCases.length}
+                                        Độ khó: {difficulties[exercise.difficulty as Difficulty].text} • Test case:{' '}
+                                        {exercise.testCases.length}
                                     </div>
                                 </button>
                             );
@@ -773,7 +735,9 @@ const AIGenerateExercises = observer(() => {
                                 </div>
                                 <div>
                                     <div style={{ fontSize: 12, color: '#8c8c8c' }}>Hiển thị</div>
-                                    <div style={{ fontWeight: 600 }}>{activeExercise.visibility}</div>
+                                    <div style={{ fontWeight: 600 }}>
+                                        {visbilities[activeExercise.visibility as Visibility].text}
+                                    </div>
                                 </div>
                                 <div>
                                     <div style={{ fontSize: 12, color: '#8c8c8c' }}>Test case</div>
@@ -803,16 +767,7 @@ const AIGenerateExercises = observer(() => {
                                 onStartEdit={() => setEditingIndex(activeExerciseIndex)}
                                 onStopEdit={() => setEditingIndex(null)}
                                 onDelete={() => handleDeleteExercise(activeExerciseIndex)}
-                                onUpdateExercise={(field, value) =>
-                                    handleUpdateExercise(activeExerciseIndex, field, value)
-                                }
-                                onUpdateTestCase={(testCaseIndex, field, value) =>
-                                    handleUpdateTestCase(activeExerciseIndex, testCaseIndex, field, value)
-                                }
-                                onDeleteTestCase={(testCaseIndex: number) =>
-                                    handleDeleteTestCase(activeExerciseIndex, testCaseIndex)
-                                }
-                                onAddTestCase={() => handleAddTestCase(activeExerciseIndex)}
+                                onUpdateExercise={(data) => handleUpdateExercise(activeExerciseIndex, data)}
                             />
                             <div
                                 style={{
