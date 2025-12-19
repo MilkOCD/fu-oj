@@ -316,7 +316,7 @@ const Exams = observer(() => {
             .then((res) => {
                 let exercises = res.data;
 
-                exercises = exercises.filter((e: any) => !(e.visibility == 'DRAFT'));
+                exercises = exercises.filter((e: any) => !(e.visibility == 'DRAFT') && e?.testCases?.length > 0);
 
                 setExercises(
                     exercises.map((exercise: any) => ({
