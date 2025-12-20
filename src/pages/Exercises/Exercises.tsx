@@ -1,18 +1,18 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
     AppstoreAddOutlined,
+    CheckOutlined,
     DeleteOutlined,
     FilterOutlined,
     LineOutlined,
+    ReloadOutlined,
     RobotOutlined,
     SearchOutlined,
     SettingOutlined,
-    CheckOutlined,
-    ReloadOutlined,
     WarningFilled
 } from '@ant-design/icons';
 import type { FormProps } from 'antd';
-import { Button, Form, Input, InputNumber, Modal, Popconfirm, Popover, Select, Steps, Table, Tag } from 'antd';
+import { Button, Form, Input, Modal, Popconfirm, Popover, Select, Steps, Table, Tag } from 'antd';
 import classnames from 'classnames';
 import { observer } from 'mobx-react-lite';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -26,15 +26,14 @@ import globalStore from '../../components/GlobalComponent/globalStore';
 import LoadingOverlay from '../../components/LoadingOverlay/LoadingOverlay';
 import ProtectedElement from '../../components/ProtectedElement/ProtectedElement';
 import TooltipWrapper from '../../components/TooltipWrapper/TooltipWrapperComponent';
-import * as http from '../../lib/httpRequest';
-import httpRequest from '../../lib/httpRequest';
+import { difficulties } from '../../constants/difficulty';
+import { VISIBILITY, visbilities } from '../../constants/visibility';
+import httpRequest, * as http from '../../lib/httpRequest';
 import routesConfig from '../../routes/routesConfig';
 import authentication from '../../shared/auth/authentication';
 import utils from '../../utils/utils';
 import CourseSlider, { type CourseSliderItem } from './components/CourseSlider';
 import './exercises.scss';
-import { visbilities, VISIBILITY } from '../../constants/visibility';
-import { difficulties } from '../../constants/difficulty';
 
 const Exercises = observer(() => {
     const navigate = useNavigate();
